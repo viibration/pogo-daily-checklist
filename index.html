@@ -1,0 +1,1108 @@
+<!DOCTYPE html>
+<title>Daily Checklist</title>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<meta name="theme-color" content="#0e1620" />
+<meta name="mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+<meta name="apple-mobile-web-app-title" content="Daily Checklist" />
+<link rel="manifest" href="manifest.json" />
+<link rel="icon" href="icons/favicon.png" />
+<link rel="apple-touch-icon" href="icons/favicon.png" />
+<style>
+  :root {
+    --bg: #0e1620;
+    --panel: #16223a;
+    --panel-2: #1c2c4a;
+    --line: #2a3b52;
+    --text: #f2f6ff;
+    --text-dim: #9fb0d1;
+    --text-faint: #62729a;
+    --accent: #3fa6ff;
+    --good: #4fd8a4;
+    --bad: #ff7a68;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    min-height: 100vh;
+    background:
+      linear-gradient(rgba(14, 22, 32, 0.7), rgba(14, 22, 32, 0.7)),
+      url('background.jpg') center/cover no-repeat var(--bg);
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    font-size: 18px;
+    display: flex;
+    justify-content: center;
+    padding: 32px 16px 56px;
+  }
+
+  .page { width: 100%; max-width: 560px; }
+
+  .panel {
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    padding: 18px;
+  }
+  .panel + .panel { margin-top: 14px; }
+
+  .header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 10px;
+  }
+  .header h1 {
+    margin: 0;
+    font-size: 20px;
+  }
+  .header .date {
+    font-size: 13px;
+    color: var(--text-faint);
+  }
+
+  .header-with-back {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .back-btn {
+    flex-shrink: 0;
+    width: 34px;
+    height: 34px;
+    font: inherit;
+    font-size: 19px;
+    line-height: 1;
+    color: var(--text-dim);
+    background: var(--panel-2);
+    border: 1px solid var(--line);
+    border-radius: 7px;
+    cursor: pointer;
+  }
+  .back-btn:hover { color: var(--accent); border-color: var(--accent); }
+  .back-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+
+  .progress-track {
+    height: 8px;
+    background: var(--panel-2);
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    overflow: hidden;
+  }
+  .progress-fill {
+    height: 100%;
+    background: var(--accent);
+    border-radius: 999px;
+    transition: width 0.2s ease;
+  }
+  .progress-fill.complete { background: var(--good); }
+  .progress-label {
+    margin-top: 8px;
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--text-dim);
+    text-align: right;
+  }
+  .progress-label.complete { color: var(--good); }
+
+  .items { display: flex; flex-direction: column; gap: 8px; }
+
+  .item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    background: var(--panel-2);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 12px 14px;
+    cursor: pointer;
+    user-select: none;
+  }
+  .item:hover { border-color: var(--accent); }
+  .item:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+
+  .item .box {
+    flex-shrink: 0;
+    width: 24px;
+    height: 24px;
+    border: 2px solid var(--text-faint);
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .item .box svg {
+    width: 15px;
+    height: 15px;
+    opacity: 0;
+  }
+  .item.done .box {
+    background: var(--good);
+    border-color: var(--good);
+  }
+  .item.done .box svg { opacity: 1; }
+
+  .item .label {
+    flex: 1;
+    font-size: 17px;
+  }
+  .item.done .label {
+    color: var(--text-faint);
+    text-decoration: line-through;
+  }
+
+  .reset-btn {
+    width: 100%;
+    margin-top: 12px;
+    font: inherit;
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--text-faint);
+    background: var(--panel-2);
+    border: 1px dashed var(--line);
+    border-radius: 8px;
+    padding: 10px;
+    cursor: pointer;
+  }
+  .reset-btn:hover { color: var(--bad); border-color: var(--bad); }
+  .reset-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+
+  .accounts { display: flex; flex-direction: column; gap: 10px; }
+
+  .account-card {
+    background: var(--panel-2);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 14px;
+    cursor: pointer;
+    user-select: none;
+  }
+  .account-card:hover { border-color: var(--accent); }
+  .account-card:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+
+  .account-card .row {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    margin-bottom: 8px;
+  }
+  .account-card .name {
+    font-size: 17px;
+    font-weight: 700;
+  }
+  .account-card .count {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--text-dim);
+  }
+  .account-card .count.complete { color: var(--good); }
+
+  .account-card .progress-track { height: 6px; }
+
+  .task-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    background: var(--panel-2);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 12px 14px;
+    cursor: pointer;
+    user-select: none;
+  }
+  .task-row:hover { border-color: var(--accent); }
+  .task-row:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+
+  .task-row .label { flex: 1; font-size: 17px; }
+
+  .task-row .badge {
+    flex-shrink: 0;
+    font-size: 13px;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+    color: var(--text-dim);
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    padding: 4px 10px;
+  }
+  .task-row .badge.complete { color: var(--good); border-color: var(--good); }
+  .task-row .badge.partial { color: var(--accent); border-color: var(--accent); }
+
+  .modal-backdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(4, 8, 16, 0.7);
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    padding: 16px;
+    z-index: 10;
+  }
+  @media (min-height: 560px) {
+    .modal-backdrop { align-items: center; }
+  }
+
+  .modal-panel {
+    width: 100%;
+    max-width: 480px;
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    padding: 18px;
+  }
+
+  .modal-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 14px;
+  }
+  .modal-header .modal-title {
+    font-size: 18px;
+    font-weight: 700;
+  }
+  .modal-close {
+    flex-shrink: 0;
+    width: 34px;
+    height: 34px;
+    font: inherit;
+    font-size: 19px;
+    line-height: 1;
+    color: var(--text-faint);
+    background: var(--panel-2);
+    border: 1px solid var(--line);
+    border-radius: 7px;
+    cursor: pointer;
+  }
+  .modal-close:hover { color: var(--bad); border-color: var(--bad); }
+  .modal-close:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+
+  .check-all-btn {
+    width: 100%;
+    margin-bottom: 10px;
+    font: inherit;
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--accent);
+    background: var(--panel-2);
+    border: 1px dashed var(--line);
+    border-radius: 8px;
+    padding: 9px;
+    cursor: pointer;
+  }
+  .check-all-btn:hover { border-color: var(--accent); }
+  .check-all-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+
+  .modal-accounts { display: flex; flex-direction: column; gap: 8px; }
+
+  .modal-account-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    background: var(--panel-2);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 12px 14px;
+    cursor: pointer;
+    user-select: none;
+  }
+  .modal-account-row:hover { border-color: var(--accent); }
+  .modal-account-row:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+
+  .modal-account-row .box {
+    flex-shrink: 0;
+    width: 24px;
+    height: 24px;
+    border: 2px solid var(--text-faint);
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .modal-account-row .box svg {
+    width: 15px;
+    height: 15px;
+    opacity: 0;
+  }
+  .modal-account-row.done .box {
+    background: var(--good);
+    border-color: var(--good);
+  }
+  .modal-account-row.done .box svg { opacity: 1; }
+
+  .modal-account-row .name { flex: 1; font-size: 16px; }
+
+  .header-right { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; justify-content: flex-end; }
+
+  .status-badges {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--text-dim);
+    white-space: nowrap;
+  }
+
+  .tz-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    margin-top: 12px;
+    padding-top: 12px;
+    border-top: 1px solid var(--line);
+    flex-wrap: wrap;
+  }
+  .tz-tabs { display: flex; gap: 6px; flex-wrap: wrap; }
+  .tz-tab {
+    font: inherit;
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--text-dim);
+    background: var(--panel-2);
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    padding: 6px 12px;
+    cursor: pointer;
+  }
+  .tz-tab.active {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: #fff;
+  }
+  .tz-tab:hover { border-color: var(--accent); }
+  .tz-tab:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+  .tz-clock {
+    flex-shrink: 0;
+    font-size: 18px;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+    color: var(--accent);
+  }
+  .tz-badges-row {
+    display: flex;
+    justify-content: flex-end;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 6px;
+  }
+
+  .weekly-toggle-btn {
+    font: inherit;
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--accent);
+    background: none;
+    border: none;
+    padding: 0;
+    cursor: pointer;
+  }
+  .weekly-toggle-btn:hover { text-decoration: underline; }
+  .weekly-toggle-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+  .sync-action-btn {
+    width: 100%;
+    margin-top: 8px;
+    font: inherit;
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--accent);
+    background: var(--panel-2);
+    border: 1px dashed var(--line);
+    border-radius: 8px;
+    padding: 10px;
+    cursor: pointer;
+  }
+  .sync-action-btn:hover { border-color: var(--accent); }
+  .sync-action-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+  .sync-action-btn.copied { color: var(--good); border-color: var(--good); }
+
+  [hidden] { display: none !important; }
+</style>
+
+<div class="page">
+  <div id="view-dashboard">
+    <div class="panel">
+      <div class="header">
+        <h1>Daily Checklist</h1>
+        <div class="header-right">
+          <span class="date" id="dashboard-date-label"></span>
+        </div>
+      </div>
+      <div class="tz-row">
+        <div class="tz-tabs" id="tz-tabs"></div>
+        <div class="tz-clock" id="tz-clock">&mdash;</div>
+      </div>
+      <div class="tz-badges-row">
+        <span class="status-badges" id="tz-status-badges"></span>
+      </div>
+      <div class="tz-badges-row">
+        <button class="weekly-toggle-btn" id="weekly-toggle-btn" type="button">Show weekly events &#9662;</button>
+      </div>
+      <div id="weekly-badges-container" hidden>
+        <div class="tz-badges-row">
+          <span class="status-badges" id="badge-max-monday"></span>
+        </div>
+        <div class="tz-badges-row">
+          <span class="status-badges" id="badge-spotlight-hour"></span>
+        </div>
+        <div class="tz-badges-row">
+          <span class="status-badges" id="badge-raid-hour"></span>
+        </div>
+      </div>
+    </div>
+    <div class="panel">
+      <div class="accounts" id="accounts"></div>
+    </div>
+    <div class="panel">
+      <button class="check-all-btn" id="bulk-open-btn" type="button">Check all tasks for account(s)&hellip;</button>
+      <div class="items" id="master-tasks"></div>
+    </div>
+  </div>
+
+  <div class="modal-backdrop" id="modal-backdrop" hidden>
+    <div class="modal-panel">
+      <div class="modal-header">
+        <span class="modal-title" id="modal-title"></span>
+        <button class="modal-close" id="modal-close" type="button" aria-label="Close">&times;</button>
+      </div>
+      <button class="check-all-btn" id="modal-check-all" type="button">Check all</button>
+      <div class="modal-accounts" id="modal-accounts"></div>
+    </div>
+  </div>
+
+  <div class="modal-backdrop" id="bulk-modal-backdrop" hidden>
+    <div class="modal-panel">
+      <div class="modal-header">
+        <span class="modal-title">Check all tasks</span>
+        <button class="modal-close" id="bulk-modal-close" type="button" aria-label="Close">&times;</button>
+      </div>
+      <button class="check-all-btn" id="bulk-select-all-btn" type="button">Select all accounts</button>
+      <div class="modal-accounts" id="bulk-accounts"></div>
+      <button class="sync-action-btn" id="bulk-apply-btn" type="button">Mark all tasks done for selected</button>
+      <button class="reset-btn" id="bulk-uncheck-btn" type="button">Mark all tasks not done for selected</button>
+    </div>
+  </div>
+
+  <div id="view-checklist" hidden>
+    <div class="panel">
+      <div class="header">
+        <div class="header-with-back">
+          <button class="back-btn" id="back-btn" type="button" aria-label="Back to dashboard">&larr;</button>
+          <h1 id="account-name-label"></h1>
+        </div>
+        <span class="date" id="date-label"></span>
+      </div>
+      <div class="progress-track">
+        <div class="progress-fill" id="progress-fill"></div>
+      </div>
+      <div class="progress-label" id="progress-label"></div>
+    </div>
+
+    <div class="panel">
+      <button class="check-all-btn" id="checklist-check-all-btn" type="button">Check all</button>
+      <div class="items" id="items"></div>
+      <button class="reset-btn" id="reset-btn" type="button">Reset today's checklist</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  const tasks = [
+    { id: 'first-catch', label: 'First catch' },
+    { id: 'first-spin', label: 'First spin' },
+    { id: 'first-research', label: 'First research' },
+    { id: 'send-gifts', label: 'Send gift' },
+    { id: 'follow-route', label: 'Follow Routes' },
+    { id: 'free-mega', label: 'Free Mega Evolve' },
+    { id: 'special-trade', label: 'Special trade' },
+    { id: 'buddy-hearts', label: 'Buddy Heart(s)' },
+    { id: 'raid-boss', label: 'Raid boss' },
+    { id: 'max-raid', label: 'Max Raid' },
+    { id: 'daily-incense', label: 'Daily Incese' },
+  ];
+
+  const accountNames = [
+    'Viibration',
+    'ViictoriaZA',
+    'ViisitorXY',
+    'ViitaminEV',
+    'ViineyardistEX',
+    'ViizierSV',
+    'ViiperGX',
+    'ViillainousNX',
+  ];
+
+  function todayKey() {
+    const d = new Date();
+    const y = d.getFullYear();
+    const m = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    return `${y}-${m}-${day}`;
+  }
+
+  const STORAGE_KEY = 'pogo-daily-checklist';
+  const today = todayKey();
+
+  function emptyAccounts() {
+    const accounts = {};
+    accountNames.forEach(name => { accounts[name] = { done: {} }; });
+    return accounts;
+  }
+
+  function loadState() {
+    let stored;
+    try {
+      stored = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
+    } catch {
+      stored = {};
+    }
+    if (stored.date !== today || !stored.accounts) {
+      stored = { date: today, accounts: emptyAccounts() };
+      saveState(stored);
+    }
+    accountNames.forEach(name => {
+      if (!stored.accounts[name]) stored.accounts[name] = { done: {} };
+    });
+    return stored;
+  }
+
+  function saveState(state) {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+  }
+
+  let state = loadState();
+  let currentAccount = null;
+
+  const viewDashboard = document.getElementById('view-dashboard');
+  const viewChecklist = document.getElementById('view-checklist');
+  const dashboardDateLabelEl = document.getElementById('dashboard-date-label');
+  const accountsEl = document.getElementById('accounts');
+  const masterTasksEl = document.getElementById('master-tasks');
+
+  const modalBackdrop = document.getElementById('modal-backdrop');
+  const modalTitleEl = document.getElementById('modal-title');
+  const modalAccountsEl = document.getElementById('modal-accounts');
+  const modalCloseBtn = document.getElementById('modal-close');
+  const modalCheckAllBtn = document.getElementById('modal-check-all');
+  let modalTaskId = null;
+
+  const accountNameLabelEl = document.getElementById('account-name-label');
+  const dateLabelEl = document.getElementById('date-label');
+  const itemsEl = document.getElementById('items');
+  const progressFillEl = document.getElementById('progress-fill');
+  const progressLabelEl = document.getElementById('progress-label');
+  const resetBtn = document.getElementById('reset-btn');
+  const backBtn = document.getElementById('back-btn');
+  const checklistCheckAllBtn = document.getElementById('checklist-check-all-btn');
+
+  // Thai weekday/month names, formatted as "ศุกร์ 8 สิงหาคม" - no "วัน"
+  // prefix or "ที่" suffix, since Intl's th-TH long format adds those.
+  const thaiWeekdays = ['อาทิตย์', 'จันทร์', 'อังคาร', 'พุธ', 'พฤหัสบดี', 'ศุกร์', 'เสาร์'];
+  const thaiMonths = [
+    'มกราคม', 'กุมภาพันธ์', 'มีนาคม', 'เมษายน', 'พฤษภาคม', 'มิถุนายน',
+    'กรกฎาคม', 'สิงหาคม', 'กันยายน', 'ตุลาคม', 'พฤศจิกายน', 'ธันวาคม',
+  ];
+
+  function thaiDateStr(date) {
+    return `${thaiWeekdays[date.getDay()]}, ${date.getDate()} ${thaiMonths[date.getMonth()]}`;
+  }
+
+  // Reserves each clock label's width for the longest possible Thai
+  // weekday/month combo up front, so it doesn't visibly grow/shrink as
+  // the weekday, day, or month text changes length.
+  const CLOCK_WORST_CASE = 'พฤหัสบดี, 31 กุมภาพันธ์ · 23:59 น.';
+  let _measureCanvas = null;
+  function measureTextWidth(text, font) {
+    if (!_measureCanvas) _measureCanvas = document.createElement('canvas');
+    const ctx = _measureCanvas.getContext('2d');
+    ctx.font = font;
+    return ctx.measureText(text).width;
+  }
+  function fixClockWidth(el) {
+    const style = getComputedStyle(el);
+    const font = `${style.fontWeight} ${style.fontSize} ${style.fontFamily}`;
+    const width = measureTextWidth(CLOCK_WORST_CASE, font);
+    el.style.display = 'inline-block';
+    el.style.minWidth = Math.ceil(width) + 'px';
+    el.style.textAlign = 'right';
+    el.style.whiteSpace = 'nowrap';
+  }
+
+  // Raid Battles: can appear 5:00 AM-7:45 PM local and stay active ~45min
+  // after spawning, so the last one is battlable until ~8:30 PM.
+  // Max Battles: run 6:00 AM-9:00 PM local at Power Spots.
+  // Evaluated against the selected/converted timezone, not this device's
+  // own local time.
+  // Returns whether a window (openMin-closeMin, in minutes-of-day) is
+  // currently open, plus minutes until it closes (if open) or opens next
+  // (if closed, wrapping to tomorrow when already past today's open time).
+  function windowStatus(mins, openMin, closeMin) {
+    if (mins >= openMin && mins <= closeMin) {
+      return { available: true, remainingMin: closeMin - mins };
+    }
+    const untilOpen = mins < openMin ? openMin - mins : (24 * 60 - mins) + openMin;
+    return { available: false, remainingMin: untilOpen };
+  }
+
+  function formatDuration(totalMin) {
+    const h = Math.floor(totalMin / 60);
+    const m = totalMin % 60;
+    return h > 0 ? `${h}h, ${m}m` : `${m}m`;
+  }
+
+  function badgePiece(status, label) {
+    const dot = !status.available ? '🔴' : (status.remainingMin <= 60 ? '🟠' : '🟢');
+    return `${dot} ${label} (${formatDuration(status.remainingMin)})`;
+  }
+
+  function renderStatusBadges(el, date) {
+    const mins = date.getHours() * 60 + date.getMinutes();
+    const raid = windowStatus(mins, 5 * 60, 20 * 60 + 30);
+    const max = windowStatus(mins, 6 * 60, 21 * 60);
+    el.textContent = `${badgePiece(raid, 'Raid')}  ${badgePiece(max, 'Max Battle')}`;
+  }
+
+  // Weekly 1-hour boosted events, all 6-7 PM local on their day:
+  // Max Monday (Mon), Spotlight Hour (Tue), Raid Hour (Wed).
+  // date.getDay(): Sun=0, Mon=1, Tue=2, Wed=3.
+  function isMaxMonday(date) {
+    return date.getDay() === 1 && date.getHours() === 18;
+  }
+  function isSpotlightHour(date) {
+    return date.getDay() === 2 && date.getHours() === 18;
+  }
+  function isRaidHour(date) {
+    return date.getDay() === 3 && date.getHours() === 18;
+  }
+  const WEEKLY_HOUR_RANGE = '18:00 - 19:00 น.';
+
+  function renderWeeklyBadges(maxMonEl, spotlightEl, raidHourEl, date) {
+    const maxMonDot = isMaxMonday(date) ? '🟢' : '🔴';
+    const spotlightDot = isSpotlightHour(date) ? '🟢' : '🔴';
+    const raidHourDot = isRaidHour(date) ? '🟢' : '🔴';
+    maxMonEl.textContent = `${maxMonDot} Max Monday (${WEEKLY_HOUR_RANGE})`;
+    spotlightEl.textContent = `${spotlightDot} Spotlight Hour (${WEEKLY_HOUR_RANGE})`;
+    raidHourEl.textContent = `${raidHourDot} Raid Hour (${WEEKLY_HOUR_RANGE})`;
+  }
+
+  function updateOwnClock() {
+    const now = new Date();
+    const hh = String(now.getHours()).padStart(2, '0');
+    const mm = String(now.getMinutes()).padStart(2, '0');
+    const text = `${thaiDateStr(now)} · ${hh}:${mm} น.`;
+    dashboardDateLabelEl.textContent = text;
+    dateLabelEl.textContent = text;
+  }
+
+  fixClockWidth(dashboardDateLabelEl);
+  fixClockWidth(dateLabelEl);
+  updateOwnClock();
+
+  // --- Timezone converter ---
+  const timezones = [
+    { key: 'ny', label: 'New York', tz: 'America/New_York' },
+    { key: 'bangkok', label: 'Bangkok', tz: 'Asia/Bangkok' },
+    { key: 'tokyo', label: 'Tokyo', tz: 'Asia/Tokyo' },
+    { key: 'spain', label: 'Spain', tz: 'Europe/Madrid' },
+  ];
+  let currentTz = 'ny';
+
+  const tzTabsEl = document.getElementById('tz-tabs');
+  const tzClockEl = document.getElementById('tz-clock');
+  const tzStatusBadgesEl = document.getElementById('tz-status-badges');
+  const badgeMaxMondayEl = document.getElementById('badge-max-monday');
+  const badgeSpotlightHourEl = document.getElementById('badge-spotlight-hour');
+  const badgeRaidHourEl = document.getElementById('badge-raid-hour');
+
+  const weeklyToggleBtn = document.getElementById('weekly-toggle-btn');
+  const weeklyBadgesContainer = document.getElementById('weekly-badges-container');
+  weeklyToggleBtn.addEventListener('click', () => {
+    const nowHidden = !weeklyBadgesContainer.hidden;
+    weeklyBadgesContainer.hidden = nowHidden;
+    weeklyToggleBtn.textContent = nowHidden ? 'Show weekly events ▾' : 'Hide weekly events ▴';
+  });
+
+  // Computed live (not hardcoded) so it stays correct across daylight
+  // saving changes - e.g. New York flips between UTC-5 and UTC-4.
+  function tzOffsetLabel(tz) {
+    try {
+      const parts = new Intl.DateTimeFormat('en-US', { timeZone: tz, timeZoneName: 'shortOffset' }).formatToParts(new Date());
+      const part = parts.find(p => p.type === 'timeZoneName');
+      return part ? part.value.replace('GMT', 'UTC') : '';
+    } catch {
+      return '';
+    }
+  }
+
+  function renderTzTabs() {
+    tzTabsEl.innerHTML = '';
+    timezones.forEach(z => {
+      const btn = document.createElement('button');
+      btn.className = 'tz-tab' + (z.key === currentTz ? ' active' : '');
+      btn.type = 'button';
+      btn.textContent = `${z.label} (${tzOffsetLabel(z.tz)})`;
+      btn.addEventListener('click', () => {
+        currentTz = z.key;
+        renderTzTabs();
+        updateTzClock();
+      });
+      tzTabsEl.appendChild(btn);
+    });
+  }
+
+  function updateTzClock() {
+    const zone = timezones.find(z => z.key === currentTz);
+    const now = new Date();
+    // Round-trips through a locale string in the target zone so the
+    // resulting Date's local getters (getDay/getDate/getMonth/getHours/
+    // getMinutes) read as that zone's wall-clock time.
+    const zoned = new Date(now.toLocaleString('en-US', { timeZone: zone.tz }));
+    const hh = String(zoned.getHours()).padStart(2, '0');
+    const mm = String(zoned.getMinutes()).padStart(2, '0');
+    const text = `${thaiDateStr(zoned)} · ${hh}:${mm} น.`;
+    tzClockEl.textContent = text;
+    renderStatusBadges(tzStatusBadgesEl, zoned);
+    renderWeeklyBadges(badgeMaxMondayEl, badgeSpotlightHourEl, badgeRaidHourEl, zoned);
+  }
+
+  renderTzTabs();
+  fixClockWidth(tzClockEl);
+  updateTzClock();
+  setInterval(() => {
+    updateOwnClock();
+    updateTzClock();
+  }, 30000);
+
+  function countDone(name) {
+    const done = state.accounts[name].done;
+    return tasks.filter(t => done[t.id]).length;
+  }
+
+  function renderDashboard() {
+    accountsEl.innerHTML = '';
+    accountNames.forEach(name => {
+      const doneCount = countDone(name);
+      const total = tasks.length;
+      const pct = total ? (doneCount / total) * 100 : 0;
+      const complete = doneCount === total;
+
+      const card = document.createElement('div');
+      card.className = 'account-card';
+      card.tabIndex = 0;
+      card.setAttribute('role', 'button');
+      card.innerHTML = `
+        <div class="row">
+          <span class="name">${name}</span>
+          <span class="count${complete ? ' complete' : ''}">${doneCount} / ${total}</span>
+        </div>
+        <div class="progress-track">
+          <div class="progress-fill${complete ? ' complete' : ''}" style="width: ${pct}%"></div>
+        </div>
+      `;
+      card.addEventListener('click', () => openAccount(name));
+      card.addEventListener('keydown', (e) => {
+        if (e.key === ' ' || e.key === 'Enter') {
+          e.preventDefault();
+          openAccount(name);
+        }
+      });
+      accountsEl.appendChild(card);
+    });
+
+    renderMasterTasks();
+  }
+
+  function accountsDoneFor(taskId) {
+    return accountNames.filter(name => !!state.accounts[name].done[taskId]);
+  }
+
+  function renderMasterTasks() {
+    masterTasksEl.innerHTML = '';
+    tasks.forEach(task => {
+      const doneAccounts = accountsDoneFor(task.id);
+      const total = accountNames.length;
+      const complete = doneAccounts.length === total;
+      const partial = doneAccounts.length > 0 && !complete;
+
+      const row = document.createElement('div');
+      row.className = 'task-row';
+      row.tabIndex = 0;
+      row.setAttribute('role', 'button');
+      row.innerHTML = `
+        <span class="label">${task.label}</span>
+        <span class="badge${complete ? ' complete' : ''}${partial ? ' partial' : ''}">${doneAccounts.length} / ${total}</span>
+      `;
+      row.addEventListener('click', () => openModal(task.id));
+      row.addEventListener('keydown', (e) => {
+        if (e.key === ' ' || e.key === 'Enter') {
+          e.preventDefault();
+          openModal(task.id);
+        }
+      });
+      masterTasksEl.appendChild(row);
+    });
+  }
+
+  function openModal(taskId) {
+    modalTaskId = taskId;
+    const task = tasks.find(t => t.id === taskId);
+    modalTitleEl.textContent = task.label;
+    renderModalAccounts();
+    modalBackdrop.hidden = false;
+  }
+
+  function closeModal() {
+    modalTaskId = null;
+    modalBackdrop.hidden = true;
+  }
+
+  function renderModalAccounts() {
+    modalAccountsEl.innerHTML = '';
+    accountNames.forEach(name => {
+      const done = !!state.accounts[name].done[modalTaskId];
+      const row = document.createElement('div');
+      row.className = 'modal-account-row' + (done ? ' done' : '');
+      row.tabIndex = 0;
+      row.setAttribute('role', 'checkbox');
+      row.setAttribute('aria-checked', String(done));
+      row.innerHTML = `
+        <span class="box">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#0e1620" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="4 12 10 18 20 6"></polyline>
+          </svg>
+        </span>
+        <span class="name">${name}</span>
+      `;
+      row.addEventListener('click', () => toggleModalAccount(name));
+      row.addEventListener('keydown', (e) => {
+        if (e.key === ' ' || e.key === 'Enter') {
+          e.preventDefault();
+          toggleModalAccount(name);
+        }
+      });
+      modalAccountsEl.appendChild(row);
+    });
+
+    const allDone = accountNames.every(name => !!state.accounts[name].done[modalTaskId]);
+    modalCheckAllBtn.textContent = allDone ? 'Uncheck all' : 'Check all';
+  }
+
+  function toggleModalAccount(name) {
+    const done = state.accounts[name].done;
+    done[modalTaskId] = !done[modalTaskId];
+    saveState(state);
+    renderModalAccounts();
+    renderDashboard();
+  }
+
+  modalCheckAllBtn.addEventListener('click', () => {
+    const allDone = accountNames.every(name => !!state.accounts[name].done[modalTaskId]);
+    accountNames.forEach(name => {
+      state.accounts[name].done[modalTaskId] = !allDone;
+    });
+    saveState(state);
+    renderModalAccounts();
+    renderDashboard();
+  });
+
+  modalCloseBtn.addEventListener('click', closeModal);
+  modalBackdrop.addEventListener('click', (e) => {
+    if (e.target === modalBackdrop) closeModal();
+  });
+
+  // --- Bulk complete: mark every task done for one or more accounts ---
+  const bulkOpenBtn = document.getElementById('bulk-open-btn');
+  const bulkModalBackdrop = document.getElementById('bulk-modal-backdrop');
+  const bulkModalCloseBtn = document.getElementById('bulk-modal-close');
+  const bulkAccountsEl = document.getElementById('bulk-accounts');
+  const bulkSelectAllBtn = document.getElementById('bulk-select-all-btn');
+  const bulkApplyBtn = document.getElementById('bulk-apply-btn');
+  const bulkUncheckBtn = document.getElementById('bulk-uncheck-btn');
+  let bulkSelected = new Set();
+
+  function openBulkModal() {
+    bulkSelected = new Set();
+    renderBulkAccounts();
+    bulkModalBackdrop.hidden = false;
+  }
+
+  function closeBulkModal() {
+    bulkModalBackdrop.hidden = true;
+  }
+
+  function renderBulkAccounts() {
+    bulkAccountsEl.innerHTML = '';
+    accountNames.forEach(name => {
+      const selected = bulkSelected.has(name);
+      const row = document.createElement('div');
+      row.className = 'modal-account-row' + (selected ? ' done' : '');
+      row.tabIndex = 0;
+      row.setAttribute('role', 'checkbox');
+      row.setAttribute('aria-checked', String(selected));
+      row.innerHTML = `
+        <span class="box">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#0e1620" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="4 12 10 18 20 6"></polyline>
+          </svg>
+        </span>
+        <span class="name">${name}</span>
+      `;
+      row.addEventListener('click', () => toggleBulkAccount(name));
+      row.addEventListener('keydown', (e) => {
+        if (e.key === ' ' || e.key === 'Enter') {
+          e.preventDefault();
+          toggleBulkAccount(name);
+        }
+      });
+      bulkAccountsEl.appendChild(row);
+    });
+
+    const allSelected = accountNames.every(name => bulkSelected.has(name));
+    bulkSelectAllBtn.textContent = allSelected ? 'Deselect all accounts' : 'Select all accounts';
+  }
+
+  function toggleBulkAccount(name) {
+    if (bulkSelected.has(name)) bulkSelected.delete(name);
+    else bulkSelected.add(name);
+    renderBulkAccounts();
+  }
+
+  bulkOpenBtn.addEventListener('click', openBulkModal);
+  bulkModalCloseBtn.addEventListener('click', closeBulkModal);
+  bulkModalBackdrop.addEventListener('click', (e) => {
+    if (e.target === bulkModalBackdrop) closeBulkModal();
+  });
+
+  bulkSelectAllBtn.addEventListener('click', () => {
+    const allSelected = accountNames.every(name => bulkSelected.has(name));
+    if (allSelected) bulkSelected.clear();
+    else accountNames.forEach(name => bulkSelected.add(name));
+    renderBulkAccounts();
+  });
+
+  bulkApplyBtn.addEventListener('click', () => {
+    if (bulkSelected.size === 0) return;
+    bulkSelected.forEach(name => {
+      tasks.forEach(t => { state.accounts[name].done[t.id] = true; });
+    });
+    saveState(state);
+    renderDashboard();
+    closeBulkModal();
+  });
+
+  bulkUncheckBtn.addEventListener('click', () => {
+    if (bulkSelected.size === 0) return;
+    bulkSelected.forEach(name => {
+      tasks.forEach(t => { state.accounts[name].done[t.id] = false; });
+    });
+    saveState(state);
+    renderDashboard();
+    closeBulkModal();
+  });
+
+  function openAccount(name) {
+    currentAccount = name;
+    accountNameLabelEl.textContent = name;
+    viewDashboard.hidden = true;
+    viewChecklist.hidden = false;
+    renderChecklist();
+  }
+
+  function closeAccount() {
+    currentAccount = null;
+    viewChecklist.hidden = true;
+    viewDashboard.hidden = false;
+    renderDashboard();
+  }
+
+  backBtn.addEventListener('click', closeAccount);
+
+  function renderChecklist() {
+    const done = state.accounts[currentAccount].done;
+
+    itemsEl.innerHTML = '';
+    tasks.forEach(task => {
+      const isDone = !!done[task.id];
+      const row = document.createElement('div');
+      row.className = 'item' + (isDone ? ' done' : '');
+      row.tabIndex = 0;
+      row.setAttribute('role', 'checkbox');
+      row.setAttribute('aria-checked', String(isDone));
+      row.innerHTML = `
+        <span class="box">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#0e1620" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="4 12 10 18 20 6"></polyline>
+          </svg>
+        </span>
+        <span class="label">${task.label}</span>
+      `;
+      row.addEventListener('click', () => toggle(task.id));
+      row.addEventListener('keydown', (e) => {
+        if (e.key === ' ' || e.key === 'Enter') {
+          e.preventDefault();
+          toggle(task.id);
+        }
+      });
+      itemsEl.appendChild(row);
+    });
+
+    const doneCount = countDone(currentAccount);
+    const total = tasks.length;
+    const pct = total ? (doneCount / total) * 100 : 0;
+    const complete = doneCount === total;
+    progressFillEl.style.width = `${pct}%`;
+    progressFillEl.classList.toggle('complete', complete);
+    progressLabelEl.textContent = `${doneCount} / ${total} done`;
+    progressLabelEl.classList.toggle('complete', complete);
+    checklistCheckAllBtn.textContent = complete ? 'Uncheck all' : 'Check all';
+  }
+
+  function toggle(id) {
+    const done = state.accounts[currentAccount].done;
+    done[id] = !done[id];
+    saveState(state);
+    renderChecklist();
+  }
+
+  checklistCheckAllBtn.addEventListener('click', () => {
+    const done = state.accounts[currentAccount].done;
+    const allDone = tasks.every(t => !!done[t.id]);
+    tasks.forEach(t => { done[t.id] = !allDone; });
+    saveState(state);
+    renderChecklist();
+  });
+
+  resetBtn.addEventListener('click', () => {
+    state.accounts[currentAccount] = { done: {} };
+    saveState(state);
+    renderChecklist();
+  });
+
+  renderDashboard();
+
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker
+        .register('sw.js', { updateViaCache: 'none' })
+        .then(reg => reg.update())
+        .catch(() => {});
+    });
+
+    // sw.js calls skipWaiting()+clients.claim(), so once a new worker
+    // activates, reload once to pick up the fresh assets instead of
+    // requiring an uninstall/reinstall on mobile.
+    let refreshedOnce = false;
+    navigator.serviceWorker.addEventListener('controllerchange', () => {
+      if (refreshedOnce) return;
+      refreshedOnce = true;
+      window.location.reload();
+    });
+  }
+</script>
