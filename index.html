@@ -1166,7 +1166,7 @@
 <script type="module">
   import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.13.2/firebase-app.js';
   import {
-    getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged,
+    getAuth, GoogleAuthProvider, signInWithRedirect, getRedirectResult, signOut, onAuthStateChanged,
   } from 'https://www.gstatic.com/firebasejs/10.13.2/firebase-auth.js';
   import {
     getDatabase, ref, set, onValue,
@@ -1187,10 +1187,12 @@
   const db = getDatabase(app);
   const provider = new GoogleAuthProvider();
 
+  // Popups don't reliably report back to an installed/standalone PWA
+  // window (no dependable window.opener link in that display mode), so
+  // sign-in uses a full-page redirect instead - navigates to Google and
+  // back rather than opening a second window.
   window.fbSignIn = () => {
-    signInWithPopup(auth, provider).catch((err) => {
-      alert('Sign-in failed: ' + err.message);
-    });
+    signInWithRedirect(auth, provider);
   };
 
   window.fbSignOut = () => signOut(auth);
@@ -1198,6 +1200,10 @@
   window.fbSetChecklist = (uid, data) => {
     set(ref(db, 'checklist/' + uid), data).catch(() => {});
   };
+
+  getRedirectResult(auth).catch((err) => {
+    alert('Sign-in failed: ' + err.message);
+  });
 
   let unsubscribeChecklist = null;
 
