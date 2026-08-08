@@ -336,7 +336,17 @@
 
   .modal-account-row .name { flex: 1; font-size: 16px; }
 
-  .header-right { display: flex; align-items: center; gap: 8px; }
+  .header-right { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; justify-content: flex-end; }
+
+  .status-badges {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--text-dim);
+    white-space: nowrap;
+  }
 
   .icon-btn {
     flex-shrink: 0;
@@ -354,52 +364,62 @@
   .icon-btn:hover { color: var(--accent); border-color: var(--accent); }
   .icon-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
 
-  .sync-section { margin-bottom: 16px; }
-  .sync-section:last-child { margin-bottom: 0; }
-  .sync-label {
+  .tz-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    margin-top: 12px;
+    padding-top: 12px;
+    border-top: 1px solid var(--line);
+    flex-wrap: wrap;
+  }
+  .tz-tabs { display: flex; gap: 6px; flex-wrap: wrap; }
+  .tz-tab {
+    font: inherit;
     font-size: 13px;
     font-weight: 700;
     color: var(--text-dim);
-    margin-bottom: 8px;
-  }
-  .sync-textarea {
-    width: 100%;
-    font: inherit;
-    font-size: 13px;
-    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
-    color: var(--text);
     background: var(--panel-2);
     border: 1px solid var(--line);
-    border-radius: 8px;
-    padding: 10px;
-    resize: vertical;
-    word-break: break-all;
+    border-radius: 999px;
+    padding: 6px 12px;
+    cursor: pointer;
   }
-  .sync-textarea:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
-
-  .sync-boxes {
+  .tz-tab.active {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: #fff;
+  }
+  .tz-tab:hover { border-color: var(--accent); }
+  .tz-tab:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+  .tz-badges-row {
     display: flex;
-    align-items: center;
-    justify-content: center;
+    justify-content: flex-end;
     flex-wrap: wrap;
-    gap: 4px;
+    gap: 8px;
+    margin-top: 6px;
   }
-  .sync-box {
-    width: 46px;
-    min-width: 0;
+
+  .weekly-toggle-btn {
     font: inherit;
-    font-size: 14px;
-    text-align: center;
-    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
-    color: var(--text);
-    background: var(--panel-2);
-    border: 1px solid var(--line);
-    border-radius: 8px;
-    padding: 10px 4px;
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--accent);
+    background: none;
+    border: none;
+    padding: 0;
+    cursor: pointer;
   }
-  .sync-box:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
-  .sync-box[readonly] { color: var(--text-dim); }
-  .sync-dash { color: var(--text-faint); font-weight: 700; flex-shrink: 0; }
+  .weekly-toggle-btn:hover { text-decoration: underline; }
+  .weekly-toggle-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  .tz-clock {
+    flex-shrink: 0;
+    font-size: 14px;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+    color: var(--text);
+  }
 
   .sync-action-btn {
     width: 100%;
@@ -429,7 +449,27 @@
         <div class="header-right">
           <span class="date" id="dashboard-date-label"></span>
           <button class="icon-btn" id="auth-btn" type="button" aria-label="Sign in to sync automatically">&#128100;</button>
-          <button class="icon-btn" id="sync-btn" type="button" aria-label="Sync devices">&#8645;</button>
+        </div>
+      </div>
+      <div class="tz-row">
+        <div class="tz-tabs" id="tz-tabs"></div>
+        <div class="tz-clock" id="tz-clock">&mdash;</div>
+      </div>
+      <div class="tz-badges-row">
+        <span class="status-badges" id="tz-status-badges"></span>
+      </div>
+      <div class="tz-badges-row">
+        <button class="weekly-toggle-btn" id="weekly-toggle-btn" type="button">Show weekly events &#9662;</button>
+      </div>
+      <div id="weekly-badges-container" hidden>
+        <div class="tz-badges-row">
+          <span class="status-badges" id="badge-max-monday"></span>
+        </div>
+        <div class="tz-badges-row">
+          <span class="status-badges" id="badge-spotlight-hour"></span>
+        </div>
+        <div class="tz-badges-row">
+          <span class="status-badges" id="badge-raid-hour"></span>
         </div>
       </div>
     </div>
@@ -463,26 +503,6 @@
       <div class="modal-accounts" id="bulk-accounts"></div>
       <button class="sync-action-btn" id="bulk-apply-btn" type="button">Mark all tasks done for selected</button>
       <button class="reset-btn" id="bulk-uncheck-btn" type="button">Mark all tasks not done for selected</button>
-    </div>
-  </div>
-
-  <div class="modal-backdrop" id="sync-modal-backdrop" hidden>
-    <div class="modal-panel">
-      <div class="modal-header">
-        <span class="modal-title">Sync devices</span>
-        <button class="modal-close" id="sync-modal-close" type="button" aria-label="Close">&times;</button>
-      </div>
-      <div class="sync-section">
-        <div class="sync-label">This device's code &mdash; copy it, then paste into your other device</div>
-        <div class="sync-boxes" id="sync-export-boxes"></div>
-        <button class="sync-action-btn" id="sync-copy-btn" type="button">Copy code</button>
-      </div>
-      <div class="sync-section">
-        <div class="sync-label">Paste a code from your other device</div>
-        <div class="sync-boxes" id="sync-import-boxes"></div>
-        <button class="sync-action-btn" id="sync-paste-btn" type="button">Paste code</button>
-        <button class="sync-action-btn" id="sync-apply-btn" type="button">Apply &amp; overwrite this device</button>
-      </div>
     </div>
   </div>
 
@@ -525,8 +545,8 @@
   ];
 
   const accountNames = [
-    'ViictoriaZA',
     'Viibration',
+    'ViictoriaZA',
     'ViisitorXY',
     'ViitaminEV',
     'ViineyardistEX',
@@ -606,11 +626,181 @@
   const backBtn = document.getElementById('back-btn');
   const checklistCheckAllBtn = document.getElementById('checklist-check-all-btn');
 
-  const dateStr = new Date().toLocaleDateString(undefined, {
-    weekday: 'short', month: 'short', day: 'numeric',
+  // Thai weekday/month names, formatted as "ศุกร์ 8 สิงหาคม" - no "วัน"
+  // prefix or "ที่" suffix, since Intl's th-TH long format adds those.
+  const thaiWeekdays = ['อาทิตย์', 'จันทร์', 'อังคาร', 'พุธ', 'พฤหัสบดี', 'ศุกร์', 'เสาร์'];
+  const thaiMonths = [
+    'มกราคม', 'กุมภาพันธ์', 'มีนาคม', 'เมษายน', 'พฤษภาคม', 'มิถุนายน',
+    'กรกฎาคม', 'สิงหาคม', 'กันยายน', 'ตุลาคม', 'พฤศจิกายน', 'ธันวาคม',
+  ];
+
+  function thaiDateStr(date) {
+    return `${thaiWeekdays[date.getDay()]}, ${date.getDate()} ${thaiMonths[date.getMonth()]}`;
+  }
+
+  // Reserves each clock label's width for the longest possible Thai
+  // weekday/month combo up front, so it doesn't visibly grow/shrink as
+  // the weekday, day, or month text changes length.
+  const CLOCK_WORST_CASE = 'พฤหัสบดี, 31 กุมภาพันธ์ · 23:59 น.';
+  let _measureCanvas = null;
+  function measureTextWidth(text, font) {
+    if (!_measureCanvas) _measureCanvas = document.createElement('canvas');
+    const ctx = _measureCanvas.getContext('2d');
+    ctx.font = font;
+    return ctx.measureText(text).width;
+  }
+  function fixClockWidth(el) {
+    const style = getComputedStyle(el);
+    const font = `${style.fontWeight} ${style.fontSize} ${style.fontFamily}`;
+    const width = measureTextWidth(CLOCK_WORST_CASE, font);
+    el.style.display = 'inline-block';
+    el.style.minWidth = Math.ceil(width) + 'px';
+    el.style.textAlign = 'right';
+    el.style.whiteSpace = 'nowrap';
+  }
+
+  // Raid Battles: can appear 5:00 AM-7:45 PM local and stay active ~45min
+  // after spawning, so the last one is battlable until ~8:30 PM.
+  // Max Battles: run 6:00 AM-9:00 PM local at Power Spots.
+  // Evaluated against the selected/converted timezone, not this device's
+  // own local time.
+  // Returns whether a window (openMin-closeMin, in minutes-of-day) is
+  // currently open, plus minutes until it closes (if open) or opens next
+  // (if closed, wrapping to tomorrow when already past today's open time).
+  function windowStatus(mins, openMin, closeMin) {
+    if (mins >= openMin && mins <= closeMin) {
+      return { available: true, remainingMin: closeMin - mins };
+    }
+    const untilOpen = mins < openMin ? openMin - mins : (24 * 60 - mins) + openMin;
+    return { available: false, remainingMin: untilOpen };
+  }
+
+  function formatDuration(totalMin) {
+    const h = Math.floor(totalMin / 60);
+    const m = totalMin % 60;
+    return h > 0 ? `${h}h, ${m}m` : `${m}m`;
+  }
+
+  function badgePiece(status, label) {
+    const dot = !status.available ? '🔴' : (status.remainingMin <= 60 ? '🟠' : '🟢');
+    return `${dot} ${label} (${formatDuration(status.remainingMin)})`;
+  }
+
+  function renderStatusBadges(el, date) {
+    const mins = date.getHours() * 60 + date.getMinutes();
+    const raid = windowStatus(mins, 5 * 60, 20 * 60 + 30);
+    const max = windowStatus(mins, 6 * 60, 21 * 60);
+    el.textContent = `${badgePiece(raid, 'Raid')}  ${badgePiece(max, 'Max Battle')}`;
+  }
+
+  // Weekly 1-hour boosted events, all 6-7 PM local on their day:
+  // Max Monday (Mon), Spotlight Hour (Tue), Raid Hour (Wed).
+  // date.getDay(): Sun=0, Mon=1, Tue=2, Wed=3.
+  function isMaxMonday(date) {
+    return date.getDay() === 1 && date.getHours() === 18;
+  }
+  function isSpotlightHour(date) {
+    return date.getDay() === 2 && date.getHours() === 18;
+  }
+  function isRaidHour(date) {
+    return date.getDay() === 3 && date.getHours() === 18;
+  }
+  const WEEKLY_HOUR_RANGE = '18:00 - 19:00 น.';
+
+  function renderWeeklyBadges(maxMonEl, spotlightEl, raidHourEl, date) {
+    const maxMonDot = isMaxMonday(date) ? '🟢' : '🔴';
+    const spotlightDot = isSpotlightHour(date) ? '🟢' : '🔴';
+    const raidHourDot = isRaidHour(date) ? '🟢' : '🔴';
+    maxMonEl.textContent = `${maxMonDot} Max Monday (${WEEKLY_HOUR_RANGE})`;
+    spotlightEl.textContent = `${spotlightDot} Spotlight Hour (${WEEKLY_HOUR_RANGE})`;
+    raidHourEl.textContent = `${raidHourDot} Raid Hour (${WEEKLY_HOUR_RANGE})`;
+  }
+
+  function updateOwnClock() {
+    const now = new Date();
+    const timeStr = now.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', hour12: false });
+    const text = `${thaiDateStr(now)} · ${timeStr} น.`;
+    dashboardDateLabelEl.textContent = text;
+    dateLabelEl.textContent = text;
+  }
+
+  fixClockWidth(dashboardDateLabelEl);
+  fixClockWidth(dateLabelEl);
+  updateOwnClock();
+
+  // --- Timezone converter ---
+  const timezones = [
+    { key: 'ny', label: 'New York', tz: 'America/New_York' },
+    { key: 'bangkok', label: 'Bangkok', tz: 'Asia/Bangkok' },
+    { key: 'tokyo', label: 'Tokyo', tz: 'Asia/Tokyo' },
+    { key: 'spain', label: 'Spain', tz: 'Europe/Madrid' },
+  ];
+  let currentTz = 'ny';
+
+  const tzTabsEl = document.getElementById('tz-tabs');
+  const tzClockEl = document.getElementById('tz-clock');
+  const tzStatusBadgesEl = document.getElementById('tz-status-badges');
+  const badgeMaxMondayEl = document.getElementById('badge-max-monday');
+  const badgeSpotlightHourEl = document.getElementById('badge-spotlight-hour');
+  const badgeRaidHourEl = document.getElementById('badge-raid-hour');
+
+  const weeklyToggleBtn = document.getElementById('weekly-toggle-btn');
+  const weeklyBadgesContainer = document.getElementById('weekly-badges-container');
+  weeklyToggleBtn.addEventListener('click', () => {
+    const nowHidden = !weeklyBadgesContainer.hidden;
+    weeklyBadgesContainer.hidden = nowHidden;
+    weeklyToggleBtn.textContent = nowHidden ? 'Show weekly events ▾' : 'Hide weekly events ▴';
   });
-  dashboardDateLabelEl.textContent = dateStr;
-  dateLabelEl.textContent = dateStr;
+
+  // Computed live (not hardcoded) so it stays correct across daylight
+  // saving changes - e.g. New York flips between UTC-5 and UTC-4.
+  function tzOffsetLabel(tz) {
+    try {
+      const parts = new Intl.DateTimeFormat('en-US', { timeZone: tz, timeZoneName: 'shortOffset' }).formatToParts(new Date());
+      const part = parts.find(p => p.type === 'timeZoneName');
+      return part ? part.value.replace('GMT', 'UTC') : '';
+    } catch {
+      return '';
+    }
+  }
+
+  function renderTzTabs() {
+    tzTabsEl.innerHTML = '';
+    timezones.forEach(z => {
+      const btn = document.createElement('button');
+      btn.className = 'tz-tab' + (z.key === currentTz ? ' active' : '');
+      btn.type = 'button';
+      btn.textContent = `${z.label} (${tzOffsetLabel(z.tz)})`;
+      btn.addEventListener('click', () => {
+        currentTz = z.key;
+        renderTzTabs();
+        updateTzClock();
+      });
+      tzTabsEl.appendChild(btn);
+    });
+  }
+
+  function updateTzClock() {
+    const zone = timezones.find(z => z.key === currentTz);
+    const now = new Date();
+    // Round-trips through a locale string in the target zone so the
+    // resulting Date's local getters (getDay/getDate/getMonth/getHours/
+    // getMinutes) read as that zone's wall-clock time.
+    const zoned = new Date(now.toLocaleString('en-US', { timeZone: zone.tz }));
+    const hh = String(zoned.getHours()).padStart(2, '0');
+    const mm = String(zoned.getMinutes()).padStart(2, '0');
+    tzClockEl.textContent = `${thaiDateStr(zoned)} · ${hh}:${mm} น.`;
+    renderStatusBadges(tzStatusBadgesEl, zoned);
+    renderWeeklyBadges(badgeMaxMondayEl, badgeSpotlightHourEl, badgeRaidHourEl, zoned);
+  }
+
+  renderTzTabs();
+  fixClockWidth(tzClockEl);
+  updateTzClock();
+  setInterval(() => {
+    updateOwnClock();
+    updateTzClock();
+  }, 30000);
 
   function countDone(name) {
     const done = state.accounts[name].done;
@@ -837,177 +1027,6 @@
     saveState(state);
     renderDashboard();
     closeBulkModal();
-  });
-
-  // --- Manual device sync ---
-  // Encodes the whole state blob (all accounts, today's date) as a
-  // copy-pasteable code. Applying a code fully overwrites this device's
-  // state with the other device's, so always copy from whichever device
-  // has the most up-to-date checks.
-  const syncBtn = document.getElementById('sync-btn');
-  const syncModalBackdrop = document.getElementById('sync-modal-backdrop');
-  const syncModalCloseBtn = document.getElementById('sync-modal-close');
-  const syncExportBoxesEl = document.getElementById('sync-export-boxes');
-  const syncCopyBtn = document.getElementById('sync-copy-btn');
-  const syncImportBoxesEl = document.getElementById('sync-import-boxes');
-  const syncApplyBtn = document.getElementById('sync-apply-btn');
-  const syncPasteBtn = document.getElementById('sync-paste-btn');
-
-  // Builds accountNames.length small <input> boxes separated by dashes,
-  // one per account's mask. Returns the input elements in order.
-  function buildSyncBoxes(container, { readonly }) {
-    container.innerHTML = '';
-    const boxes = [];
-    accountNames.forEach((name, i) => {
-      if (i > 0) {
-        const dash = document.createElement('span');
-        dash.className = 'sync-dash';
-        dash.textContent = '-';
-        container.appendChild(dash);
-      }
-      const box = document.createElement('input');
-      box.type = 'text';
-      box.className = 'sync-box';
-      box.maxLength = 3;
-      box.autocomplete = 'off';
-      box.spellcheck = false;
-      if (readonly) box.readOnly = true;
-      container.appendChild(box);
-      boxes.push(box);
-    });
-    return boxes;
-  }
-
-  const syncExportBoxes = buildSyncBoxes(syncExportBoxesEl, { readonly: true });
-  const syncImportBoxes = buildSyncBoxes(syncImportBoxesEl, { readonly: false });
-
-  // Fills every import box at once from a full "3-0-a1-0-0" code, instead
-  // of needing it dumped into a single 3-char input. Returns true if the
-  // text matched the expected shape.
-  function fillImportBoxes(text) {
-    const parts = text.trim().split('-');
-    if (parts.length !== syncImportBoxes.length) return false;
-    parts.forEach((p, i) => { syncImportBoxes[i].value = p.trim(); });
-    syncImportBoxes[syncImportBoxes.length - 1].focus();
-    return true;
-  }
-
-  syncImportBoxes.forEach(box => {
-    box.addEventListener('paste', (e) => {
-      const text = (e.clipboardData || window.clipboardData).getData('text');
-      if (fillImportBoxes(text)) e.preventDefault();
-    });
-  });
-
-  // One-tap paste from the OS clipboard instead of long-pressing a box
-  // and using the browser's own paste menu.
-  syncPasteBtn.addEventListener('click', async () => {
-    let text;
-    try {
-      text = await navigator.clipboard.readText();
-    } catch {
-      alert("Couldn't read the clipboard automatically — long-press a box and paste manually instead.");
-      return;
-    }
-    if (!fillImportBoxes(text)) {
-      alert("Clipboard doesn't look like a valid code. Copy the full code from the other device first.");
-    }
-  });
-
-  // Compact format instead of base64(JSON): since both devices run the
-  // same app, accounts/tasks are known and fixed, so each account's 15
-  // done-flags pack into one base36 bitmask. "20260725-0-1ff8-0-4-1"
-  // instead of a few hundred characters of JSON.
-  // No date in the code — applying a code always stamps it with this
-  // device's "today", since sync is meant for same-day phone/PC use.
-  function encodeState(s) {
-    const masks = accountNames.map(name => {
-      let mask = 0;
-      const done = (s.accounts[name] && s.accounts[name].done) || {};
-      tasks.forEach((t, i) => {
-        if (done[t.id]) mask |= (1 << i);
-      });
-      return mask.toString(36);
-    });
-    return masks.join('-');
-  }
-
-  function decodeState(code) {
-    const parts = code.trim().split('-');
-    if (parts.length !== accountNames.length) throw new Error('bad code');
-
-    const accounts = {};
-    accountNames.forEach((name, idx) => {
-      const mask = parseInt(parts[idx], 36);
-      if (isNaN(mask)) throw new Error('bad code');
-      const done = {};
-      tasks.forEach((t, i) => {
-        if (mask & (1 << i)) done[t.id] = true;
-      });
-      accounts[name] = { done };
-    });
-    return { date: today, accounts };
-  }
-
-  function openSyncModal() {
-    const masks = encodeState(state).split('-');
-    syncExportBoxes.forEach((box, i) => { box.value = masks[i]; });
-    syncImportBoxes.forEach(box => { box.value = ''; });
-    syncCopyBtn.textContent = 'Copy code';
-    syncCopyBtn.classList.remove('copied');
-    syncModalBackdrop.hidden = false;
-  }
-
-  function closeSyncModal() {
-    syncModalBackdrop.hidden = true;
-  }
-
-  syncBtn.addEventListener('click', openSyncModal);
-  syncModalCloseBtn.addEventListener('click', closeSyncModal);
-  syncModalBackdrop.addEventListener('click', (e) => {
-    if (e.target === syncModalBackdrop) closeSyncModal();
-  });
-
-  syncCopyBtn.addEventListener('click', async () => {
-    const code = syncExportBoxes.map(box => box.value).join('-');
-    try {
-      await navigator.clipboard.writeText(code);
-    } catch {
-      const tempInput = document.createElement('textarea');
-      tempInput.value = code;
-      tempInput.style.position = 'fixed';
-      tempInput.style.opacity = '0';
-      document.body.appendChild(tempInput);
-      tempInput.select();
-      document.execCommand('copy');
-      document.body.removeChild(tempInput);
-    }
-    syncCopyBtn.textContent = 'Copied!';
-    syncCopyBtn.classList.add('copied');
-  });
-
-  syncApplyBtn.addEventListener('click', () => {
-    const code = syncImportBoxes.map(box => box.value.trim()).join('-');
-    if (!code || code.replace(/-/g, '') === '') return;
-
-    let imported;
-    try {
-      imported = decodeState(code);
-    } catch {
-      imported = null;
-    }
-    if (!imported || typeof imported !== 'object' || !imported.accounts) {
-      alert("That code doesn't look right. Double-check you copied the whole thing.");
-      return;
-    }
-
-    const ok = confirm("This will overwrite this device's checklist with the pasted data. Continue?");
-    if (!ok) return;
-
-    state = imported;
-    saveState(state);
-    renderDashboard();
-    closeSyncModal();
   });
 
   function openAccount(name) {
