@@ -387,24 +387,12 @@
   }
   .tz-badges-row {
     display: flex;
-    justify-content: flex-end;
+    justify-content: space-between;
+    align-items: center;
     flex-wrap: wrap;
     gap: 8px;
     margin-top: 6px;
   }
-
-  .weekly-toggle-btn {
-    font: inherit;
-    font-size: 12px;
-    font-weight: 700;
-    color: var(--accent);
-    background: none;
-    border: none;
-    padding: 0;
-    cursor: pointer;
-  }
-  .weekly-toggle-btn:hover { text-decoration: underline; }
-  .weekly-toggle-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 
   .sync-action-btn {
     width: 100%;
@@ -431,30 +419,30 @@
     <div class="panel">
       <div class="header">
         <h1>Daily Checklist</h1>
-        <div class="header-right">
-          <span class="date" id="dashboard-date-label"></span>
-        </div>
       </div>
       <div class="tz-row">
         <div class="tz-tabs" id="tz-tabs"></div>
         <div class="tz-clock" id="tz-clock">&mdash;</div>
       </div>
       <div class="tz-badges-row">
-        <span class="status-badges" id="tz-status-badges"></span>
+        <span class="status-badges" id="badge-raid-label"></span>
+        <span class="status-badges" id="badge-raid-time"></span>
       </div>
       <div class="tz-badges-row">
-        <button class="weekly-toggle-btn" id="weekly-toggle-btn" type="button">Show weekly events &#9662;</button>
+        <span class="status-badges" id="badge-max-battle-label"></span>
+        <span class="status-badges" id="badge-max-battle-time"></span>
       </div>
-      <div id="weekly-badges-container" hidden>
-        <div class="tz-badges-row">
-          <span class="status-badges" id="badge-max-monday"></span>
-        </div>
-        <div class="tz-badges-row">
-          <span class="status-badges" id="badge-spotlight-hour"></span>
-        </div>
-        <div class="tz-badges-row">
-          <span class="status-badges" id="badge-raid-hour"></span>
-        </div>
+      <div class="tz-badges-row">
+        <span class="status-badges" id="badge-max-monday-label"></span>
+        <span class="status-badges" id="badge-max-monday-time"></span>
+      </div>
+      <div class="tz-badges-row">
+        <span class="status-badges" id="badge-spotlight-hour-label"></span>
+        <span class="status-badges" id="badge-spotlight-hour-time"></span>
+      </div>
+      <div class="tz-badges-row">
+        <span class="status-badges" id="badge-raid-hour-label"></span>
+        <span class="status-badges" id="badge-raid-hour-time"></span>
       </div>
     </div>
     <div class="panel">
@@ -497,7 +485,6 @@
           <button class="back-btn" id="back-btn" type="button" aria-label="Back to dashboard">&larr;</button>
           <h1 id="account-name-label"></h1>
         </div>
-        <span class="date" id="date-label"></span>
       </div>
       <div class="progress-track">
         <div class="progress-fill" id="progress-fill"></div>
@@ -582,7 +569,6 @@
 
   const viewDashboard = document.getElementById('view-dashboard');
   const viewChecklist = document.getElementById('view-checklist');
-  const dashboardDateLabelEl = document.getElementById('dashboard-date-label');
   const accountsEl = document.getElementById('accounts');
   const masterTasksEl = document.getElementById('master-tasks');
 
@@ -594,7 +580,6 @@
   let modalTaskId = null;
 
   const accountNameLabelEl = document.getElementById('account-name-label');
-  const dateLabelEl = document.getElementById('date-label');
   const itemsEl = document.getElementById('items');
   const progressFillEl = document.getElementById('progress-fill');
   const progressLabelEl = document.getElementById('progress-label');
@@ -657,16 +642,24 @@
     return h > 0 ? `${h}h, ${m}m` : `${m}m`;
   }
 
-  function badgePiece(status, label) {
-    const dot = !status.available ? '🔴' : (status.remainingMin <= 60 ? '🟠' : '🟢');
-    return `${dot} ${label} (${formatDuration(status.remainingMin)})`;
+  function badgeDot(status) {
+    return !status.available ? '🔴' : (status.remainingMin <= 60 ? '🟠' : '🟢');
   }
 
-  function renderStatusBadges(el, date) {
+  // Sets the left (circle + name) and right (value) halves of one badge
+  // row separately, so the circle+name stays pinned to the left edge no
+  // matter how wide the trailing value text is.
+  function setBadgeRow(labelEl, timeEl, dot, label, timeText) {
+    labelEl.textContent = `${dot} ${label}`;
+    timeEl.textContent = timeText;
+  }
+
+  function renderStatusBadges(raidLabelEl, raidTimeEl, maxLabelEl, maxTimeEl, date) {
     const mins = date.getHours() * 60 + date.getMinutes();
     const raid = windowStatus(mins, 5 * 60, 20 * 60 + 30);
     const max = windowStatus(mins, 6 * 60, 21 * 60);
-    el.textContent = `${badgePiece(raid, 'Raid')}  ${badgePiece(max, 'Max Battle')}`;
+    setBadgeRow(raidLabelEl, raidTimeEl, badgeDot(raid), 'Raid', `(${formatDuration(raid.remainingMin)})`);
+    setBadgeRow(maxLabelEl, maxTimeEl, badgeDot(max), 'Max Battle', `(${formatDuration(max.remainingMin)})`);
   }
 
   // Weekly 1-hour boosted events, all 6-7 PM local on their day:
@@ -683,27 +676,11 @@
   }
   const WEEKLY_HOUR_RANGE = '18:00 - 19:00 น.';
 
-  function renderWeeklyBadges(maxMonEl, spotlightEl, raidHourEl, date) {
-    const maxMonDot = isMaxMonday(date) ? '🟢' : '🔴';
-    const spotlightDot = isSpotlightHour(date) ? '🟢' : '🔴';
-    const raidHourDot = isRaidHour(date) ? '🟢' : '🔴';
-    maxMonEl.textContent = `${maxMonDot} Max Monday (${WEEKLY_HOUR_RANGE})`;
-    spotlightEl.textContent = `${spotlightDot} Spotlight Hour (${WEEKLY_HOUR_RANGE})`;
-    raidHourEl.textContent = `${raidHourDot} Raid Hour (${WEEKLY_HOUR_RANGE})`;
+  function renderWeeklyBadges(maxMonLabelEl, maxMonTimeEl, spotlightLabelEl, spotlightTimeEl, raidHourLabelEl, raidHourTimeEl, date) {
+    setBadgeRow(maxMonLabelEl, maxMonTimeEl, isMaxMonday(date) ? '🟢' : '🔴', 'Max Monday', `(${WEEKLY_HOUR_RANGE})`);
+    setBadgeRow(spotlightLabelEl, spotlightTimeEl, isSpotlightHour(date) ? '🟢' : '🔴', 'Spotlight Hour', `(${WEEKLY_HOUR_RANGE})`);
+    setBadgeRow(raidHourLabelEl, raidHourTimeEl, isRaidHour(date) ? '🟢' : '🔴', 'Raid Hour', `(${WEEKLY_HOUR_RANGE})`);
   }
-
-  function updateOwnClock() {
-    const now = new Date();
-    const hh = String(now.getHours()).padStart(2, '0');
-    const mm = String(now.getMinutes()).padStart(2, '0');
-    const text = `${thaiDateStr(now)} · ${hh}:${mm} น.`;
-    dashboardDateLabelEl.textContent = text;
-    dateLabelEl.textContent = text;
-  }
-
-  fixClockWidth(dashboardDateLabelEl);
-  fixClockWidth(dateLabelEl);
-  updateOwnClock();
 
   // --- Timezone converter ---
   const timezones = [
@@ -716,18 +693,16 @@
 
   const tzTabsEl = document.getElementById('tz-tabs');
   const tzClockEl = document.getElementById('tz-clock');
-  const tzStatusBadgesEl = document.getElementById('tz-status-badges');
-  const badgeMaxMondayEl = document.getElementById('badge-max-monday');
-  const badgeSpotlightHourEl = document.getElementById('badge-spotlight-hour');
-  const badgeRaidHourEl = document.getElementById('badge-raid-hour');
-
-  const weeklyToggleBtn = document.getElementById('weekly-toggle-btn');
-  const weeklyBadgesContainer = document.getElementById('weekly-badges-container');
-  weeklyToggleBtn.addEventListener('click', () => {
-    const nowHidden = !weeklyBadgesContainer.hidden;
-    weeklyBadgesContainer.hidden = nowHidden;
-    weeklyToggleBtn.textContent = nowHidden ? 'Show weekly events ▾' : 'Hide weekly events ▴';
-  });
+  const badgeRaidLabelEl = document.getElementById('badge-raid-label');
+  const badgeRaidTimeEl = document.getElementById('badge-raid-time');
+  const badgeMaxBattleLabelEl = document.getElementById('badge-max-battle-label');
+  const badgeMaxBattleTimeEl = document.getElementById('badge-max-battle-time');
+  const badgeMaxMondayLabelEl = document.getElementById('badge-max-monday-label');
+  const badgeMaxMondayTimeEl = document.getElementById('badge-max-monday-time');
+  const badgeSpotlightHourLabelEl = document.getElementById('badge-spotlight-hour-label');
+  const badgeSpotlightHourTimeEl = document.getElementById('badge-spotlight-hour-time');
+  const badgeRaidHourLabelEl = document.getElementById('badge-raid-hour-label');
+  const badgeRaidHourTimeEl = document.getElementById('badge-raid-hour-time');
 
   // Computed live (not hardcoded) so it stays correct across daylight
   // saving changes - e.g. New York flips between UTC-5 and UTC-4.
@@ -768,15 +743,19 @@
     const mm = String(zoned.getMinutes()).padStart(2, '0');
     const text = `${thaiDateStr(zoned)} · ${hh}:${mm} น.`;
     tzClockEl.textContent = text;
-    renderStatusBadges(tzStatusBadgesEl, zoned);
-    renderWeeklyBadges(badgeMaxMondayEl, badgeSpotlightHourEl, badgeRaidHourEl, zoned);
+    renderStatusBadges(badgeRaidLabelEl, badgeRaidTimeEl, badgeMaxBattleLabelEl, badgeMaxBattleTimeEl, zoned);
+    renderWeeklyBadges(
+      badgeMaxMondayLabelEl, badgeMaxMondayTimeEl,
+      badgeSpotlightHourLabelEl, badgeSpotlightHourTimeEl,
+      badgeRaidHourLabelEl, badgeRaidHourTimeEl,
+      zoned
+    );
   }
 
   renderTzTabs();
   fixClockWidth(tzClockEl);
   updateTzClock();
   setInterval(() => {
-    updateOwnClock();
     updateTzClock();
   }, 30000);
 
