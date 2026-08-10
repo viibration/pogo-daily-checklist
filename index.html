@@ -50,6 +50,14 @@
   }
   .panel + .panel { margin-top: 14px; }
 
+  #view-dashboard > .panel:first-child,
+  #view-checklist > .panel:first-child {
+    position: sticky;
+    top: 0;
+    z-index: 5;
+    box-shadow: 0 10px 14px -10px rgba(0, 0, 0, 0.5);
+  }
+
   .header {
     display: flex;
     align-items: center;
