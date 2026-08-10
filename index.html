@@ -843,11 +843,11 @@
     modalTitleEl.textContent = task.label;
     renderModalAccounts();
     modalBackdrop.hidden = false;
+    history.pushState({ view: 'modal' }, '');
   }
 
   function closeModal() {
-    modalTaskId = null;
-    modalBackdrop.hidden = true;
+    if (!modalBackdrop.hidden) history.back();
   }
 
   function renderModalAccounts() {
@@ -918,10 +918,11 @@
     bulkSelected = new Set();
     renderBulkAccounts();
     bulkModalBackdrop.hidden = false;
+    history.pushState({ view: 'bulk-modal' }, '');
   }
 
   function closeBulkModal() {
-    bulkModalBackdrop.hidden = true;
+    if (!bulkModalBackdrop.hidden) history.back();
   }
 
   function renderBulkAccounts() {
@@ -1000,16 +1001,37 @@
     viewDashboard.hidden = true;
     viewChecklist.hidden = false;
     renderChecklist();
+    history.pushState({ view: 'checklist' }, '');
   }
 
   function closeAccount() {
-    currentAccount = null;
-    viewChecklist.hidden = true;
-    viewDashboard.hidden = false;
-    renderDashboard();
+    if (!viewChecklist.hidden) history.back();
   }
 
   backBtn.addEventListener('click', closeAccount);
+
+  // Intercept the hardware/gesture back action so it navigates within the
+  // app (closing the topmost open modal/view) instead of exiting the PWA.
+  // Every open* function above pushes a history entry; this handler is the
+  // single place that performs the matching close, whether triggered by a
+  // real back press or by history.back() called from a close button.
+  window.addEventListener('popstate', () => {
+    if (!modalBackdrop.hidden) {
+      modalTaskId = null;
+      modalBackdrop.hidden = true;
+      return;
+    }
+    if (!bulkModalBackdrop.hidden) {
+      bulkModalBackdrop.hidden = true;
+      return;
+    }
+    if (!viewChecklist.hidden) {
+      currentAccount = null;
+      viewChecklist.hidden = true;
+      viewDashboard.hidden = false;
+      renderDashboard();
+    }
+  });
 
   function renderChecklist() {
     const done = state.accounts[currentAccount].done;
