@@ -675,24 +675,25 @@
     setBadgeRow(maxLabelEl, maxTimeEl, badgeDot(max), 'Max Battle', `(${formatDuration(max.remainingMin)})`);
   }
 
-  // Weekly 1-hour boosted events, all 6-7 PM local on their day:
-  // Max Monday (Mon), Spotlight Hour (Tue), Raid Hour (Wed).
-  // date.getDay(): Sun=0, Mon=1, Tue=2, Wed=3.
+  // Weekly boosted events:
+  // Max Monday (Mon, 6-9 AM), Spotlight Hour (Thu, 6-7 PM), Raid Hour (Wed, 6-7 PM).
+  // date.getDay(): Sun=0, Mon=1, Tue=2, Wed=3, Thu=4.
   function isMaxMonday(date) {
-    return date.getDay() === 1 && date.getHours() === 18;
+    return date.getDay() === 1 && date.getHours() >= 6 && date.getHours() < 9;
   }
   function isSpotlightHour(date) {
-    return date.getDay() === 2 && date.getHours() === 18;
+    return date.getDay() === 4 && date.getHours() === 18;
   }
   function isRaidHour(date) {
     return date.getDay() === 3 && date.getHours() === 18;
   }
+  const MAX_MONDAY_HOUR_RANGE = '06:00 - 09:00 น.';
   const WEEKLY_HOUR_RANGE = '18:00 - 19:00 น.';
 
   function renderWeeklyBadges(maxMonLabelEl, maxMonTimeEl, spotlightLabelEl, spotlightTimeEl, raidHourLabelEl, raidHourTimeEl, date) {
-    setBadgeRow(maxMonLabelEl, maxMonTimeEl, isMaxMonday(date) ? '🟢' : '🔴', 'Max Monday', `(${WEEKLY_HOUR_RANGE})`);
-    setBadgeRow(spotlightLabelEl, spotlightTimeEl, isSpotlightHour(date) ? '🟢' : '🔴', 'Spotlight Hour', `(${WEEKLY_HOUR_RANGE})`);
-    setBadgeRow(raidHourLabelEl, raidHourTimeEl, isRaidHour(date) ? '🟢' : '🔴', 'Raid Hour', `(${WEEKLY_HOUR_RANGE})`);
+    setBadgeRow(maxMonLabelEl, maxMonTimeEl, isMaxMonday(date) ? '🟢' : '🔴', 'Max Monday', `(${MAX_MONDAY_HOUR_RANGE})`);
+    setBadgeRow(spotlightLabelEl, spotlightTimeEl, isSpotlightHour(date) ? '🟢' : '🔴', 'Spotlight Hour (วันพฤหัส)', `(${WEEKLY_HOUR_RANGE})`);
+    setBadgeRow(raidHourLabelEl, raidHourTimeEl, isRaidHour(date) ? '🟢' : '🔴', 'Raid Hour (วันพุธ)', `(${WEEKLY_HOUR_RANGE})`);
   }
 
   // --- Timezone converter ---
