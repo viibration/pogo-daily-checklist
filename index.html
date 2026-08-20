@@ -621,6 +621,7 @@
           <button class="particle-btn" type="button" data-all-amt="-5">-5</button>
         </div>
       </div>
+      <button class="reset-btn" id="particles-reset-all-btn" type="button">Reset all accounts to 0</button>
     </div>
   </div>
 
@@ -653,6 +654,7 @@
           <button class="particle-btn" type="button" data-amt="-5">-5</button>
         </div>
       </div>
+      <button class="reset-btn" id="particle-detail-reset-btn" type="button">Reset to 0</button>
     </div>
   </div>
 </div>
@@ -699,6 +701,24 @@
     return `${y}-${m}-${day}`;
   }
 
+  // Max Particles reset on its own schedule (5 AM New York, matching the
+  // game's actual reset time) rather than the checklist's New York
+  // midnight boundary, so it needs its own "day" key.
+  function particleDayKey() {
+    const parts = new Intl.DateTimeFormat('en-CA', {
+      timeZone: 'America/New_York',
+      year: 'numeric', month: '2-digit', day: '2-digit',
+      hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false,
+    }).formatToParts(new Date());
+    const get = (t) => Number(parts.find(p => p.type === t).value);
+    const asUtc = Date.UTC(get('year'), get('month') - 1, get('day'), get('hour') % 24, get('minute'), get('second'));
+    const shifted = new Date(asUtc - 5 * 60 * 60 * 1000);
+    const y = shifted.getUTCFullYear();
+    const m = String(shifted.getUTCMonth() + 1).padStart(2, '0');
+    const d = String(shifted.getUTCDate()).padStart(2, '0');
+    return `${y}-${m}-${d}`;
+  }
+
   const STORAGE_KEY = 'pogo-daily-checklist';
   const today = todayKey();
 
@@ -716,13 +736,24 @@
       stored = {};
     }
     if (stored.date !== today || !stored.accounts) {
-      stored = { date: today, accounts: emptyAccounts() };
-      saveState(stored);
+      const prevAccounts = stored.accounts || {};
+      stored = { date: today, particleDate: stored.particleDate, accounts: emptyAccounts() };
+      accountNames.forEach(name => {
+        if (prevAccounts[name]) stored.accounts[name].particles = prevAccounts[name].particles || 0;
+      });
     }
     accountNames.forEach(name => {
       if (!stored.accounts[name]) stored.accounts[name] = { done: {}, particles: 0 };
       if (typeof stored.accounts[name].particles !== 'number') stored.accounts[name].particles = 0;
     });
+
+    const pDay = particleDayKey();
+    if (stored.particleDate !== pDay) {
+      accountNames.forEach(name => { stored.accounts[name].particles = 0; });
+      stored.particleDate = pDay;
+    }
+
+    saveState(stored);
     return stored;
   }
 
@@ -1216,6 +1247,12 @@
     btn.addEventListener('click', () => adjustAllParticles(Number(btn.dataset.allAmt)));
   });
 
+  document.getElementById('particles-reset-all-btn').addEventListener('click', () => {
+    accountNames.forEach(name => { state.accounts[name].particles = 0; });
+    saveState(state);
+    renderParticleList();
+  });
+
   function renderParticleDetail() {
     const name = currentParticleAccount;
     const total = state.accounts[name].particles || 0;
@@ -1250,6 +1287,12 @@
 
   document.querySelectorAll('#view-particle-detail .particle-btn[data-amt]').forEach(btn => {
     btn.addEventListener('click', () => adjustParticles(Number(btn.dataset.amt)));
+  });
+
+  document.getElementById('particle-detail-reset-btn').addEventListener('click', () => {
+    state.accounts[currentParticleAccount].particles = 0;
+    saveState(state);
+    renderParticleDetail();
   });
 
   function openParticles() {
