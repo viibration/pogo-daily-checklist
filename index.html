@@ -387,7 +387,8 @@
   .particle-btn:hover { border-color: var(--accent); }
   .particle-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
 
-  .modal-accounts { display: flex; flex-direction: column; gap: 8px; }
+  .modal-accounts { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  #bulk-modal-backdrop .modal-accounts { margin-top: 12px; }
 
   .modal-account-row {
     display: flex;
@@ -424,7 +425,14 @@
   }
   .modal-account-row.done .box svg { opacity: 1; }
 
-  .modal-account-row .name { flex: 1; font-size: 16px; }
+  .modal-account-row .name {
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-size: 16px;
+  }
 
   .header-right { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; justify-content: flex-end; }
 
@@ -562,9 +570,9 @@
         <button class="modal-close" id="bulk-modal-close" type="button" aria-label="Close">&times;</button>
       </div>
       <button class="check-all-btn" id="bulk-select-all-btn" type="button">Select all accounts</button>
-      <div class="modal-accounts" id="bulk-accounts"></div>
       <button class="sync-action-btn" id="bulk-apply-btn" type="button">Mark all tasks done for selected</button>
       <button class="reset-btn" id="bulk-uncheck-btn" type="button">Mark all tasks not done for selected</button>
+      <div class="modal-accounts" id="bulk-accounts"></div>
     </div>
   </div>
 
