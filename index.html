@@ -50,6 +50,38 @@
   }
   .panel + .panel { margin-top: 14px; }
 
+  .panel-theme-rose { background: #33202a; border-color: rgba(224, 122, 158, 0.5); }
+  .panel-theme-rose .check-all-btn { background: #291920; color: #e07a9e; border-color: rgba(224, 122, 158, 0.4); }
+  .panel-theme-rose .check-all-btn:hover { border-color: #e07a9e; }
+  .panel-theme-rose .task-row { background: #291920; border-color: rgba(224, 122, 158, 0.4); }
+  .panel-theme-rose .task-row:hover { border-color: #e07a9e; }
+  .panel-theme-rose .task-row .badge { background: #33202a; border-color: rgba(224, 122, 158, 0.4); color: #e07a9e; }
+
+  .panel-theme-teal { background: #16332f; border-color: rgba(79, 216, 216, 0.5); }
+  .panel-theme-teal .particle-actions-label { color: #4fd8d8; }
+  .panel-theme-teal .particle-btn { background: #102723; color: #4fd8d8; border-color: rgba(79, 216, 216, 0.4); }
+  .panel-theme-teal .particle-btn:hover { border-color: #4fd8d8; }
+  .panel-theme-teal .reset-btn { color: #4fd8d8; border-color: rgba(79, 216, 216, 0.4); }
+  .panel-theme-teal .reset-btn:hover { color: #4fd8d8; border-color: #4fd8d8; }
+
+  .panel-theme-amber { background: #3a2a18; border-color: rgba(255, 169, 77, 0.5); }
+  .panel-theme-amber .particle-actions-label { color: #ffa94d; }
+  .panel-theme-amber .particle-btn { background: #2f2213; color: #ffa94d; border-color: rgba(255, 169, 77, 0.4); }
+  .panel-theme-amber .particle-btn:hover { border-color: #ffa94d; }
+
+  .panel-theme-violet { background: #2a2140; border-color: rgba(179, 137, 255, 0.5); }
+  .panel-theme-violet .particle-actions-label { color: #b389ff; }
+  .panel-theme-violet .particle-btn { background: #221b34; color: #b389ff; border-color: rgba(179, 137, 255, 0.4); }
+  .panel-theme-violet .particle-btn:hover { border-color: #b389ff; }
+
+  .panel-theme-gold { background: #232a3a; border-color: rgba(138, 148, 173, 0.5); }
+  .panel-theme-gold .particle-actions-label { color: #8a94ad; }
+  .panel-theme-gold .particle-manual-name { color: #8a94ad; }
+  .panel-theme-gold .particle-btn { background: #1c2230; color: #8a94ad; border-color: rgba(138, 148, 173, 0.4); }
+  .panel-theme-gold .particle-btn:hover { border-color: #8a94ad; }
+  .panel-theme-gold .particle-manual-input { background: #1c2230; }
+  .panel-theme-gold .particle-manual-input:focus-visible { outline-color: #8a94ad; }
+
   #view-dashboard > .panel:first-child,
   #view-checklist > .panel:first-child,
   #view-particles > .panel:first-child,
@@ -421,7 +453,8 @@
   }
 
   .modal-accounts { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
-  #bulk-modal-backdrop .modal-accounts { margin-top: 12px; }
+  #bulk-modal-backdrop .modal-accounts,
+  #spend-modal-backdrop .modal-accounts { margin-top: 12px; }
 
   .modal-account-row {
     display: flex;
@@ -579,7 +612,7 @@
     <div class="panel">
       <div class="accounts" id="accounts"></div>
     </div>
-    <div class="panel">
+    <div class="panel panel-theme-rose">
       <button class="check-all-btn" id="bulk-open-btn" type="button">Check all tasks for account(s)&hellip;</button>
       <div class="items" id="master-tasks"></div>
     </div>
@@ -606,6 +639,18 @@
       <button class="sync-action-btn" id="bulk-apply-btn" type="button">Mark all tasks done for selected</button>
       <button class="reset-btn" id="bulk-uncheck-btn" type="button">Mark all tasks not done for selected</button>
       <div class="modal-accounts" id="bulk-accounts"></div>
+    </div>
+  </div>
+
+  <div class="modal-backdrop" id="spend-modal-backdrop" hidden>
+    <div class="modal-panel">
+      <div class="modal-header">
+        <span class="modal-title" id="spend-modal-title"></span>
+        <button class="modal-close" id="spend-modal-close" type="button" aria-label="Close">&times;</button>
+      </div>
+      <button class="check-all-btn" id="spend-modal-select-all" type="button">Select all accounts</button>
+      <button class="sync-action-btn" id="spend-modal-apply" type="button">Apply to selected</button>
+      <div class="modal-accounts" id="spend-modal-accounts"></div>
     </div>
   </div>
 
@@ -642,7 +687,7 @@
     <div class="panel">
       <div class="particle-grid" id="particle-list"></div>
     </div>
-    <div class="panel">
+    <div class="panel panel-theme-teal">
       <div class="particle-actions-label">Apply to all accounts</div>
       <div class="particle-actions">
         <div class="particle-action-row">
@@ -668,7 +713,7 @@
       </div>
       <button class="reset-btn" id="particles-reset-all-btn" type="button">Reset all accounts to 0</button>
     </div>
-    <div class="panel">
+    <div class="panel panel-theme-amber">
       <div class="particle-actions-label">Spend on raid for all accounts</div>
       <div class="particle-action-row">
         <button class="particle-btn" type="button" data-all-spend="250">-250</button>
@@ -676,7 +721,15 @@
         <button class="particle-btn" type="button" data-all-spend="800">-800</button>
       </div>
     </div>
-    <div class="panel">
+    <div class="panel panel-theme-violet">
+      <div class="particle-actions-label">Spend on raid for selected accounts</div>
+      <div class="particle-action-row">
+        <button class="particle-btn" type="button" data-pick-spend="250">-250</button>
+        <button class="particle-btn" type="button" data-pick-spend="400">-400</button>
+        <button class="particle-btn" type="button" data-pick-spend="800">-800</button>
+      </div>
+    </div>
+    <div class="panel panel-theme-gold">
       <div class="particle-actions-label">Manual edit Current Max particle</div>
       <div class="particle-manual-list" id="particle-manual-list"></div>
     </div>
@@ -720,7 +773,7 @@
       </div>
       <button class="reset-btn" id="particle-detail-reset-btn" type="button">Reset today's gain to 0</button>
     </div>
-    <div class="panel">
+    <div class="panel panel-theme-amber">
       <div class="particle-actions-label">Max particle spent on raid</div>
       <div class="particle-action-row">
         <button class="particle-btn" type="button" data-spend="250">-250</button>
@@ -728,7 +781,7 @@
         <button class="particle-btn" type="button" data-spend="800">-800</button>
       </div>
     </div>
-    <div class="panel">
+    <div class="panel panel-theme-gold">
       <div class="particle-actions-label">Manual edit Current Max particle</div>
       <div class="particle-action-row">
         <input class="particle-manual-input" id="particle-detail-manual-input" type="number" inputmode="numeric">
@@ -1388,6 +1441,94 @@
     btn.addEventListener('click', () => spendAllParticles(Number(btn.dataset.allSpend)));
   });
 
+  // --- Spend on raid for selected accounts: pick which accounts a -250/
+  // -400/-800 deduction applies to, instead of hitting every account. ---
+  const spendModalBackdrop = document.getElementById('spend-modal-backdrop');
+  const spendModalTitleEl = document.getElementById('spend-modal-title');
+  const spendModalCloseBtn = document.getElementById('spend-modal-close');
+  const spendModalAccountsEl = document.getElementById('spend-modal-accounts');
+  const spendModalSelectAllBtn = document.getElementById('spend-modal-select-all');
+  const spendModalApplyBtn = document.getElementById('spend-modal-apply');
+  let spendModalAmt = 0;
+  let spendModalSelected = new Set();
+
+  function openSpendModal(amt) {
+    spendModalAmt = amt;
+    spendModalSelected = new Set();
+    spendModalTitleEl.textContent = `Spend -${amt} on raid`;
+    spendModalApplyBtn.textContent = `Apply -${amt} to selected`;
+    renderSpendModalAccounts();
+    spendModalBackdrop.hidden = false;
+    history.pushState({ view: 'spend-modal' }, '');
+  }
+
+  function closeSpendModal() {
+    if (!spendModalBackdrop.hidden) history.back();
+  }
+
+  function renderSpendModalAccounts() {
+    spendModalAccountsEl.innerHTML = '';
+    accountNames.forEach(name => {
+      const selected = spendModalSelected.has(name);
+      const row = document.createElement('div');
+      row.className = 'modal-account-row' + (selected ? ' done' : '');
+      row.tabIndex = 0;
+      row.setAttribute('role', 'checkbox');
+      row.setAttribute('aria-checked', String(selected));
+      row.innerHTML = `
+        <span class="box">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#0e1620" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="4 12 10 18 20 6"></polyline>
+          </svg>
+        </span>
+        <span class="name">${name}</span>
+      `;
+      row.addEventListener('click', () => toggleSpendModalAccount(name));
+      row.addEventListener('keydown', (e) => {
+        if (e.key === ' ' || e.key === 'Enter') {
+          e.preventDefault();
+          toggleSpendModalAccount(name);
+        }
+      });
+      spendModalAccountsEl.appendChild(row);
+    });
+
+    const allSelected = accountNames.every(name => spendModalSelected.has(name));
+    spendModalSelectAllBtn.textContent = allSelected ? 'Deselect all accounts' : 'Select all accounts';
+  }
+
+  function toggleSpendModalAccount(name) {
+    if (spendModalSelected.has(name)) spendModalSelected.delete(name);
+    else spendModalSelected.add(name);
+    renderSpendModalAccounts();
+  }
+
+  document.querySelectorAll('#view-particles .particle-btn[data-pick-spend]').forEach(btn => {
+    btn.addEventListener('click', () => openSpendModal(Number(btn.dataset.pickSpend)));
+  });
+
+  spendModalCloseBtn.addEventListener('click', closeSpendModal);
+  spendModalBackdrop.addEventListener('click', (e) => {
+    if (e.target === spendModalBackdrop) closeSpendModal();
+  });
+
+  spendModalSelectAllBtn.addEventListener('click', () => {
+    const allSelected = accountNames.every(name => spendModalSelected.has(name));
+    if (allSelected) spendModalSelected.clear();
+    else accountNames.forEach(name => spendModalSelected.add(name));
+    renderSpendModalAccounts();
+  });
+
+  spendModalApplyBtn.addEventListener('click', () => {
+    if (spendModalSelected.size === 0) return;
+    spendModalSelected.forEach(name => {
+      state.accounts[name].currentTotal = (state.accounts[name].currentTotal || 0) - spendModalAmt;
+    });
+    saveState(state);
+    renderParticleList();
+    closeSpendModal();
+  });
+
   function renderParticleDetail() {
     const name = currentParticleAccount;
     const total = state.accounts[name].currentTotal || 0;
@@ -1493,6 +1634,10 @@
     }
     if (!bulkModalBackdrop.hidden) {
       bulkModalBackdrop.hidden = true;
+      return;
+    }
+    if (!spendModalBackdrop.hidden) {
+      spendModalBackdrop.hidden = true;
       return;
     }
     if (!viewParticleDetail.hidden) {
