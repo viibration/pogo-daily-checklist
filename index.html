@@ -367,6 +367,16 @@
     cursor: pointer;
   }
   .particle-total.over-limit { color: var(--bad); }
+
+  .particle-gained-sub {
+    display: block;
+    margin-top: 2px;
+    font-size: 14px;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+    color: var(--text-dim);
+  }
+
   .particle-actions {
     display: flex;
     flex-direction: column;
@@ -387,6 +397,28 @@
   }
   .particle-btn:hover { border-color: var(--accent); }
   .particle-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+
+  .particle-manual-input {
+    flex: 1;
+    min-width: 0;
+    font: inherit;
+    font-size: 16px;
+    font-variant-numeric: tabular-nums;
+    color: var(--text);
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    padding: 8px 12px;
+  }
+  .particle-manual-input:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+
+  .particle-manual-list { display: flex; flex-direction: column; gap: 12px; }
+  .particle-manual-name {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--text-dim);
+    margin-bottom: 4px;
+  }
 
   .modal-accounts { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
   #bulk-modal-backdrop .modal-accounts { margin-top: 12px; }
@@ -636,6 +668,18 @@
       </div>
       <button class="reset-btn" id="particles-reset-all-btn" type="button">Reset all accounts to 0</button>
     </div>
+    <div class="panel">
+      <div class="particle-actions-label">Spend on raid for all accounts</div>
+      <div class="particle-action-row">
+        <button class="particle-btn" type="button" data-all-spend="250">-250</button>
+        <button class="particle-btn" type="button" data-all-spend="400">-400</button>
+        <button class="particle-btn" type="button" data-all-spend="800">-800</button>
+      </div>
+    </div>
+    <div class="panel">
+      <div class="particle-actions-label">Manual edit Current Max particle</div>
+      <div class="particle-manual-list" id="particle-manual-list"></div>
+    </div>
   </div>
 
   <div id="view-particle-detail" hidden>
@@ -646,9 +690,12 @@
           <h1 id="particle-detail-name"></h1>
         </div>
       </div>
-      <span class="particle-total" id="particle-detail-total" tabindex="0" role="button" aria-label="Set exact total"></span>
+      <div class="particle-actions-label">Current Max particle</div>
+      <span class="particle-total" id="particle-detail-total" tabindex="0" role="button" aria-label="Set exact current total"></span>
+      <span class="particle-gained-sub" id="particle-detail-gained"></span>
     </div>
     <div class="panel">
+      <div class="particle-actions-label">Daily max particle gained</div>
       <div class="particle-actions">
         <div class="particle-action-row">
           <button class="particle-btn" type="button" data-amt="100">+100</button>
@@ -671,7 +718,22 @@
           <button class="particle-btn" type="button" data-amt="-5">-5</button>
         </div>
       </div>
-      <button class="reset-btn" id="particle-detail-reset-btn" type="button">Reset to 0</button>
+      <button class="reset-btn" id="particle-detail-reset-btn" type="button">Reset today's gain to 0</button>
+    </div>
+    <div class="panel">
+      <div class="particle-actions-label">Max particle spent on raid</div>
+      <div class="particle-action-row">
+        <button class="particle-btn" type="button" data-spend="250">-250</button>
+        <button class="particle-btn" type="button" data-spend="400">-400</button>
+        <button class="particle-btn" type="button" data-spend="800">-800</button>
+      </div>
+    </div>
+    <div class="panel">
+      <div class="particle-actions-label">Manual edit Current Max particle</div>
+      <div class="particle-action-row">
+        <input class="particle-manual-input" id="particle-detail-manual-input" type="number" inputmode="numeric">
+        <button class="particle-btn" id="particle-detail-manual-save" type="button">Save</button>
+      </div>
     </div>
   </div>
 </div>
@@ -742,7 +804,7 @@
 
   function emptyAccounts() {
     const accounts = {};
-    accountNames.forEach(name => { accounts[name] = { done: {}, particles: 0 }; });
+    accountNames.forEach(name => { accounts[name] = { done: {}, particles: 0, currentTotal: 0 }; });
     return accounts;
   }
 
@@ -757,14 +819,21 @@
       const prevAccounts = stored.accounts || {};
       stored = { date: today, particleDate: stored.particleDate, accounts: emptyAccounts() };
       accountNames.forEach(name => {
-        if (prevAccounts[name]) stored.accounts[name].particles = prevAccounts[name].particles || 0;
+        if (prevAccounts[name]) {
+          stored.accounts[name].particles = prevAccounts[name].particles || 0;
+          stored.accounts[name].currentTotal = prevAccounts[name].currentTotal || 0;
+        }
       });
     }
     accountNames.forEach(name => {
-      if (!stored.accounts[name]) stored.accounts[name] = { done: {}, particles: 0 };
+      if (!stored.accounts[name]) stored.accounts[name] = { done: {}, particles: 0, currentTotal: 0 };
       if (typeof stored.accounts[name].particles !== 'number') stored.accounts[name].particles = 0;
+      if (typeof stored.accounts[name].currentTotal !== 'number') stored.accounts[name].currentTotal = 0;
     });
 
+    // Only the daily-gained counter resets at the 5 AM boundary;
+    // currentTotal is the player's real running Max Particle total and
+    // must never be zeroed automatically.
     const pDay = particleDayKey();
     if (stored.particleDate !== pDay) {
       accountNames.forEach(name => { stored.accounts[name].particles = 0; });
@@ -792,9 +861,13 @@
   const particlesOpenBtn = document.getElementById('particles-open-btn');
   const particlesBackBtn = document.getElementById('particles-back-btn');
   const particleListEl = document.getElementById('particle-list');
+  const particleManualListEl = document.getElementById('particle-manual-list');
   const particleDetailBackBtn = document.getElementById('particle-detail-back-btn');
   const particleDetailNameEl = document.getElementById('particle-detail-name');
   const particleDetailTotalEl = document.getElementById('particle-detail-total');
+  const particleDetailGainedEl = document.getElementById('particle-detail-gained');
+  const particleDetailManualInput = document.getElementById('particle-detail-manual-input');
+  const particleDetailManualSave = document.getElementById('particle-detail-manual-save');
   let currentParticleAccount = null;
 
   const modalBackdrop = document.getElementById('modal-backdrop');
@@ -1233,14 +1306,15 @@
   function renderParticleList() {
     particleListEl.innerHTML = '';
     accountNames.forEach(name => {
-      const total = state.accounts[name].particles || 0;
+      const total = state.accounts[name].currentTotal || 0;
+      const gained = state.accounts[name].particles || 0;
       const card = document.createElement('div');
       card.className = 'particle-grid-item';
       card.tabIndex = 0;
       card.setAttribute('role', 'button');
       card.innerHTML = `
         <div class="name">${name}</div>
-        <div class="count${total >= PARTICLE_LIMIT ? ' over-limit' : ''}">${total}</div>
+        <div class="count${gained >= PARTICLE_LIMIT ? ' over-limit' : ''}">${total}</div>
       `;
       card.addEventListener('click', () => openParticleDetail(name));
       card.addEventListener('keydown', (e) => {
@@ -1251,11 +1325,42 @@
       });
       particleListEl.appendChild(card);
     });
+    renderParticleManualList();
   }
 
+  function renderParticleManualList() {
+    particleManualListEl.innerHTML = '';
+    accountNames.forEach(name => {
+      const total = state.accounts[name].currentTotal || 0;
+      const row = document.createElement('div');
+      row.className = 'particle-manual-row';
+      row.innerHTML = `
+        <div class="particle-manual-name">${name}</div>
+        <div class="particle-action-row">
+          <input class="particle-manual-input" type="number" inputmode="numeric" value="${total}">
+          <button class="particle-btn" type="button">Save</button>
+        </div>
+      `;
+      const input = row.querySelector('.particle-manual-input');
+      const saveBtn = row.querySelector('.particle-btn');
+      saveBtn.addEventListener('click', () => {
+        const value = parseInt(input.value, 10);
+        if (Number.isNaN(value)) return;
+        state.accounts[name].currentTotal = value;
+        saveState(state);
+        renderParticleList();
+      });
+      particleManualListEl.appendChild(row);
+    });
+  }
+
+  // Gaining particles counts toward both the daily-gained tracker and the
+  // player's real running total; spending on raids only affects the
+  // running total, since it isn't part of "today's gain".
   function adjustAllParticles(amt) {
     accountNames.forEach(name => {
       state.accounts[name].particles = (state.accounts[name].particles || 0) + amt;
+      state.accounts[name].currentTotal = (state.accounts[name].currentTotal || 0) + amt;
     });
     saveState(state);
     renderParticleList();
@@ -1271,29 +1376,52 @@
     renderParticleList();
   });
 
+  function spendAllParticles(amt) {
+    accountNames.forEach(name => {
+      state.accounts[name].currentTotal = (state.accounts[name].currentTotal || 0) - amt;
+    });
+    saveState(state);
+    renderParticleList();
+  }
+
+  document.querySelectorAll('#view-particles .particle-btn[data-all-spend]').forEach(btn => {
+    btn.addEventListener('click', () => spendAllParticles(Number(btn.dataset.allSpend)));
+  });
+
   function renderParticleDetail() {
     const name = currentParticleAccount;
-    const total = state.accounts[name].particles || 0;
+    const total = state.accounts[name].currentTotal || 0;
+    const gained = state.accounts[name].particles || 0;
     particleDetailNameEl.textContent = name;
     particleDetailTotalEl.textContent = total;
-    particleDetailTotalEl.classList.toggle('over-limit', total >= PARTICLE_LIMIT);
+    particleDetailTotalEl.classList.toggle('over-limit', gained >= PARTICLE_LIMIT);
+    particleDetailGainedEl.textContent = `(+${gained}/${PARTICLE_LIMIT})`;
+    particleDetailManualInput.value = total;
   }
 
   function adjustParticles(amt) {
     const name = currentParticleAccount;
     state.accounts[name].particles = (state.accounts[name].particles || 0) + amt;
+    state.accounts[name].currentTotal = (state.accounts[name].currentTotal || 0) + amt;
+    saveState(state);
+    renderParticleDetail();
+  }
+
+  function spendParticles(amt) {
+    const name = currentParticleAccount;
+    state.accounts[name].currentTotal = (state.accounts[name].currentTotal || 0) - amt;
     saveState(state);
     renderParticleDetail();
   }
 
   function setExactParticles() {
     const name = currentParticleAccount;
-    const total = state.accounts[name].particles || 0;
-    const input = window.prompt(`Set ${name}'s total for today:`, String(total));
+    const total = state.accounts[name].currentTotal || 0;
+    const input = window.prompt(`Set ${name}'s current Max Particle total:`, String(total));
     if (input === null) return;
     const value = parseInt(input, 10);
     if (Number.isNaN(value)) return;
-    state.accounts[name].particles = value;
+    state.accounts[name].currentTotal = value;
     saveState(state);
     renderParticleDetail();
   }
@@ -1307,8 +1435,20 @@
     btn.addEventListener('click', () => adjustParticles(Number(btn.dataset.amt)));
   });
 
+  document.querySelectorAll('#view-particle-detail .particle-btn[data-spend]').forEach(btn => {
+    btn.addEventListener('click', () => spendParticles(Number(btn.dataset.spend)));
+  });
+
   document.getElementById('particle-detail-reset-btn').addEventListener('click', () => {
     state.accounts[currentParticleAccount].particles = 0;
+    saveState(state);
+    renderParticleDetail();
+  });
+
+  particleDetailManualSave.addEventListener('click', () => {
+    const value = parseInt(particleDetailManualInput.value, 10);
+    if (Number.isNaN(value)) return;
+    state.accounts[currentParticleAccount].currentTotal = value;
     saveState(state);
     renderParticleDetail();
   });
