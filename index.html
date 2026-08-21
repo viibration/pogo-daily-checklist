@@ -86,7 +86,8 @@
   #view-checklist > .panel:first-child,
   #view-particles > .panel:first-child,
   #view-particle-detail > .panel:first-child,
-  #view-custom-tasks > .panel:first-child {
+  #view-custom-tasks > .panel:first-child,
+  #view-sync > .panel:first-child {
     position: sticky;
     top: 0;
     z-index: 5;
@@ -451,6 +452,17 @@
     padding: 8px 12px;
   }
   .particle-manual-input:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+  #sync-paste-btn { width: 100%; margin-bottom: 8px; }
+  .sync-textarea {
+    display: block;
+    width: 100%;
+    height: 120px;
+    resize: vertical;
+    font-family: monospace;
+    font-size: 12px;
+    box-sizing: border-box;
+    margin-bottom: 10px;
+  }
 
   .particle-manual-list { display: flex; flex-direction: column; gap: 12px; }
   .particle-manual-name {
@@ -624,6 +636,7 @@
         <span class="status-badges" id="badge-raid-hour-time"></span>
       </div>
       <button class="check-all-btn particles-open-btn" id="particles-open-btn" type="button">Max Particle Calculator&hellip;</button>
+      <button class="check-all-btn particles-open-btn" id="sync-open-btn" type="button">Manual Sync&hellip;</button>
     </div>
     <div class="panel">
       <div class="accounts" id="accounts"></div>
@@ -650,6 +663,30 @@
     </div>
     <div class="panel">
       <div class="items" id="custom-tasks-list"></div>
+    </div>
+  </div>
+
+  <div id="view-sync" hidden>
+    <div class="panel">
+      <div class="header">
+        <div class="header-with-back">
+          <button class="back-btn" id="sync-back-btn" type="button" aria-label="Back to dashboard">&larr;</button>
+          <h1>Manual Sync</h1>
+        </div>
+      </div>
+    </div>
+    <div class="panel">
+      <div class="particle-actions-label">Copy sync code (do this on the device that has the data you want to keep)</div>
+      <textarea class="particle-manual-input sync-textarea" id="sync-export-text" readonly></textarea>
+      <div class="particle-action-row">
+        <button class="particle-btn" id="sync-copy-pc-btn" type="button"># `code`</button>
+        <button class="particle-btn" id="sync-copy-phone-btn" type="button">```code```</button>
+      </div>
+    </div>
+    <div class="panel">
+      <div class="particle-actions-label">Paste sync code (this overwrites this device)</div>
+      <button class="particle-btn" id="sync-paste-btn" type="button">Paste &amp; Sync</button>
+      <textarea class="particle-manual-input sync-textarea" id="sync-import-text" placeholder="Or paste manually into this box - it applies as soon as you paste"></textarea>
     </div>
   </div>
 
@@ -941,6 +978,7 @@
   const viewParticles = document.getElementById('view-particles');
   const viewParticleDetail = document.getElementById('view-particle-detail');
   const viewCustomTasks = document.getElementById('view-custom-tasks');
+  const viewSync = document.getElementById('view-sync');
   const accountsEl = document.getElementById('accounts');
   const masterTasksEl = document.getElementById('master-tasks');
 
@@ -949,6 +987,14 @@
   const customTasksListEl = document.getElementById('custom-tasks-list');
   const customTaskInput = document.getElementById('custom-task-input');
   const customTaskAddBtn = document.getElementById('custom-task-add-btn');
+
+  const syncOpenBtn = document.getElementById('sync-open-btn');
+  const syncBackBtn = document.getElementById('sync-back-btn');
+  const syncExportText = document.getElementById('sync-export-text');
+  const syncImportText = document.getElementById('sync-import-text');
+  const syncCopyPcBtn = document.getElementById('sync-copy-pc-btn');
+  const syncCopyPhoneBtn = document.getElementById('sync-copy-phone-btn');
+  const syncPasteBtn = document.getElementById('sync-paste-btn');
 
   const particlesOpenBtn = document.getElementById('particles-open-btn');
   const particlesBackBtn = document.getElementById('particles-back-btn');
@@ -1736,6 +1782,168 @@
   customTasksOpenBtn.addEventListener('click', openCustomTasks);
   customTasksBackBtn.addEventListener('click', closeCustomTasks);
 
+  // --- Manual sync: copy the entire local state as text on one device,
+  // paste it on another to overwrite that device's state. No server,
+  // no accounts, no background sync - just an explicit, one-way copy.
+  // The code is gzip-compressed and base64-encoded (falling back to
+  // plain JSON where CompressionStream isn't available) so it's short
+  // enough to paste through places like Discord without trouble.
+  function bytesToBase64(bytes) {
+    let binary = '';
+    bytes.forEach(b => { binary += String.fromCharCode(b); });
+    return btoa(binary);
+  }
+
+  function base64ToBytes(b64) {
+    const binary = atob(b64);
+    const bytes = new Uint8Array(binary.length);
+    for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+    return bytes;
+  }
+
+  async function encodeSyncCode(stateObj) {
+    // Drop false entries - only completed tasks need to travel.
+    const trimmed = JSON.parse(JSON.stringify(stateObj));
+    Object.values(trimmed.accounts).forEach(acc => {
+      const doneTrue = {};
+      Object.keys(acc.done).forEach(id => { if (acc.done[id]) doneTrue[id] = true; });
+      acc.done = doneTrue;
+    });
+    const json = JSON.stringify(trimmed);
+    if (window.CompressionStream) {
+      const stream = new Blob([json]).stream().pipeThrough(new CompressionStream('gzip'));
+      const buf = await new Response(stream).arrayBuffer();
+      return 'gz:' + bytesToBase64(new Uint8Array(buf));
+    }
+    return 'raw:' + json;
+  }
+
+  async function decodeSyncCode(text) {
+    if (text.startsWith('gz:')) {
+      const stream = new Blob([base64ToBytes(text.slice(3))]).stream().pipeThrough(new DecompressionStream('gzip'));
+      return JSON.parse(await new Response(stream).text());
+    }
+    if (text.startsWith('raw:')) return JSON.parse(text.slice(4));
+    return JSON.parse(text);
+  }
+
+  async function openSync() {
+    viewDashboard.hidden = true;
+    viewSync.hidden = false;
+    syncExportText.value = 'Generating sync code…';
+    syncImportText.value = '';
+    history.pushState({ view: 'sync' }, '');
+    syncExportText.value = await encodeSyncCode(state);
+  }
+
+  function closeSync() {
+    if (!viewSync.hidden) history.back();
+  }
+
+  syncOpenBtn.addEventListener('click', openSync);
+  syncBackBtn.addEventListener('click', closeSync);
+
+  function flashButton(btn, text) {
+    const restoreLabel = btn.dataset.label || btn.textContent;
+    btn.dataset.label = restoreLabel;
+    btn.textContent = text;
+    setTimeout(() => { btn.textContent = restoreLabel; }, 1500);
+  }
+
+  // Two wrapped formats so the code survives Discord's Markdown intact:
+  // an inline-code heading (easy to spot while scrolling on a PC) and a
+  // triple-backtick block (easier to select whole on a phone).
+  function copyWrapped(btn, wrap) {
+    const text = wrap(syncExportText.value);
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(text)
+        .then(() => flashButton(btn, 'Copied!'))
+        .catch(() => flashButton(btn, 'Copy failed - try again'));
+    } else {
+      flashButton(btn, 'Copy failed - try again');
+    }
+  }
+
+  syncCopyPcBtn.addEventListener('click', () => {
+    copyWrapped(syncCopyPcBtn, (code) => '# `' + code + '`');
+  });
+  syncCopyPhoneBtn.addEventListener('click', () => {
+    copyWrapped(syncCopyPhoneBtn, (code) => '```' + code + '```');
+  });
+
+  // Undoes the "# `code`" / "```code```" Discord wrappers from the PC/Phone
+  // copy buttons, so pasting straight from a Discord message works.
+  function stripSyncWrapper(text) {
+    const t = text.trim();
+    const heading = t.match(/^#\s*`([\s\S]*)`$/);
+    if (heading) return heading[1].trim();
+    const block = t.match(/^```(?:\w*\n)?([\s\S]*?)```$/);
+    if (block) return block[1].trim();
+    return t;
+  }
+
+  async function applySyncText(text) {
+    const raw = stripSyncWrapper(text);
+    if (!raw) return;
+    let parsed;
+    try {
+      parsed = await decodeSyncCode(raw);
+    } catch {
+      window.alert('That sync code is not valid. Double-check you copied the whole thing.');
+      return;
+    }
+    if (!parsed || typeof parsed !== 'object' || !parsed.accounts) {
+      window.alert('That sync code is not valid. Double-check you copied the whole thing.');
+      return;
+    }
+    if (!window.confirm('This will overwrite this device\'s checklist, particles, and custom tasks with the pasted data. Continue?')) return;
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(parsed));
+    location.reload();
+  }
+
+  // Relying on the browser's native paste event (rather than
+  // navigator.clipboard.readText()) sidesteps clipboard-read permission
+  // issues that show up in some installed/standalone PWA contexts - any
+  // paste gesture (long-press menu, keyboard shortcut) fires this the
+  // same way everywhere, so it applies the instant you paste.
+  syncImportText.addEventListener('paste', (e) => {
+    const text = (e.clipboardData || window.clipboardData).getData('text');
+    e.preventDefault();
+    syncImportText.value = text;
+    applySyncText(text);
+  });
+
+  // navigator.clipboard.readText() can hang indefinitely instead of
+  // rejecting in some installed/standalone PWA contexts, so race it
+  // against a timeout rather than trusting it to always settle.
+  function readClipboardWithTimeout(ms) {
+    return new Promise((resolve, reject) => {
+      if (!navigator.clipboard || !navigator.clipboard.readText) {
+        reject(new Error('unsupported'));
+        return;
+      }
+      let settled = false;
+      const timer = setTimeout(() => {
+        if (!settled) { settled = true; reject(new Error('timeout')); }
+      }, ms);
+      navigator.clipboard.readText().then(text => {
+        if (!settled) { settled = true; clearTimeout(timer); resolve(text); }
+      }).catch(err => {
+        if (!settled) { settled = true; clearTimeout(timer); reject(err); }
+      });
+    });
+  }
+
+  syncPasteBtn.addEventListener('click', async () => {
+    try {
+      const text = await readClipboardWithTimeout(2500);
+      syncImportText.value = text;
+      await applySyncText(text);
+    } catch {
+      flashButton(syncPasteBtn, 'Long-press the box below and paste instead');
+    }
+  });
+
   // Intercept the hardware/gesture back action so it navigates within the
   // app (closing the topmost open modal/view) instead of exiting the PWA.
   // Every open* function above pushes a history entry; this handler is the
@@ -1771,6 +1979,11 @@
       viewCustomTasks.hidden = true;
       viewDashboard.hidden = false;
       renderDashboard();
+      return;
+    }
+    if (!viewSync.hidden) {
+      viewSync.hidden = true;
+      viewDashboard.hidden = false;
       return;
     }
     if (!viewChecklist.hidden) {
