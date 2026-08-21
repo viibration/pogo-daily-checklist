@@ -1896,7 +1896,6 @@
       window.alert('That sync code is not valid. Double-check you copied the whole thing.');
       return;
     }
-    if (!window.confirm('This will overwrite this device\'s checklist, particles, and custom tasks with the pasted data. Continue?')) return;
     localStorage.setItem(STORAGE_KEY, JSON.stringify(parsed));
     location.reload();
   }
