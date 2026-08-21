@@ -379,7 +379,6 @@
     font-variant-numeric: tabular-nums;
     color: var(--accent);
   }
-  .particle-grid-item .count.over-limit { color: var(--bad); }
   .particle-grid-item .gained-sub {
     margin-top: 2px;
     font-size: 11px;
@@ -387,6 +386,7 @@
     font-variant-numeric: tabular-nums;
     color: var(--text-faint);
   }
+  .particle-grid-item .gained-sub.over-limit { color: var(--bad); }
 
   .particle-actions-label {
     font-size: 14px;
@@ -405,8 +405,6 @@
     color: var(--accent);
     cursor: pointer;
   }
-  .particle-total.over-limit { color: var(--bad); }
-
   .particle-gained-sub {
     display: block;
     margin-top: 2px;
@@ -415,6 +413,7 @@
     font-variant-numeric: tabular-nums;
     color: var(--text-dim);
   }
+  .particle-gained-sub.over-limit { color: var(--bad); }
 
   .particle-actions {
     display: flex;
@@ -436,6 +435,7 @@
   }
   .particle-btn:hover { border-color: var(--accent); }
   .particle-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+  .particle-btn:disabled { opacity: 0.35; cursor: not-allowed; pointer-events: none; }
 
   .particle-manual-input {
     flex: 1;
@@ -476,6 +476,7 @@
   }
   .modal-account-row:hover { border-color: var(--accent); }
   .modal-account-row:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+  .modal-account-row.disabled { opacity: 0.35; cursor: not-allowed; pointer-events: none; }
 
   .modal-account-row .box {
     flex-shrink: 0;
@@ -702,27 +703,12 @@
       <div class="particle-grid" id="particle-list"></div>
     </div>
     <div class="panel panel-theme-teal">
-      <div class="particle-actions-label">Apply to all accounts</div>
+      <div class="particle-actions-label">Daily max particle gained for all account</div>
       <div class="particle-actions">
         <div class="particle-action-row">
           <button class="particle-btn" type="button" data-all-amt="100">+100</button>
-          <button class="particle-btn" type="button" data-all-amt="-100">-100</button>
-        </div>
-        <div class="particle-action-row">
           <button class="particle-btn" type="button" data-all-amt="120">+120</button>
-          <button class="particle-btn" type="button" data-all-amt="-120">-120</button>
-        </div>
-        <div class="particle-action-row">
           <button class="particle-btn" type="button" data-all-amt="300">+300</button>
-          <button class="particle-btn" type="button" data-all-amt="-300">-300</button>
-        </div>
-        <div class="particle-action-row">
-          <button class="particle-btn" type="button" data-all-amt="20">+20</button>
-          <button class="particle-btn" type="button" data-all-amt="-20">-20</button>
-        </div>
-        <div class="particle-action-row">
-          <button class="particle-btn" type="button" data-all-amt="5">+5</button>
-          <button class="particle-btn" type="button" data-all-amt="-5">-5</button>
         </div>
       </div>
       <button class="reset-btn" id="particles-reset-all-btn" type="button">Reset all accounts to 0</button>
@@ -798,7 +784,7 @@
     <div class="panel panel-theme-gold">
       <div class="particle-actions-label">Manual edit Current Max particle</div>
       <div class="particle-action-row">
-        <input class="particle-manual-input" id="particle-detail-manual-input" type="number" inputmode="numeric">
+        <input class="particle-manual-input" id="particle-detail-manual-input" type="number" inputmode="numeric" min="0">
         <button class="particle-btn" id="particle-detail-manual-save" type="button">Save</button>
       </div>
     </div>
@@ -1381,8 +1367,8 @@
       card.setAttribute('role', 'button');
       card.innerHTML = `
         <div class="name">${name}</div>
-        <div class="count${gained >= PARTICLE_LIMIT ? ' over-limit' : ''}">${total}</div>
-        <div class="gained-sub">${gained}/${PARTICLE_LIMIT}</div>
+        <div class="count">${total}</div>
+        <div class="gained-sub${gained >= PARTICLE_LIMIT ? ' over-limit' : ''}">${gained}/${PARTICLE_LIMIT}</div>
       `;
       card.addEventListener('click', () => openParticleDetail(name));
       card.addEventListener('keydown', (e) => {
@@ -1405,7 +1391,7 @@
       row.innerHTML = `
         <div class="particle-manual-name">${name}</div>
         <div class="particle-action-row">
-          <input class="particle-manual-input" type="number" inputmode="numeric" value="${total}">
+          <input class="particle-manual-input" type="number" inputmode="numeric" min="0" value="${total}">
           <button class="particle-btn" type="button">Save</button>
         </div>
       `;
@@ -1413,7 +1399,7 @@
       const saveBtn = row.querySelector('.particle-btn');
       saveBtn.addEventListener('click', () => {
         const value = parseInt(input.value, 10);
-        if (Number.isNaN(value)) return;
+        if (Number.isNaN(value) || value < 0) return;
         state.accounts[name].currentTotal = value;
         saveState(state);
         renderParticleList();
@@ -1444,9 +1430,13 @@
     renderParticleList();
   });
 
+  // Skips any account whose Current Max Particle would go below 0
+  // rather than blocking the whole action.
   function spendAllParticles(amt) {
     accountNames.forEach(name => {
-      state.accounts[name].currentTotal = (state.accounts[name].currentTotal || 0) - amt;
+      const total = state.accounts[name].currentTotal || 0;
+      if (total - amt < 0) return;
+      state.accounts[name].currentTotal = total - amt;
     });
     saveState(state);
     renderParticleList();
@@ -1486,8 +1476,9 @@
     accountNames.forEach(name => {
       const selected = spendModalSelected.has(name);
       const total = state.accounts[name].currentTotal || 0;
+      const affordable = total - spendModalAmt >= 0;
       const row = document.createElement('div');
-      row.className = 'modal-account-row' + (selected ? ' done' : '');
+      row.className = 'modal-account-row' + (selected ? ' done' : '') + (affordable ? '' : ' disabled');
       row.tabIndex = 0;
       row.setAttribute('role', 'checkbox');
       row.setAttribute('aria-checked', String(selected));
@@ -1500,17 +1491,22 @@
         <span class="name">${name}</span>
         <span class="modal-account-total">${total}</span>
       `;
-      row.addEventListener('click', () => toggleSpendModalAccount(name));
-      row.addEventListener('keydown', (e) => {
-        if (e.key === ' ' || e.key === 'Enter') {
-          e.preventDefault();
-          toggleSpendModalAccount(name);
-        }
-      });
+      if (affordable) {
+        row.addEventListener('click', () => toggleSpendModalAccount(name));
+        row.addEventListener('keydown', (e) => {
+          if (e.key === ' ' || e.key === 'Enter') {
+            e.preventDefault();
+            toggleSpendModalAccount(name);
+          }
+        });
+      } else {
+        spendModalSelected.delete(name);
+      }
       spendModalAccountsEl.appendChild(row);
     });
 
-    const allSelected = accountNames.every(name => spendModalSelected.has(name));
+    const affordableNames = accountNames.filter(name => (state.accounts[name].currentTotal || 0) - spendModalAmt >= 0);
+    const allSelected = affordableNames.length > 0 && affordableNames.every(name => spendModalSelected.has(name));
     spendModalSelectAllBtn.textContent = allSelected ? 'Deselect all accounts' : 'Select all accounts';
   }
 
@@ -1530,9 +1526,10 @@
   });
 
   spendModalSelectAllBtn.addEventListener('click', () => {
-    const allSelected = accountNames.every(name => spendModalSelected.has(name));
+    const affordableNames = accountNames.filter(name => (state.accounts[name].currentTotal || 0) - spendModalAmt >= 0);
+    const allSelected = affordableNames.length > 0 && affordableNames.every(name => spendModalSelected.has(name));
     if (allSelected) spendModalSelected.clear();
-    else accountNames.forEach(name => spendModalSelected.add(name));
+    else affordableNames.forEach(name => spendModalSelected.add(name));
     renderSpendModalAccounts();
   });
 
@@ -1552,9 +1549,13 @@
     const gained = state.accounts[name].particles || 0;
     particleDetailNameEl.textContent = name;
     particleDetailTotalEl.textContent = total;
-    particleDetailTotalEl.classList.toggle('over-limit', gained >= PARTICLE_LIMIT);
     particleDetailGainedEl.textContent = `(+${gained}/${PARTICLE_LIMIT})`;
+    particleDetailGainedEl.classList.toggle('over-limit', gained >= PARTICLE_LIMIT);
     particleDetailManualInput.value = total;
+
+    document.querySelectorAll('#view-particle-detail .particle-btn[data-spend]').forEach(btn => {
+      btn.disabled = total - Number(btn.dataset.spend) < 0;
+    });
   }
 
   function adjustParticles(amt) {
@@ -1605,7 +1606,7 @@
 
   particleDetailManualSave.addEventListener('click', () => {
     const value = parseInt(particleDetailManualInput.value, 10);
-    if (Number.isNaN(value)) return;
+    if (Number.isNaN(value) || value < 0) return;
     state.accounts[currentParticleAccount].currentTotal = value;
     saveState(state);
     renderParticleDetail();
