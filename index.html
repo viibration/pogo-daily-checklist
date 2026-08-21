@@ -85,7 +85,8 @@
   #view-dashboard > .panel:first-child,
   #view-checklist > .panel:first-child,
   #view-particles > .panel:first-child,
-  #view-particle-detail > .panel:first-child {
+  #view-particle-detail > .panel:first-child,
+  #view-custom-tasks > .panel:first-child {
     position: sticky;
     top: 0;
     z-index: 5;
@@ -629,7 +630,26 @@
     </div>
     <div class="panel panel-theme-rose">
       <button class="check-all-btn" id="bulk-open-btn" type="button">Check all tasks for account(s)&hellip;</button>
+      <button class="check-all-btn" id="custom-tasks-open-btn" type="button">Manage Custom Tasks&hellip;</button>
       <div class="items" id="master-tasks"></div>
+    </div>
+  </div>
+
+  <div id="view-custom-tasks" hidden>
+    <div class="panel">
+      <div class="header">
+        <div class="header-with-back">
+          <button class="back-btn" id="custom-tasks-back-btn" type="button" aria-label="Back to dashboard">&larr;</button>
+          <h1>Manage Custom Tasks</h1>
+        </div>
+      </div>
+      <div class="particle-action-row">
+        <input class="particle-manual-input" id="custom-task-input" type="text" placeholder="New task name">
+        <button class="particle-btn" id="custom-task-add-btn" type="button">Add</button>
+      </div>
+    </div>
+    <div class="panel">
+      <div class="items" id="custom-tasks-list"></div>
     </div>
   </div>
 
@@ -809,6 +829,14 @@
     { id: 'open-gift', label: 'Open gift' },
   ];
 
+  // Custom tasks are user-added extras layered on top of the fixed list
+  // above; they live in state.customTasks and reset/disappear daily
+  // along with the rest of state, unlike the fixed tasks which are
+  // permanent.
+  function allTasks() {
+    return tasks.concat(state.customTasks);
+  }
+
   const accountNames = [
     'Viibration',
     'ViictoriaZA',
@@ -869,8 +897,11 @@
       stored = {};
     }
     if (stored.date !== today || !stored.accounts) {
+      // Custom tasks are day-scoped: they reset and disappear along with
+      // everything else here, unlike particles/currentTotal below which
+      // are deliberately carried forward.
       const prevAccounts = stored.accounts || {};
-      stored = { date: today, particleDate: stored.particleDate, accounts: emptyAccounts() };
+      stored = { date: today, particleDate: stored.particleDate, accounts: emptyAccounts(), customTasks: [] };
       accountNames.forEach(name => {
         if (prevAccounts[name]) {
           stored.accounts[name].particles = prevAccounts[name].particles || 0;
@@ -878,6 +909,7 @@
         }
       });
     }
+    if (!Array.isArray(stored.customTasks)) stored.customTasks = [];
     accountNames.forEach(name => {
       if (!stored.accounts[name]) stored.accounts[name] = { done: {}, particles: 0, currentTotal: 0 };
       if (typeof stored.accounts[name].particles !== 'number') stored.accounts[name].particles = 0;
@@ -908,8 +940,15 @@
   const viewChecklist = document.getElementById('view-checklist');
   const viewParticles = document.getElementById('view-particles');
   const viewParticleDetail = document.getElementById('view-particle-detail');
+  const viewCustomTasks = document.getElementById('view-custom-tasks');
   const accountsEl = document.getElementById('accounts');
   const masterTasksEl = document.getElementById('master-tasks');
+
+  const customTasksOpenBtn = document.getElementById('custom-tasks-open-btn');
+  const customTasksBackBtn = document.getElementById('custom-tasks-back-btn');
+  const customTasksListEl = document.getElementById('custom-tasks-list');
+  const customTaskInput = document.getElementById('custom-task-input');
+  const customTaskAddBtn = document.getElementById('custom-task-add-btn');
 
   const particlesOpenBtn = document.getElementById('particles-open-btn');
   const particlesBackBtn = document.getElementById('particles-back-btn');
@@ -1113,14 +1152,14 @@
 
   function countDone(name) {
     const done = state.accounts[name].done;
-    return tasks.filter(t => done[t.id]).length;
+    return allTasks().filter(t => done[t.id]).length;
   }
 
   function renderDashboard() {
     accountsEl.innerHTML = '';
     accountNames.forEach(name => {
       const doneCount = countDone(name);
-      const total = tasks.length;
+      const total = allTasks().length;
       const pct = total ? (doneCount / total) * 100 : 0;
       const complete = doneCount === total;
 
@@ -1156,7 +1195,7 @@
 
   function renderMasterTasks() {
     masterTasksEl.innerHTML = '';
-    tasks.forEach(task => {
+    allTasks().forEach(task => {
       const doneAccounts = accountsDoneFor(task.id);
       const total = accountNames.length;
       const complete = doneAccounts.length === total;
@@ -1183,7 +1222,7 @@
 
   function openModal(taskId) {
     modalTaskId = taskId;
-    const task = tasks.find(t => t.id === taskId);
+    const task = allTasks().find(t => t.id === taskId);
     modalTitleEl.textContent = task.label;
     renderModalAccounts();
     modalBackdrop.hidden = false;
@@ -1322,7 +1361,7 @@
   bulkApplyBtn.addEventListener('click', () => {
     if (bulkSelected.size === 0) return;
     bulkSelected.forEach(name => {
-      tasks.forEach(t => { state.accounts[name].done[t.id] = true; });
+      allTasks().forEach(t => { state.accounts[name].done[t.id] = true; });
     });
     saveState(state);
     renderDashboard();
@@ -1332,7 +1371,7 @@
   bulkUncheckBtn.addEventListener('click', () => {
     if (bulkSelected.size === 0) return;
     bulkSelected.forEach(name => {
-      tasks.forEach(t => { state.accounts[name].done[t.id] = false; });
+      allTasks().forEach(t => { state.accounts[name].done[t.id] = false; });
     });
     saveState(state);
     renderDashboard();
@@ -1639,6 +1678,64 @@
   particlesBackBtn.addEventListener('click', closeParticles);
   particleDetailBackBtn.addEventListener('click', closeParticleDetail);
 
+  function renderCustomTasks() {
+    customTasksListEl.innerHTML = '';
+    if (state.customTasks.length === 0) {
+      const empty = document.createElement('div');
+      empty.className = 'progress-label';
+      empty.textContent = 'No custom tasks yet today.';
+      customTasksListEl.appendChild(empty);
+      return;
+    }
+    state.customTasks.forEach(task => {
+      const row = document.createElement('div');
+      row.className = 'task-row';
+      row.innerHTML = `
+        <span class="label">${task.label}</span>
+        <button class="modal-close" type="button" aria-label="Remove task">&times;</button>
+      `;
+      row.querySelector('.modal-close').addEventListener('click', () => removeCustomTask(task.id));
+      customTasksListEl.appendChild(row);
+    });
+  }
+
+  function addCustomTask() {
+    const label = customTaskInput.value.trim();
+    if (!label) return;
+    const id = 'custom-' + Date.now() + '-' + Math.random().toString(36).slice(2, 7);
+    state.customTasks.push({ id, label });
+    accountNames.forEach(name => { state.accounts[name].done[id] = false; });
+    saveState(state);
+    customTaskInput.value = '';
+    renderCustomTasks();
+  }
+
+  function removeCustomTask(id) {
+    state.customTasks = state.customTasks.filter(t => t.id !== id);
+    accountNames.forEach(name => { delete state.accounts[name].done[id]; });
+    saveState(state);
+    renderCustomTasks();
+  }
+
+  customTaskAddBtn.addEventListener('click', addCustomTask);
+  customTaskInput.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') { e.preventDefault(); addCustomTask(); }
+  });
+
+  function openCustomTasks() {
+    viewDashboard.hidden = true;
+    viewCustomTasks.hidden = false;
+    renderCustomTasks();
+    history.pushState({ view: 'custom-tasks' }, '');
+  }
+
+  function closeCustomTasks() {
+    if (!viewCustomTasks.hidden) history.back();
+  }
+
+  customTasksOpenBtn.addEventListener('click', openCustomTasks);
+  customTasksBackBtn.addEventListener('click', closeCustomTasks);
+
   // Intercept the hardware/gesture back action so it navigates within the
   // app (closing the topmost open modal/view) instead of exiting the PWA.
   // Every open* function above pushes a history entry; this handler is the
@@ -1670,6 +1767,12 @@
       viewDashboard.hidden = false;
       return;
     }
+    if (!viewCustomTasks.hidden) {
+      viewCustomTasks.hidden = true;
+      viewDashboard.hidden = false;
+      renderDashboard();
+      return;
+    }
     if (!viewChecklist.hidden) {
       currentAccount = null;
       viewChecklist.hidden = true;
@@ -1682,7 +1785,7 @@
     const done = state.accounts[currentAccount].done;
 
     itemsEl.innerHTML = '';
-    tasks.forEach(task => {
+    allTasks().forEach(task => {
       const isDone = !!done[task.id];
       const row = document.createElement('div');
       row.className = 'item' + (isDone ? ' done' : '');
@@ -1708,7 +1811,7 @@
     });
 
     const doneCount = countDone(currentAccount);
-    const total = tasks.length;
+    const total = allTasks().length;
     const pct = total ? (doneCount / total) * 100 : 0;
     const complete = doneCount === total;
     progressFillEl.style.width = `${pct}%`;
@@ -1727,8 +1830,8 @@
 
   checklistCheckAllBtn.addEventListener('click', () => {
     const done = state.accounts[currentAccount].done;
-    const allDone = tasks.every(t => !!done[t.id]);
-    tasks.forEach(t => { done[t.id] = !allDone; });
+    const allDone = allTasks().every(t => !!done[t.id]);
+    allTasks().forEach(t => { done[t.id] = !allDone; });
     saveState(state);
     renderChecklist();
   });
