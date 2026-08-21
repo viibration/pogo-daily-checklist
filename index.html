@@ -380,6 +380,13 @@
     color: var(--accent);
   }
   .particle-grid-item .count.over-limit { color: var(--bad); }
+  .particle-grid-item .gained-sub {
+    margin-top: 2px;
+    font-size: 11px;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+    color: var(--text-faint);
+  }
 
   .particle-actions-label {
     font-size: 14px;
@@ -498,6 +505,13 @@
     text-overflow: ellipsis;
     white-space: nowrap;
     font-size: 16px;
+  }
+  .modal-account-row .modal-account-total {
+    flex-shrink: 0;
+    font-size: 14px;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+    color: var(--text-dim);
   }
 
   .header-right { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; justify-content: flex-end; }
@@ -1368,6 +1382,7 @@
       card.innerHTML = `
         <div class="name">${name}</div>
         <div class="count${gained >= PARTICLE_LIMIT ? ' over-limit' : ''}">${total}</div>
+        <div class="gained-sub">${gained}/${PARTICLE_LIMIT}</div>
       `;
       card.addEventListener('click', () => openParticleDetail(name));
       card.addEventListener('keydown', (e) => {
@@ -1470,6 +1485,7 @@
     spendModalAccountsEl.innerHTML = '';
     accountNames.forEach(name => {
       const selected = spendModalSelected.has(name);
+      const total = state.accounts[name].currentTotal || 0;
       const row = document.createElement('div');
       row.className = 'modal-account-row' + (selected ? ' done' : '');
       row.tabIndex = 0;
@@ -1482,6 +1498,7 @@
           </svg>
         </span>
         <span class="name">${name}</span>
+        <span class="modal-account-total">${total}</span>
       `;
       row.addEventListener('click', () => toggleSpendModalAccount(name));
       row.addEventListener('keydown', (e) => {
