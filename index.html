@@ -74,6 +74,11 @@
   .panel-theme-violet .particle-btn { background: #221b34; color: #b389ff; border-color: rgba(179, 137, 255, 0.4); }
   .panel-theme-violet .particle-btn:hover { border-color: #b389ff; }
 
+  .panel-theme-lime { background: #253616; border-color: rgba(166, 214, 82, 0.5); }
+  .panel-theme-lime .particle-actions-label { color: #a6d652; }
+  .panel-theme-lime .particle-btn { background: #1c2a10; color: #a6d652; border-color: rgba(166, 214, 82, 0.4); }
+  .panel-theme-lime .particle-btn:hover { border-color: #a6d652; }
+
   .panel-theme-gold { background: #232a3a; border-color: rgba(138, 148, 173, 0.5); }
   .panel-theme-gold .particle-actions-label { color: #8a94ad; }
   .panel-theme-gold .particle-manual-name { color: #8a94ad; }
@@ -464,7 +469,7 @@
     margin-bottom: 10px;
   }
 
-  .particle-manual-list { display: flex; flex-direction: column; gap: 12px; }
+  .particle-manual-list { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
   .particle-manual-name {
     font-size: 14px;
     font-weight: 700;
@@ -476,7 +481,8 @@
 
   .modal-accounts { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
   #bulk-modal-backdrop .modal-accounts,
-  #spend-modal-backdrop .modal-accounts { margin-top: 12px; }
+  #spend-modal-backdrop .modal-accounts,
+  #gain-modal-backdrop .modal-accounts { margin-top: 12px; }
 
   .modal-account-row {
     display: flex;
@@ -749,6 +755,18 @@
     </div>
   </div>
 
+  <div class="modal-backdrop" id="gain-modal-backdrop" hidden>
+    <div class="modal-panel">
+      <div class="modal-header">
+        <span class="modal-title" id="gain-modal-title"></span>
+        <button class="modal-close" id="gain-modal-close" type="button" aria-label="Close">&times;</button>
+      </div>
+      <button class="check-all-btn" id="gain-modal-select-all" type="button">Select all accounts</button>
+      <button class="sync-action-btn" id="gain-modal-apply" type="button">Apply to selected</button>
+      <div class="modal-accounts" id="gain-modal-accounts"></div>
+    </div>
+  </div>
+
   <div id="view-checklist" hidden>
     <div class="panel">
       <div class="header">
@@ -815,6 +833,14 @@
         </div>
       </div>
       <button class="reset-btn" id="particles-reset-all-btn" type="button">Reset all accounts to 0</button>
+    </div>
+    <div class="panel panel-theme-lime">
+      <div class="particle-actions-label">Daily max particle gained for selected accounts</div>
+      <div class="particle-action-row">
+        <button class="particle-btn" type="button" data-pick-amt="100">+100</button>
+        <button class="particle-btn" type="button" data-pick-amt="120">+120</button>
+        <button class="particle-btn" type="button" data-pick-amt="300">+300</button>
+      </div>
     </div>
     <div class="panel panel-theme-amber">
       <div class="particle-actions-label">Spend on raid for all accounts</div>
@@ -1684,6 +1710,99 @@
     closeSpendModal();
   });
 
+  // --- Daily max particle gained for selected accounts: pick which
+  // accounts a +100/+120/+300 gain applies to, instead of hitting
+  // everyone. Gains count toward both particles (daily) and
+  // currentTotal, same as the individual and "for all accounts" ones. ---
+  const gainModalBackdrop = document.getElementById('gain-modal-backdrop');
+  const gainModalTitleEl = document.getElementById('gain-modal-title');
+  const gainModalCloseBtn = document.getElementById('gain-modal-close');
+  const gainModalAccountsEl = document.getElementById('gain-modal-accounts');
+  const gainModalSelectAllBtn = document.getElementById('gain-modal-select-all');
+  const gainModalApplyBtn = document.getElementById('gain-modal-apply');
+  let gainModalAmt = 0;
+  let gainModalSelected = new Set();
+
+  function openGainModal(amt) {
+    gainModalAmt = amt;
+    gainModalSelected = new Set();
+    gainModalTitleEl.textContent = `Gain +${amt} max particle`;
+    gainModalApplyBtn.textContent = `Apply +${amt} to selected`;
+    renderGainModalAccounts();
+    gainModalBackdrop.hidden = false;
+    history.pushState({ view: 'gain-modal' }, '');
+  }
+
+  function closeGainModal() {
+    if (!gainModalBackdrop.hidden) history.back();
+  }
+
+  function renderGainModalAccounts() {
+    gainModalAccountsEl.innerHTML = '';
+    accountNames.forEach(name => {
+      const selected = gainModalSelected.has(name);
+      const total = state.accounts[name].currentTotal || 0;
+      const row = document.createElement('div');
+      row.className = 'modal-account-row' + (selected ? ' done' : '');
+      row.tabIndex = 0;
+      row.setAttribute('role', 'checkbox');
+      row.setAttribute('aria-checked', String(selected));
+      row.innerHTML = `
+        <span class="box">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#0e1620" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="4 12 10 18 20 6"></polyline>
+          </svg>
+        </span>
+        <span class="name">${name}</span>
+        <span class="modal-account-total">${total}</span>
+      `;
+      row.addEventListener('click', () => toggleGainModalAccount(name));
+      row.addEventListener('keydown', (e) => {
+        if (e.key === ' ' || e.key === 'Enter') {
+          e.preventDefault();
+          toggleGainModalAccount(name);
+        }
+      });
+      gainModalAccountsEl.appendChild(row);
+    });
+
+    const allSelected = accountNames.every(name => gainModalSelected.has(name));
+    gainModalSelectAllBtn.textContent = allSelected ? 'Deselect all accounts' : 'Select all accounts';
+  }
+
+  function toggleGainModalAccount(name) {
+    if (gainModalSelected.has(name)) gainModalSelected.delete(name);
+    else gainModalSelected.add(name);
+    renderGainModalAccounts();
+  }
+
+  document.querySelectorAll('#view-particles .particle-btn[data-pick-amt]').forEach(btn => {
+    btn.addEventListener('click', () => openGainModal(Number(btn.dataset.pickAmt)));
+  });
+
+  gainModalCloseBtn.addEventListener('click', closeGainModal);
+  gainModalBackdrop.addEventListener('click', (e) => {
+    if (e.target === gainModalBackdrop) closeGainModal();
+  });
+
+  gainModalSelectAllBtn.addEventListener('click', () => {
+    const allSelected = accountNames.every(name => gainModalSelected.has(name));
+    if (allSelected) gainModalSelected.clear();
+    else accountNames.forEach(name => gainModalSelected.add(name));
+    renderGainModalAccounts();
+  });
+
+  gainModalApplyBtn.addEventListener('click', () => {
+    if (gainModalSelected.size === 0) return;
+    gainModalSelected.forEach(name => {
+      state.accounts[name].particles = (state.accounts[name].particles || 0) + gainModalAmt;
+      state.accounts[name].currentTotal = (state.accounts[name].currentTotal || 0) + gainModalAmt;
+    });
+    saveState(state);
+    renderParticleList();
+    closeGainModal();
+  });
+
   // Skips writing to the manual-edit input, so calling this from that
   // input's own live "input" handler doesn't fight the cursor/value the
   // user is actively typing.
@@ -2037,6 +2156,10 @@
     }
     if (!spendModalBackdrop.hidden) {
       spendModalBackdrop.hidden = true;
+      return;
+    }
+    if (!gainModalBackdrop.hidden) {
+      gainModalBackdrop.hidden = true;
       return;
     }
     if (!viewParticleDetail.hidden) {
