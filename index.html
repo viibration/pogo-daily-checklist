@@ -532,6 +532,14 @@
     white-space: nowrap;
     font-size: 16px;
   }
+  .modal-account-text {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    flex: 1;
+    min-width: 0;
+  }
+  .modal-account-text .name { flex: none; }
   .modal-account-row .modal-account-total {
     flex-shrink: 0;
     font-size: 14px;
@@ -1602,8 +1610,10 @@
             <polyline points="4 12 10 18 20 6"></polyline>
           </svg>
         </span>
-        <span class="name">${name}</span>
-        <span class="modal-account-total">${total}</span>
+        <span class="modal-account-text">
+          <span class="name">${name}</span>
+          <span class="modal-account-total">${total}</span>
+        </span>
       `;
       if (affordable) {
         row.addEventListener('click', () => toggleSpendModalAccount(name));
@@ -1701,8 +1711,10 @@
             <polyline points="4 12 10 18 20 6"></polyline>
           </svg>
         </span>
-        <span class="name">${name}</span>
-        <span class="modal-account-total">${gained}/${PARTICLE_LIMIT}</span>
+        <span class="modal-account-text">
+          <span class="name">${name}</span>
+          <span class="modal-account-total">${gained}/${PARTICLE_LIMIT}</span>
+        </span>
       `;
       if (underQuota) {
         row.addEventListener('click', () => toggleGainModalAccount(name));
