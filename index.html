@@ -50,19 +50,19 @@
   }
   .panel + .panel { margin-top: 14px; }
 
-  .panel-theme-rose { background: #33202a; border-color: rgba(224, 122, 158, 0.5); }
-  .panel-theme-rose .check-all-btn { background: #291920; color: #e07a9e; border-color: rgba(224, 122, 158, 0.4); }
-  .panel-theme-rose .check-all-btn:hover { border-color: #e07a9e; }
-  .panel-theme-rose .task-row { background: #291920; border-color: rgba(224, 122, 158, 0.4); }
-  .panel-theme-rose .task-row:hover { border-color: #e07a9e; }
-  .panel-theme-rose .task-row .badge { background: #33202a; border-color: rgba(224, 122, 158, 0.4); color: #e07a9e; }
-
   .panel-theme-teal { background: #16332f; border-color: rgba(79, 216, 216, 0.5); }
   .panel-theme-teal .particle-actions-label { color: #4fd8d8; }
   .panel-theme-teal .particle-btn { background: #102723; color: #4fd8d8; border-color: rgba(79, 216, 216, 0.4); }
   .panel-theme-teal .particle-btn:hover { border-color: #4fd8d8; }
   .panel-theme-teal .reset-btn { color: #4fd8d8; border-color: rgba(79, 216, 216, 0.4); }
   .panel-theme-teal .reset-btn:hover { color: #4fd8d8; border-color: #4fd8d8; }
+  .panel-theme-teal .check-all-btn { background: #102723; color: #4fd8d8; border-color: rgba(79, 216, 216, 0.4); }
+  .panel-theme-teal .check-all-btn:hover { border-color: #4fd8d8; }
+  .panel-theme-teal .task-row { background: #102723; border-color: rgba(79, 216, 216, 0.4); }
+  .panel-theme-teal .task-row:hover { border-color: #4fd8d8; }
+  .panel-theme-teal .task-row .badge { background: #16332f; border-color: rgba(79, 216, 216, 0.4); color: #4fd8d8; }
+  .panel-theme-teal .item { background: #102723; border-color: rgba(79, 216, 216, 0.4); }
+  .panel-theme-teal .item:hover { border-color: #4fd8d8; }
 
   .panel-theme-amber { background: #3a2a18; border-color: rgba(255, 169, 77, 0.5); }
   .panel-theme-amber .particle-actions-label { color: #ffa94d; }
@@ -641,7 +641,7 @@
     <div class="panel">
       <div class="accounts" id="accounts"></div>
     </div>
-    <div class="panel panel-theme-rose">
+    <div class="panel panel-theme-teal">
       <button class="check-all-btn" id="bulk-open-btn" type="button">Check all tasks for account(s)&hellip;</button>
       <button class="check-all-btn" id="custom-tasks-open-btn" type="button">Manage Custom Tasks&hellip;</button>
       <div class="items" id="master-tasks"></div>
@@ -740,7 +740,7 @@
       <div class="progress-label" id="progress-label"></div>
     </div>
 
-    <div class="panel">
+    <div class="panel panel-theme-teal">
       <button class="check-all-btn" id="checklist-check-all-btn" type="button">Check all</button>
       <div class="items" id="items"></div>
       <button class="reset-btn" id="reset-btn" type="button">Reset today's checklist</button>
@@ -804,28 +804,13 @@
       <span class="particle-total" id="particle-detail-total" tabindex="0" role="button" aria-label="Set exact current total"></span>
       <span class="particle-gained-sub" id="particle-detail-gained"></span>
     </div>
-    <div class="panel">
+    <div class="panel panel-theme-teal">
       <div class="particle-actions-label">Daily max particle gained</div>
       <div class="particle-actions">
         <div class="particle-action-row">
           <button class="particle-btn" type="button" data-amt="100">+100</button>
-          <button class="particle-btn" type="button" data-amt="-100">-100</button>
-        </div>
-        <div class="particle-action-row">
           <button class="particle-btn" type="button" data-amt="120">+120</button>
-          <button class="particle-btn" type="button" data-amt="-120">-120</button>
-        </div>
-        <div class="particle-action-row">
           <button class="particle-btn" type="button" data-amt="300">+300</button>
-          <button class="particle-btn" type="button" data-amt="-300">-300</button>
-        </div>
-        <div class="particle-action-row">
-          <button class="particle-btn" type="button" data-amt="20">+20</button>
-          <button class="particle-btn" type="button" data-amt="-20">-20</button>
-        </div>
-        <div class="particle-action-row">
-          <button class="particle-btn" type="button" data-amt="5">+5</button>
-          <button class="particle-btn" type="button" data-amt="-5">-5</button>
         </div>
       </div>
       <button class="reset-btn" id="particle-detail-reset-btn" type="button">Reset today's gain to 0</button>
