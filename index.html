@@ -1688,9 +1688,10 @@
     gainModalAccountsEl.innerHTML = '';
     accountNames.forEach(name => {
       const selected = gainModalSelected.has(name);
-      const total = state.accounts[name].currentTotal || 0;
+      const gained = state.accounts[name].particles || 0;
+      const underQuota = gained < PARTICLE_LIMIT;
       const row = document.createElement('div');
-      row.className = 'modal-account-row' + (selected ? ' done' : '');
+      row.className = 'modal-account-row' + (selected ? ' done' : '') + (underQuota ? '' : ' disabled');
       row.tabIndex = 0;
       row.setAttribute('role', 'checkbox');
       row.setAttribute('aria-checked', String(selected));
@@ -1701,19 +1702,24 @@
           </svg>
         </span>
         <span class="name">${name}</span>
-        <span class="modal-account-total">${total}</span>
+        <span class="modal-account-total">${gained}/${PARTICLE_LIMIT}</span>
       `;
-      row.addEventListener('click', () => toggleGainModalAccount(name));
-      row.addEventListener('keydown', (e) => {
-        if (e.key === ' ' || e.key === 'Enter') {
-          e.preventDefault();
-          toggleGainModalAccount(name);
-        }
-      });
+      if (underQuota) {
+        row.addEventListener('click', () => toggleGainModalAccount(name));
+        row.addEventListener('keydown', (e) => {
+          if (e.key === ' ' || e.key === 'Enter') {
+            e.preventDefault();
+            toggleGainModalAccount(name);
+          }
+        });
+      } else {
+        gainModalSelected.delete(name);
+      }
       gainModalAccountsEl.appendChild(row);
     });
 
-    const allSelected = accountNames.every(name => gainModalSelected.has(name));
+    const underQuotaNames = accountNames.filter(name => (state.accounts[name].particles || 0) < PARTICLE_LIMIT);
+    const allSelected = underQuotaNames.length > 0 && underQuotaNames.every(name => gainModalSelected.has(name));
     gainModalSelectAllBtn.textContent = allSelected ? 'Deselect all accounts' : 'Select all accounts';
   }
 
@@ -1733,9 +1739,10 @@
   });
 
   gainModalSelectAllBtn.addEventListener('click', () => {
-    const allSelected = accountNames.every(name => gainModalSelected.has(name));
+    const underQuotaNames = accountNames.filter(name => (state.accounts[name].particles || 0) < PARTICLE_LIMIT);
+    const allSelected = underQuotaNames.length > 0 && underQuotaNames.every(name => gainModalSelected.has(name));
     if (allSelected) gainModalSelected.clear();
-    else accountNames.forEach(name => gainModalSelected.add(name));
+    else underQuotaNames.forEach(name => gainModalSelected.add(name));
     renderGainModalAccounts();
   });
 
