@@ -471,6 +471,8 @@
     color: var(--text-dim);
     margin-bottom: 4px;
   }
+  .particle-manual-row .particle-manual-input,
+  #particle-detail-manual-input { display: block; width: 100%; }
 
   .modal-accounts { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
   #bulk-modal-backdrop .modal-accounts,
@@ -550,6 +552,27 @@
     border-top: 1px solid var(--line);
     flex-wrap: wrap;
   }
+  .app-tabs { display: flex; gap: 8px; }
+  .app-tab {
+    flex: 1;
+    font: inherit;
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--text-dim);
+    background: var(--panel-2);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 11px;
+    cursor: pointer;
+  }
+  .app-tab.active {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: #fff;
+  }
+  .app-tab:hover { border-color: var(--accent); }
+  .app-tab:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+
   .tz-tabs { display: flex; gap: 6px; flex-wrap: wrap; }
   .tz-tab {
     font: inherit;
@@ -608,8 +631,9 @@
 <div class="page">
   <div id="view-dashboard">
     <div class="panel">
-      <div class="header">
-        <h1>Daily Checklist</h1>
+      <div class="app-tabs">
+        <button class="app-tab active" data-tab="dashboard" type="button">Daily Checklist</button>
+        <button class="app-tab" data-tab="particles" type="button">Max Particle</button>
       </div>
       <div class="tz-row">
         <div class="tz-tabs" id="tz-tabs"></div>
@@ -635,7 +659,6 @@
         <span class="status-badges" id="badge-raid-hour-label"></span>
         <span class="status-badges" id="badge-raid-hour-time"></span>
       </div>
-      <button class="check-all-btn particles-open-btn" id="particles-open-btn" type="button">Max Particle Calculator&hellip;</button>
       <button class="check-all-btn particles-open-btn" id="sync-open-btn" type="button">Manual Sync&hellip;</button>
     </div>
     <div class="panel">
@@ -749,12 +772,35 @@
 
   <div id="view-particles" hidden>
     <div class="panel">
-      <div class="header">
-        <div class="header-with-back">
-          <button class="back-btn" id="particles-back-btn" type="button" aria-label="Back to dashboard">&larr;</button>
-          <h1>Max Particle Calculator</h1>
-        </div>
+      <div class="app-tabs">
+        <button class="app-tab" data-tab="dashboard" type="button">Daily Checklist</button>
+        <button class="app-tab active" data-tab="particles" type="button">Max Particle</button>
       </div>
+      <div class="tz-row">
+        <div class="tz-tabs" id="tz-tabs-2"></div>
+        <div class="tz-clock" id="tz-clock-2">&mdash;</div>
+      </div>
+      <div class="tz-badges-row">
+        <span class="status-badges" id="badge-raid-label-2"></span>
+        <span class="status-badges" id="badge-raid-time-2"></span>
+      </div>
+      <div class="tz-badges-row">
+        <span class="status-badges" id="badge-max-battle-label-2"></span>
+        <span class="status-badges" id="badge-max-battle-time-2"></span>
+      </div>
+      <div class="tz-badges-row">
+        <span class="status-badges" id="badge-max-monday-label-2"></span>
+        <span class="status-badges" id="badge-max-monday-time-2"></span>
+      </div>
+      <div class="tz-badges-row">
+        <span class="status-badges" id="badge-spotlight-hour-label-2"></span>
+        <span class="status-badges" id="badge-spotlight-hour-time-2"></span>
+      </div>
+      <div class="tz-badges-row">
+        <span class="status-badges" id="badge-raid-hour-label-2"></span>
+        <span class="status-badges" id="badge-raid-hour-time-2"></span>
+      </div>
+      <button class="check-all-btn particles-open-btn" id="sync-open-btn-2" type="button">Manual Sync&hellip;</button>
     </div>
     <div class="panel">
       <div class="particle-grid" id="particle-list"></div>
@@ -825,10 +871,7 @@
     </div>
     <div class="panel panel-theme-gold">
       <div class="particle-actions-label">Manual edit Current Max particle</div>
-      <div class="particle-action-row">
-        <input class="particle-manual-input" id="particle-detail-manual-input" type="number" inputmode="numeric" min="0">
-        <button class="particle-btn" id="particle-detail-manual-save" type="button">Save</button>
-      </div>
+      <input class="particle-manual-input" id="particle-detail-manual-input" type="number" inputmode="numeric" min="0">
     </div>
   </div>
 </div>
@@ -981,8 +1024,6 @@
   const syncCopyPhoneBtn = document.getElementById('sync-copy-phone-btn');
   const syncPasteBtn = document.getElementById('sync-paste-btn');
 
-  const particlesOpenBtn = document.getElementById('particles-open-btn');
-  const particlesBackBtn = document.getElementById('particles-back-btn');
   const particleListEl = document.getElementById('particle-list');
   const particleManualListEl = document.getElementById('particle-manual-list');
   const particleDetailBackBtn = document.getElementById('particle-detail-back-btn');
@@ -990,7 +1031,6 @@
   const particleDetailTotalEl = document.getElementById('particle-detail-total');
   const particleDetailGainedEl = document.getElementById('particle-detail-gained');
   const particleDetailManualInput = document.getElementById('particle-detail-manual-input');
-  const particleDetailManualSave = document.getElementById('particle-detail-manual-save');
   let currentParticleAccount = null;
 
   const modalBackdrop = document.getElementById('modal-backdrop');
@@ -1113,18 +1153,33 @@
   ];
   let currentTz = 'ny';
 
-  const tzTabsEl = document.getElementById('tz-tabs');
-  const tzClockEl = document.getElementById('tz-clock');
-  const badgeRaidLabelEl = document.getElementById('badge-raid-label');
-  const badgeRaidTimeEl = document.getElementById('badge-raid-time');
-  const badgeMaxBattleLabelEl = document.getElementById('badge-max-battle-label');
-  const badgeMaxBattleTimeEl = document.getElementById('badge-max-battle-time');
-  const badgeMaxMondayLabelEl = document.getElementById('badge-max-monday-label');
-  const badgeMaxMondayTimeEl = document.getElementById('badge-max-monday-time');
-  const badgeSpotlightHourLabelEl = document.getElementById('badge-spotlight-hour-label');
-  const badgeSpotlightHourTimeEl = document.getElementById('badge-spotlight-hour-time');
-  const badgeRaidHourLabelEl = document.getElementById('badge-raid-hour-label');
-  const badgeRaidHourTimeEl = document.getElementById('badge-raid-hour-time');
+  // The timezone clock/badges box appears on both the Checklist and
+  // Particles root tabs (two independent DOM copies, "" and "-2" ids),
+  // so every element here is a pair updated together.
+  function bothIds(...ids) {
+    return ids.map(id => [document.getElementById(id), document.getElementById(id + '-2')]);
+  }
+  const [
+    [tzTabsEl, tzTabsEl2],
+    [tzClockEl, tzClockEl2],
+    [badgeRaidLabelEl, badgeRaidLabelEl2],
+    [badgeRaidTimeEl, badgeRaidTimeEl2],
+    [badgeMaxBattleLabelEl, badgeMaxBattleLabelEl2],
+    [badgeMaxBattleTimeEl, badgeMaxBattleTimeEl2],
+    [badgeMaxMondayLabelEl, badgeMaxMondayLabelEl2],
+    [badgeMaxMondayTimeEl, badgeMaxMondayTimeEl2],
+    [badgeSpotlightHourLabelEl, badgeSpotlightHourLabelEl2],
+    [badgeSpotlightHourTimeEl, badgeSpotlightHourTimeEl2],
+    [badgeRaidHourLabelEl, badgeRaidHourLabelEl2],
+    [badgeRaidHourTimeEl, badgeRaidHourTimeEl2],
+  ] = bothIds(
+    'tz-tabs', 'tz-clock',
+    'badge-raid-label', 'badge-raid-time',
+    'badge-max-battle-label', 'badge-max-battle-time',
+    'badge-max-monday-label', 'badge-max-monday-time',
+    'badge-spotlight-hour-label', 'badge-spotlight-hour-time',
+    'badge-raid-hour-label', 'badge-raid-hour-time',
+  );
 
   // Computed live (not hardcoded) so it stays correct across daylight
   // saving changes - e.g. New York flips between UTC-5 and UTC-4.
@@ -1138,8 +1193,8 @@
     }
   }
 
-  function renderTzTabs() {
-    tzTabsEl.innerHTML = '';
+  function renderTzTabsInto(container) {
+    container.innerHTML = '';
     timezones.forEach(z => {
       const btn = document.createElement('button');
       btn.className = 'tz-tab' + (z.key === currentTz ? ' active' : '');
@@ -1150,8 +1205,13 @@
         renderTzTabs();
         updateTzClock();
       });
-      tzTabsEl.appendChild(btn);
+      container.appendChild(btn);
     });
+  }
+
+  function renderTzTabs() {
+    renderTzTabsInto(tzTabsEl);
+    renderTzTabsInto(tzTabsEl2);
   }
 
   function updateTzClock() {
@@ -1165,17 +1225,26 @@
     const mm = String(zoned.getMinutes()).padStart(2, '0');
     const text = `${thaiDateStr(zoned)} · ${hh}:${mm} น.`;
     tzClockEl.textContent = text;
+    tzClockEl2.textContent = text;
     renderStatusBadges(badgeRaidLabelEl, badgeRaidTimeEl, badgeMaxBattleLabelEl, badgeMaxBattleTimeEl, zoned);
+    renderStatusBadges(badgeRaidLabelEl2, badgeRaidTimeEl2, badgeMaxBattleLabelEl2, badgeMaxBattleTimeEl2, zoned);
     renderWeeklyBadges(
       badgeMaxMondayLabelEl, badgeMaxMondayTimeEl,
       badgeSpotlightHourLabelEl, badgeSpotlightHourTimeEl,
       badgeRaidHourLabelEl, badgeRaidHourTimeEl,
       zoned
     );
+    renderWeeklyBadges(
+      badgeMaxMondayLabelEl2, badgeMaxMondayTimeEl2,
+      badgeSpotlightHourLabelEl2, badgeSpotlightHourTimeEl2,
+      badgeRaidHourLabelEl2, badgeRaidHourTimeEl2,
+      zoned
+    );
   }
 
   renderTzTabs();
   fixClockWidth(tzClockEl);
+  fixClockWidth(tzClockEl2);
   updateTzClock();
   setInterval(() => {
     updateTzClock();
@@ -1426,7 +1495,7 @@
 
   const PARTICLE_LIMIT = 800;
 
-  function renderParticleList() {
+  function renderParticleGrid() {
     particleListEl.innerHTML = '';
     accountNames.forEach(name => {
       const total = state.accounts[name].currentTotal || 0;
@@ -1449,6 +1518,10 @@
       });
       particleListEl.appendChild(card);
     });
+  }
+
+  function renderParticleList() {
+    renderParticleGrid();
     renderParticleManualList();
   }
 
@@ -1460,19 +1533,17 @@
       row.className = 'particle-manual-row';
       row.innerHTML = `
         <div class="particle-manual-name">${name}</div>
-        <div class="particle-action-row">
-          <input class="particle-manual-input" type="number" inputmode="numeric" min="0" value="${total}">
-          <button class="particle-btn" type="button">Save</button>
-        </div>
+        <input class="particle-manual-input" type="number" inputmode="numeric" min="0" value="${total}">
       `;
       const input = row.querySelector('.particle-manual-input');
-      const saveBtn = row.querySelector('.particle-btn');
-      saveBtn.addEventListener('click', () => {
+      // Applies as you type - re-rendering only the grid (not this list)
+      // keeps focus/cursor position intact while editing.
+      input.addEventListener('input', () => {
         const value = parseInt(input.value, 10);
         if (Number.isNaN(value) || value < 0) return;
         state.accounts[name].currentTotal = value;
         saveState(state);
-        renderParticleList();
+        renderParticleGrid();
       });
       particleManualListEl.appendChild(row);
     });
@@ -1613,7 +1684,10 @@
     closeSpendModal();
   });
 
-  function renderParticleDetail() {
+  // Skips writing to the manual-edit input, so calling this from that
+  // input's own live "input" handler doesn't fight the cursor/value the
+  // user is actively typing.
+  function updateParticleDetailDisplays() {
     const name = currentParticleAccount;
     const total = state.accounts[name].currentTotal || 0;
     const gained = state.accounts[name].particles || 0;
@@ -1621,11 +1695,15 @@
     particleDetailTotalEl.textContent = total;
     particleDetailGainedEl.textContent = `(+${gained}/${PARTICLE_LIMIT})`;
     particleDetailGainedEl.classList.toggle('over-limit', gained >= PARTICLE_LIMIT);
-    particleDetailManualInput.value = total;
 
     document.querySelectorAll('#view-particle-detail .particle-btn[data-spend]').forEach(btn => {
       btn.disabled = total - Number(btn.dataset.spend) < 0;
     });
+  }
+
+  function renderParticleDetail() {
+    updateParticleDetailDisplays();
+    particleDetailManualInput.value = state.accounts[currentParticleAccount].currentTotal || 0;
   }
 
   function adjustParticles(amt) {
@@ -1674,24 +1752,32 @@
     renderParticleDetail();
   });
 
-  particleDetailManualSave.addEventListener('click', () => {
+  particleDetailManualInput.addEventListener('input', () => {
     const value = parseInt(particleDetailManualInput.value, 10);
     if (Number.isNaN(value) || value < 0) return;
     state.accounts[currentParticleAccount].currentTotal = value;
     saveState(state);
-    renderParticleDetail();
+    updateParticleDetailDisplays();
   });
 
-  function openParticles() {
-    viewDashboard.hidden = true;
-    viewParticles.hidden = false;
-    renderParticleList();
-    history.pushState({ view: 'particles' }, '');
+  // Checklist and Particles are peer top-level tabs (equal priority),
+  // not a parent/child pair, so switching between them doesn't push a
+  // history entry - only genuine sub-views (account checklist, particle
+  // detail, custom tasks, sync, modals) do that.
+  function switchTab(tab) {
+    const showDashboard = tab === 'dashboard';
+    viewDashboard.hidden = !showDashboard;
+    viewParticles.hidden = showDashboard;
+    document.querySelectorAll('.app-tab').forEach(btn => {
+      btn.classList.toggle('active', btn.dataset.tab === tab);
+    });
+    if (showDashboard) renderDashboard();
+    else renderParticleList();
   }
 
-  function closeParticles() {
-    if (!viewParticles.hidden) history.back();
-  }
+  document.querySelectorAll('.app-tab').forEach(btn => {
+    btn.addEventListener('click', () => switchTab(btn.dataset.tab));
+  });
 
   function openParticleDetail(name) {
     currentParticleAccount = name;
@@ -1705,8 +1791,6 @@
     if (!viewParticleDetail.hidden) history.back();
   }
 
-  particlesOpenBtn.addEventListener('click', openParticles);
-  particlesBackBtn.addEventListener('click', closeParticles);
   particleDetailBackBtn.addEventListener('click', closeParticleDetail);
 
   function renderCustomTasks() {
@@ -1812,8 +1896,15 @@
     return JSON.parse(text);
   }
 
+  // Manual Sync is reachable from either root tab now, so remember which
+  // one was open to return to the right place instead of always the
+  // Checklist tab.
+  let syncOpenedFromParticles = false;
+
   async function openSync() {
+    syncOpenedFromParticles = !viewParticles.hidden;
     viewDashboard.hidden = true;
+    viewParticles.hidden = true;
     viewSync.hidden = false;
     syncExportText.value = 'Generating sync code…';
     syncImportText.value = '';
@@ -1826,6 +1917,7 @@
   }
 
   syncOpenBtn.addEventListener('click', openSync);
+  document.getElementById('sync-open-btn-2').addEventListener('click', openSync);
   syncBackBtn.addEventListener('click', closeSync);
 
   function flashButton(btn, text) {
@@ -1954,11 +2046,6 @@
       renderParticleList();
       return;
     }
-    if (!viewParticles.hidden) {
-      viewParticles.hidden = true;
-      viewDashboard.hidden = false;
-      return;
-    }
     if (!viewCustomTasks.hidden) {
       viewCustomTasks.hidden = true;
       viewDashboard.hidden = false;
@@ -1967,7 +2054,12 @@
     }
     if (!viewSync.hidden) {
       viewSync.hidden = true;
-      viewDashboard.hidden = false;
+      if (syncOpenedFromParticles) {
+        viewParticles.hidden = false;
+        renderParticleList();
+      } else {
+        viewDashboard.hidden = false;
+      }
       return;
     }
     if (!viewChecklist.hidden) {
