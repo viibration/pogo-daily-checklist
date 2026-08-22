@@ -73,6 +73,15 @@
   .panel-theme-violet .particle-actions-label { color: #b389ff; }
   .panel-theme-violet .particle-btn { background: #221b34; color: #b389ff; border-color: rgba(179, 137, 255, 0.4); }
   .panel-theme-violet .particle-btn:hover { border-color: #b389ff; }
+  .panel-theme-violet .reset-btn { color: #b389ff; border-color: rgba(179, 137, 255, 0.4); }
+  .panel-theme-violet .reset-btn:hover { color: #b389ff; border-color: #b389ff; }
+  .panel-theme-violet .check-all-btn { background: #221b34; color: #b389ff; border-color: rgba(179, 137, 255, 0.4); }
+  .panel-theme-violet .check-all-btn:hover { border-color: #b389ff; }
+  .panel-theme-violet .task-row { background: #221b34; border-color: rgba(179, 137, 255, 0.4); }
+  .panel-theme-violet .task-row:hover { border-color: #b389ff; }
+  .panel-theme-violet .task-row .badge { background: #2a2140; border-color: rgba(179, 137, 255, 0.4); color: #b389ff; }
+  .panel-theme-violet .item { background: #221b34; border-color: rgba(179, 137, 255, 0.4); }
+  .panel-theme-violet .item:hover { border-color: #b389ff; }
 
   .panel-theme-lime { background: #253616; border-color: rgba(166, 214, 82, 0.5); }
   .panel-theme-lime .particle-actions-label { color: #a6d652; }
@@ -670,7 +679,7 @@
     <div class="panel">
       <div class="accounts" id="accounts"></div>
     </div>
-    <div class="panel panel-theme-teal">
+    <div class="panel panel-theme-violet">
       <button class="check-all-btn" id="bulk-open-btn" type="button">Check all tasks for account(s)&hellip;</button>
       <button class="check-all-btn" id="custom-tasks-open-btn" type="button">Manage Custom Tasks&hellip;</button>
       <div class="items" id="master-tasks"></div>
@@ -781,7 +790,7 @@
       <div class="progress-label" id="progress-label"></div>
     </div>
 
-    <div class="panel panel-theme-teal">
+    <div class="panel panel-theme-violet">
       <button class="check-all-btn" id="checklist-check-all-btn" type="button">Check all</button>
       <div class="items" id="items"></div>
       <button class="reset-btn" id="reset-btn" type="button">Reset today's checklist</button>
@@ -1897,6 +1906,42 @@
   document.querySelectorAll('.app-tab').forEach(btn => {
     btn.addEventListener('click', () => switchTab(btn.dataset.tab));
   });
+
+  // Swipe left/right between the two root tabs on touch devices. Only
+  // active while an actual root tab is showing (not a sub-view/modal),
+  // and ignores touches starting in a text field so it doesn't fight
+  // cursor placement/selection there.
+  (function setupSwipeNav() {
+    const SWIPE_THRESHOLD = 60;
+    const SWIPE_RESTRAINT = 75;
+    let startX = 0;
+    let startY = 0;
+    let tracking = false;
+
+    document.addEventListener('touchstart', (e) => {
+      tracking = false;
+      if (viewDashboard.hidden && viewParticles.hidden) return;
+      if (e.touches.length !== 1) return;
+      const tag = e.target.tagName;
+      if (tag === 'INPUT' || tag === 'TEXTAREA') return;
+      startX = e.touches[0].clientX;
+      startY = e.touches[0].clientY;
+      tracking = true;
+    }, { passive: true });
+
+    document.addEventListener('touchend', (e) => {
+      if (!tracking) return;
+      tracking = false;
+      const touch = e.changedTouches[0];
+      const dx = touch.clientX - startX;
+      const dy = touch.clientY - startY;
+      if (Math.abs(dx) < SWIPE_THRESHOLD) return;
+      if (Math.abs(dy) > SWIPE_RESTRAINT) return;
+      if (Math.abs(dx) < Math.abs(dy) * 1.2) return;
+      if (dx < 0 && !viewDashboard.hidden) switchTab('particles');
+      else if (dx > 0 && !viewParticles.hidden) switchTab('dashboard');
+    }, { passive: true });
+  })();
 
   function openParticleDetail(name) {
     currentParticleAccount = name;
