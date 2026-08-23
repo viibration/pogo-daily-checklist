@@ -163,7 +163,7 @@
   .progress-label.complete { color: var(--good); }
 
   .items { display: flex; flex-direction: column; gap: 8px; }
-  #master-tasks { display: grid; grid-template-columns: 1fr 1fr; }
+  #master-tasks, #items { display: grid; grid-template-columns: 1fr 1fr; }
 
   .item {
     display: flex;
@@ -202,6 +202,7 @@
 
   .item .label {
     flex: 1;
+    min-width: 0;
     font-size: 17px;
   }
   .item.done .label {
