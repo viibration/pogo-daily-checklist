@@ -359,6 +359,22 @@
   .check-all-btn:hover { border-color: var(--accent); }
   .check-all-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
 
+  .modal-quick-row { display: flex; gap: 8px; margin-bottom: 10px; }
+  .modal-quick-btn {
+    flex: 1;
+    font: inherit;
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--accent);
+    background: var(--panel-2);
+    border: 1px dashed var(--line);
+    border-radius: 8px;
+    padding: 9px;
+    cursor: pointer;
+  }
+  .modal-quick-btn:hover { border-color: var(--accent); }
+  .modal-quick-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+
   .particles-open-btn { margin-top: 12px; margin-bottom: 0; }
 
   .particle-grid {
@@ -739,6 +755,10 @@
         <button class="modal-close" id="modal-close" type="button" aria-label="Close">&times;</button>
       </div>
       <button class="check-all-btn" id="modal-check-all" type="button">Check all</button>
+      <div class="modal-quick-row">
+        <button class="modal-quick-btn" id="modal-first4-btn" type="button">First 4 accounts</button>
+        <button class="modal-quick-btn" id="modal-last3-btn" type="button">Last 3 accounts</button>
+      </div>
       <div class="modal-accounts" id="modal-accounts"></div>
     </div>
   </div>
@@ -750,6 +770,10 @@
         <button class="modal-close" id="bulk-modal-close" type="button" aria-label="Close">&times;</button>
       </div>
       <button class="check-all-btn" id="bulk-select-all-btn" type="button">Select all accounts</button>
+      <div class="modal-quick-row">
+        <button class="modal-quick-btn" id="bulk-first4-btn" type="button">First 4 accounts</button>
+        <button class="modal-quick-btn" id="bulk-last3-btn" type="button">Last 3 accounts</button>
+      </div>
       <button class="sync-action-btn" id="bulk-apply-btn" type="button">Mark all tasks done for selected</button>
       <button class="reset-btn" id="bulk-uncheck-btn" type="button">Mark all tasks not done for selected</button>
       <div class="modal-accounts" id="bulk-accounts"></div>
@@ -763,6 +787,10 @@
         <button class="modal-close" id="spend-modal-close" type="button" aria-label="Close">&times;</button>
       </div>
       <button class="check-all-btn" id="spend-modal-select-all" type="button">Select all accounts</button>
+      <div class="modal-quick-row">
+        <button class="modal-quick-btn" id="spend-first4-btn" type="button">First 4 accounts</button>
+        <button class="modal-quick-btn" id="spend-last3-btn" type="button">Last 3 accounts</button>
+      </div>
       <button class="sync-action-btn" id="spend-modal-apply" type="button">Apply to selected</button>
       <div class="modal-accounts" id="spend-modal-accounts"></div>
     </div>
@@ -775,6 +803,10 @@
         <button class="modal-close" id="gain-modal-close" type="button" aria-label="Close">&times;</button>
       </div>
       <button class="check-all-btn" id="gain-modal-select-all" type="button">Select all accounts</button>
+      <div class="modal-quick-row">
+        <button class="modal-quick-btn" id="gain-first4-btn" type="button">First 4 accounts</button>
+        <button class="modal-quick-btn" id="gain-last3-btn" type="button">Last 3 accounts</button>
+      </div>
       <button class="sync-action-btn" id="gain-modal-apply" type="button">Apply to selected</button>
       <div class="modal-accounts" id="gain-modal-accounts"></div>
     </div>
@@ -932,6 +964,11 @@
     'ViiperGX',
     'ViillainousNX',
   ];
+
+  // Quick-select shortcuts for the most commonly checked subsets,
+  // reused across every account-picker modal below.
+  const FIRST_FOUR_ACCOUNTS = accountNames.slice(0, 4);
+  const LAST_THREE_ACCOUNTS = accountNames.slice(-3);
 
   // Daily reset follows New York midnight instead of this device's own
   // local time, since that's the reference timezone being used to plan
@@ -1402,6 +1439,15 @@
     renderDashboard();
   });
 
+  function checkModalAccounts(names) {
+    names.forEach(name => { state.accounts[name].done[modalTaskId] = true; });
+    saveState(state);
+    renderModalAccounts();
+    renderDashboard();
+  }
+  document.getElementById('modal-first4-btn').addEventListener('click', () => checkModalAccounts(FIRST_FOUR_ACCOUNTS));
+  document.getElementById('modal-last3-btn').addEventListener('click', () => checkModalAccounts(LAST_THREE_ACCOUNTS));
+
   modalCloseBtn.addEventListener('click', closeModal);
   modalBackdrop.addEventListener('click', (e) => {
     if (e.target === modalBackdrop) closeModal();
@@ -1475,6 +1521,15 @@
     const allSelected = accountNames.every(name => bulkSelected.has(name));
     if (allSelected) bulkSelected.clear();
     else accountNames.forEach(name => bulkSelected.add(name));
+    renderBulkAccounts();
+  });
+
+  document.getElementById('bulk-first4-btn').addEventListener('click', () => {
+    FIRST_FOUR_ACCOUNTS.forEach(name => bulkSelected.add(name));
+    renderBulkAccounts();
+  });
+  document.getElementById('bulk-last3-btn').addEventListener('click', () => {
+    LAST_THREE_ACCOUNTS.forEach(name => bulkSelected.add(name));
     renderBulkAccounts();
   });
 
@@ -1658,6 +1713,17 @@
     renderSpendModalAccounts();
   });
 
+  // Disabled (unaffordable) accounts get filtered back out by
+  // renderSpendModalAccounts itself, so these can add blindly.
+  document.getElementById('spend-first4-btn').addEventListener('click', () => {
+    FIRST_FOUR_ACCOUNTS.forEach(name => spendModalSelected.add(name));
+    renderSpendModalAccounts();
+  });
+  document.getElementById('spend-last3-btn').addEventListener('click', () => {
+    LAST_THREE_ACCOUNTS.forEach(name => spendModalSelected.add(name));
+    renderSpendModalAccounts();
+  });
+
   spendModalApplyBtn.addEventListener('click', () => {
     if (spendModalSelected.size === 0) return;
     spendModalSelected.forEach(name => {
@@ -1756,6 +1822,17 @@
     const allSelected = underQuotaNames.length > 0 && underQuotaNames.every(name => gainModalSelected.has(name));
     if (allSelected) gainModalSelected.clear();
     else underQuotaNames.forEach(name => gainModalSelected.add(name));
+    renderGainModalAccounts();
+  });
+
+  // Disabled (over-quota) accounts get filtered back out by
+  // renderGainModalAccounts itself, so these can add blindly.
+  document.getElementById('gain-first4-btn').addEventListener('click', () => {
+    FIRST_FOUR_ACCOUNTS.forEach(name => gainModalSelected.add(name));
+    renderGainModalAccounts();
+  });
+  document.getElementById('gain-last3-btn').addEventListener('click', () => {
+    LAST_THREE_ACCOUNTS.forEach(name => gainModalSelected.add(name));
     renderGainModalAccounts();
   });
 
