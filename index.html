@@ -1613,6 +1613,7 @@
   backBtn.addEventListener('click', closeAccount);
 
   const PARTICLE_LIMIT = 800;
+  const MAX_TOTAL_CAP = 1500;
 
   function renderParticleGrid() {
     particleListEl.innerHTML = '';
@@ -1623,10 +1624,12 @@
       card.className = 'particle-grid-item';
       card.tabIndex = 0;
       card.setAttribute('role', 'button');
+      const toMax = Math.max(0, MAX_TOTAL_CAP - total);
+      const toDailyLimit = Math.max(0, PARTICLE_LIMIT - gained);
       card.innerHTML = `
         <div class="name">${name}</div>
-        <div class="count${total >= 1500 ? ' maxed' : ''}">${total}</div>
-        <div class="gained-sub${gained >= PARTICLE_LIMIT ? ' over-limit' : ''}">${gained}/${PARTICLE_LIMIT}</div>
+        <div class="count${total >= MAX_TOTAL_CAP ? ' maxed' : ''}">${total}/${MAX_TOTAL_CAP} (${toMax})</div>
+        <div class="gained-sub${gained >= PARTICLE_LIMIT ? ' over-limit' : ''}">${gained}/${PARTICLE_LIMIT} (${toDailyLimit})</div>
       `;
       card.addEventListener('click', () => openParticleDetail(name));
       card.addEventListener('keydown', (e) => {
