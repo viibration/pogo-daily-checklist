@@ -576,6 +576,8 @@
     font-variant-numeric: tabular-nums;
     color: var(--text-dim);
   }
+  .modal-account-row .modal-account-total.preview { color: var(--accent); }
+  .modal-account-row .modal-account-total.preview-spend { color: var(--bad); }
 
   .header-right { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; justify-content: flex-end; }
 
@@ -1707,6 +1709,7 @@
       row.tabIndex = 0;
       row.setAttribute('role', 'checkbox');
       row.setAttribute('aria-checked', String(selected));
+      const previewTotal = selected ? total - spendModalAmt : total;
       row.innerHTML = `
         <span class="box">
           <svg viewBox="0 0 24 24" fill="none" stroke="#0e1620" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
@@ -1715,7 +1718,7 @@
         </span>
         <span class="modal-account-text">
           <span class="name">${name}</span>
-          <span class="modal-account-total">${total}</span>
+          <span class="modal-account-total${selected ? ' preview-spend' : ''}">${previewTotal}</span>
         </span>
       `;
       if (affordable) {
@@ -1820,6 +1823,7 @@
       row.tabIndex = 0;
       row.setAttribute('role', 'checkbox');
       row.setAttribute('aria-checked', String(selected));
+      const previewTotal = selected ? total - moveModalAmt : total;
       row.innerHTML = `
         <span class="box">
           <svg viewBox="0 0 24 24" fill="none" stroke="#0e1620" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
@@ -1828,7 +1832,7 @@
         </span>
         <span class="modal-account-text">
           <span class="name">${name}</span>
-          <span class="modal-account-total">${total}</span>
+          <span class="modal-account-total${selected ? ' preview-spend' : ''}">${previewTotal}</span>
         </span>
       `;
       if (affordable) {
@@ -1930,6 +1934,10 @@
       row.tabIndex = 0;
       row.setAttribute('role', 'checkbox');
       row.setAttribute('aria-checked', String(selected));
+      // While checked, preview what applying would make the daily total,
+      // highlighted so it reads as "not committed yet"; reverts to the
+      // real value the instant it's unchecked.
+      const previewGained = selected ? gained + gainModalAmt : gained;
       row.innerHTML = `
         <span class="box">
           <svg viewBox="0 0 24 24" fill="none" stroke="#0e1620" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
@@ -1938,7 +1946,7 @@
         </span>
         <span class="modal-account-text">
           <span class="name">${name}</span>
-          <span class="modal-account-total">${gained}/${PARTICLE_LIMIT}</span>
+          <span class="modal-account-total${selected ? ' preview' : ''}">${previewGained}/${PARTICLE_LIMIT}</span>
         </span>
       `;
       if (underQuota) {
