@@ -69,6 +69,16 @@
   .panel-theme-amber .particle-btn { background: #2f2213; color: #ffa94d; border-color: rgba(255, 169, 77, 0.4); }
   .panel-theme-amber .particle-btn:hover { border-color: #ffa94d; }
 
+  .panel-theme-pink { background: #3a1a2a; border-color: rgba(255, 111, 176, 0.5); }
+  .panel-theme-pink .particle-actions-label { color: #ff6fb0; }
+  .panel-theme-pink .particle-btn { background: #2f1521; color: #ff6fb0; border-color: rgba(255, 111, 176, 0.4); }
+  .panel-theme-pink .particle-btn:hover { border-color: #ff6fb0; }
+
+  .panel-theme-indigo { background: #1e2140; border-color: rgba(143, 159, 255, 0.5); }
+  .panel-theme-indigo .particle-actions-label { color: #8f9fff; }
+  .panel-theme-indigo .particle-btn { background: #181a33; color: #8f9fff; border-color: rgba(143, 159, 255, 0.4); }
+  .panel-theme-indigo .particle-btn:hover { border-color: #8f9fff; }
+
   .panel-theme-violet { background: #2a2140; border-color: rgba(179, 137, 255, 0.5); }
   .panel-theme-violet .particle-actions-label { color: #b389ff; }
   .panel-theme-violet .particle-btn { background: #221b34; color: #b389ff; border-color: rgba(179, 137, 255, 0.4); }
@@ -407,6 +417,7 @@
     font-variant-numeric: tabular-nums;
     color: var(--accent);
   }
+  .particle-grid-item .count.maxed { color: var(--good); }
   .particle-grid-item .gained-sub {
     margin-top: 2px;
     font-size: 11px;
@@ -503,7 +514,8 @@
   .modal-accounts { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
   #bulk-modal-backdrop .modal-accounts,
   #spend-modal-backdrop .modal-accounts,
-  #gain-modal-backdrop .modal-accounts { margin-top: 12px; }
+  #gain-modal-backdrop .modal-accounts,
+  #move-modal-backdrop .modal-accounts { margin-top: 12px; }
 
   .modal-account-row {
     display: flex;
@@ -796,6 +808,22 @@
     </div>
   </div>
 
+  <div class="modal-backdrop" id="move-modal-backdrop" hidden>
+    <div class="modal-panel">
+      <div class="modal-header">
+        <span class="modal-title" id="move-modal-title"></span>
+        <button class="modal-close" id="move-modal-close" type="button" aria-label="Close">&times;</button>
+      </div>
+      <button class="check-all-btn" id="move-modal-select-all" type="button">Select all accounts</button>
+      <div class="modal-quick-row">
+        <button class="modal-quick-btn" id="move-first4-btn" type="button">First 4 accounts</button>
+        <button class="modal-quick-btn" id="move-last3-btn" type="button">Last 3 accounts</button>
+      </div>
+      <button class="sync-action-btn" id="move-modal-apply" type="button">Apply to selected</button>
+      <div class="modal-accounts" id="move-modal-accounts"></div>
+    </div>
+  </div>
+
   <div class="modal-backdrop" id="gain-modal-backdrop" hidden>
     <div class="modal-panel">
       <div class="modal-header">
@@ -884,6 +912,14 @@
         <button class="particle-btn" type="button" data-pick-spend="800">-800</button>
       </div>
     </div>
+    <div class="panel panel-theme-indigo">
+      <div class="particle-actions-label">Max Move for selected accounts</div>
+      <div class="particle-action-row">
+        <button class="particle-btn" type="button" data-pick-move="400">Level 1 (400)</button>
+        <button class="particle-btn" type="button" data-pick-move="600">Level 2 (600)</button>
+        <button class="particle-btn" type="button" data-pick-move="800">Level 3 (800)</button>
+      </div>
+    </div>
     <div class="panel panel-theme-gold">
       <div class="particle-actions-label">Manual edit Current Max particle</div>
       <div class="particle-manual-list" id="particle-manual-list"></div>
@@ -919,6 +955,14 @@
         <button class="particle-btn" type="button" data-spend="250">-250</button>
         <button class="particle-btn" type="button" data-spend="400">-400</button>
         <button class="particle-btn" type="button" data-spend="800">-800</button>
+      </div>
+    </div>
+    <div class="panel panel-theme-pink">
+      <div class="particle-actions-label">Max Move</div>
+      <div class="particle-action-row">
+        <button class="particle-btn" type="button" data-move="400">Level 1 (400)</button>
+        <button class="particle-btn" type="button" data-move="600">Level 2 (600)</button>
+        <button class="particle-btn" type="button" data-move="800">Level 3 (800)</button>
       </div>
     </div>
     <div class="panel panel-theme-gold">
@@ -1581,7 +1625,7 @@
       card.setAttribute('role', 'button');
       card.innerHTML = `
         <div class="name">${name}</div>
-        <div class="count">${total}</div>
+        <div class="count${total >= 1500 ? ' maxed' : ''}">${total}</div>
         <div class="gained-sub${gained >= PARTICLE_LIMIT ? ' over-limit' : ''}">${gained}/${PARTICLE_LIMIT}</div>
       `;
       card.addEventListener('click', () => openParticleDetail(name));
@@ -1734,6 +1778,117 @@
     closeSpendModal();
   });
 
+  // --- Max Move for selected accounts: pick which accounts a Level
+  // 1/2/3 (400/600/800) cost applies to, instead of hitting every
+  // account. Same currentTotal-only deduction as raid spending. ---
+  const moveModalBackdrop = document.getElementById('move-modal-backdrop');
+  const moveModalTitleEl = document.getElementById('move-modal-title');
+  const moveModalCloseBtn = document.getElementById('move-modal-close');
+  const moveModalAccountsEl = document.getElementById('move-modal-accounts');
+  const moveModalSelectAllBtn = document.getElementById('move-modal-select-all');
+  const moveModalApplyBtn = document.getElementById('move-modal-apply');
+  const MOVE_LEVEL_LABELS = { 400: 'Level 1', 600: 'Level 2', 800: 'Level 3' };
+  let moveModalAmt = 0;
+  let moveModalSelected = new Set();
+
+  function openMoveModal(amt) {
+    moveModalAmt = amt;
+    moveModalSelected = new Set();
+    const levelLabel = MOVE_LEVEL_LABELS[amt] || `-${amt}`;
+    moveModalTitleEl.textContent = `Max Move ${levelLabel} (${amt})`;
+    moveModalApplyBtn.textContent = `Apply ${levelLabel} to selected`;
+    renderMoveModalAccounts();
+    moveModalBackdrop.hidden = false;
+    history.pushState({ view: 'move-modal' }, '');
+  }
+
+  function closeMoveModal() {
+    if (!moveModalBackdrop.hidden) history.back();
+  }
+
+  function renderMoveModalAccounts() {
+    moveModalAccountsEl.innerHTML = '';
+    accountNames.forEach(name => {
+      const selected = moveModalSelected.has(name);
+      const total = state.accounts[name].currentTotal || 0;
+      const affordable = total - moveModalAmt >= 0;
+      const row = document.createElement('div');
+      row.className = 'modal-account-row' + (selected ? ' done' : '') + (affordable ? '' : ' disabled');
+      row.tabIndex = 0;
+      row.setAttribute('role', 'checkbox');
+      row.setAttribute('aria-checked', String(selected));
+      row.innerHTML = `
+        <span class="box">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#0e1620" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="4 12 10 18 20 6"></polyline>
+          </svg>
+        </span>
+        <span class="modal-account-text">
+          <span class="name">${name}</span>
+          <span class="modal-account-total">${total}</span>
+        </span>
+      `;
+      if (affordable) {
+        row.addEventListener('click', () => toggleMoveModalAccount(name));
+        row.addEventListener('keydown', (e) => {
+          if (e.key === ' ' || e.key === 'Enter') {
+            e.preventDefault();
+            toggleMoveModalAccount(name);
+          }
+        });
+      } else {
+        moveModalSelected.delete(name);
+      }
+      moveModalAccountsEl.appendChild(row);
+    });
+
+    const affordableNames = accountNames.filter(name => (state.accounts[name].currentTotal || 0) - moveModalAmt >= 0);
+    const allSelected = affordableNames.length > 0 && affordableNames.every(name => moveModalSelected.has(name));
+    moveModalSelectAllBtn.textContent = allSelected ? 'Deselect all accounts' : 'Select all accounts';
+  }
+
+  function toggleMoveModalAccount(name) {
+    if (moveModalSelected.has(name)) moveModalSelected.delete(name);
+    else moveModalSelected.add(name);
+    renderMoveModalAccounts();
+  }
+
+  document.querySelectorAll('#view-particles .particle-btn[data-pick-move]').forEach(btn => {
+    btn.addEventListener('click', () => openMoveModal(Number(btn.dataset.pickMove)));
+  });
+
+  moveModalCloseBtn.addEventListener('click', closeMoveModal);
+  moveModalBackdrop.addEventListener('click', (e) => {
+    if (e.target === moveModalBackdrop) closeMoveModal();
+  });
+
+  moveModalSelectAllBtn.addEventListener('click', () => {
+    const affordableNames = accountNames.filter(name => (state.accounts[name].currentTotal || 0) - moveModalAmt >= 0);
+    const allSelected = affordableNames.length > 0 && affordableNames.every(name => moveModalSelected.has(name));
+    if (allSelected) moveModalSelected.clear();
+    else affordableNames.forEach(name => moveModalSelected.add(name));
+    renderMoveModalAccounts();
+  });
+
+  document.getElementById('move-first4-btn').addEventListener('click', () => {
+    FIRST_FOUR_ACCOUNTS.forEach(name => moveModalSelected.add(name));
+    renderMoveModalAccounts();
+  });
+  document.getElementById('move-last3-btn').addEventListener('click', () => {
+    LAST_THREE_ACCOUNTS.forEach(name => moveModalSelected.add(name));
+    renderMoveModalAccounts();
+  });
+
+  moveModalApplyBtn.addEventListener('click', () => {
+    if (moveModalSelected.size === 0) return;
+    moveModalSelected.forEach(name => {
+      state.accounts[name].currentTotal = (state.accounts[name].currentTotal || 0) - moveModalAmt;
+    });
+    saveState(state);
+    renderParticleList();
+    closeMoveModal();
+  });
+
   // --- Daily max particle gained for selected accounts: pick which
   // accounts a +100/+120/+300 gain applies to, instead of hitting
   // everyone. Gains count toward both particles (daily) and
@@ -1862,6 +2017,9 @@
     document.querySelectorAll('#view-particle-detail .particle-btn[data-spend]').forEach(btn => {
       btn.disabled = total - Number(btn.dataset.spend) < 0;
     });
+    document.querySelectorAll('#view-particle-detail .particle-btn[data-move]').forEach(btn => {
+      btn.disabled = total - Number(btn.dataset.move) < 0;
+    });
   }
 
   function renderParticleDetail() {
@@ -1907,6 +2065,10 @@
 
   document.querySelectorAll('#view-particle-detail .particle-btn[data-spend]').forEach(btn => {
     btn.addEventListener('click', () => spendParticles(Number(btn.dataset.spend)));
+  });
+
+  document.querySelectorAll('#view-particle-detail .particle-btn[data-move]').forEach(btn => {
+    btn.addEventListener('click', () => spendParticles(Number(btn.dataset.move)));
   });
 
   document.getElementById('particle-detail-reset-btn').addEventListener('click', () => {
@@ -2236,6 +2398,10 @@
     }
     if (!spendModalBackdrop.hidden) {
       spendModalBackdrop.hidden = true;
+      return;
+    }
+    if (!moveModalBackdrop.hidden) {
+      moveModalBackdrop.hidden = true;
       return;
     }
     if (!gainModalBackdrop.hidden) {
