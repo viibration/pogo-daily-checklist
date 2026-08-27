@@ -1016,6 +1016,21 @@
   const FIRST_FOUR_ACCOUNTS = accountNames.slice(0, 4);
   const LAST_THREE_ACCOUNTS = accountNames.slice(-3);
 
+  const accountCodes = {
+    ViictoriaZA: 'e1a06',
+    ViisitorXY: '03d55',
+    ViitaminEV: '8b329',
+    ViineyardistEX: '790ff',
+    ViizierSV: 'f6d08',
+    ViiperGX: '074e7',
+    ViillainousNX: 'e0bee',
+  };
+
+  function displayName(name) {
+    const code = accountCodes[name];
+    return code ? `${name} (${code})` : name;
+  }
+
   // Daily reset follows New York midnight instead of this device's own
   // local time, since that's the reference timezone being used to plan
   // around (matches the New York tab in the timezone converter).
@@ -1372,7 +1387,7 @@
       card.setAttribute('role', 'button');
       card.innerHTML = `
         <div class="row">
-          <span class="name">${name}</span>
+          <span class="name">${displayName(name)}</span>
           <span class="count${complete ? ' complete' : ''}">${doneCount} / ${total}</span>
         </div>
         <div class="progress-track">
@@ -1451,7 +1466,7 @@
             <polyline points="4 12 10 18 20 6"></polyline>
           </svg>
         </span>
-        <span class="name">${name}</span>
+        <span class="name">${displayName(name)}</span>
       `;
       row.addEventListener('click', () => toggleModalAccount(name));
       row.addEventListener('keydown', (e) => {
@@ -1535,7 +1550,7 @@
             <polyline points="4 12 10 18 20 6"></polyline>
           </svg>
         </span>
-        <span class="name">${name}</span>
+        <span class="name">${displayName(name)}</span>
       `;
       row.addEventListener('click', () => toggleBulkAccount(name));
       row.addEventListener('keydown', (e) => {
@@ -1601,7 +1616,7 @@
 
   function openAccount(name) {
     currentAccount = name;
-    accountNameLabelEl.textContent = name;
+    accountNameLabelEl.textContent = displayName(name);
     viewDashboard.hidden = true;
     viewChecklist.hidden = false;
     renderChecklist();
