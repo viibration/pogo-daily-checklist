@@ -773,6 +773,10 @@
         <button class="modal-quick-btn" id="modal-first4-btn" type="button">First 4 accounts</button>
         <button class="modal-quick-btn" id="modal-last3-btn" type="button">Last 3 accounts</button>
       </div>
+      <div class="modal-quick-row">
+        <button class="modal-quick-btn" id="modal-team1-btn" type="button">Select Team 1</button>
+        <button class="modal-quick-btn" id="modal-team2-btn" type="button">Select Team 2</button>
+      </div>
       <div class="modal-accounts" id="modal-accounts"></div>
     </div>
   </div>
@@ -787,6 +791,10 @@
       <div class="modal-quick-row">
         <button class="modal-quick-btn" id="bulk-first4-btn" type="button">First 4 accounts</button>
         <button class="modal-quick-btn" id="bulk-last3-btn" type="button">Last 3 accounts</button>
+      </div>
+      <div class="modal-quick-row">
+        <button class="modal-quick-btn" id="bulk-team1-btn" type="button">Select Team 1</button>
+        <button class="modal-quick-btn" id="bulk-team2-btn" type="button">Select Team 2</button>
       </div>
       <button class="sync-action-btn" id="bulk-apply-btn" type="button">Mark all tasks done for selected</button>
       <button class="reset-btn" id="bulk-uncheck-btn" type="button">Mark all tasks not done for selected</button>
@@ -825,6 +833,10 @@
         <button class="modal-quick-btn" id="move-first4-btn" type="button">First 4 accounts</button>
         <button class="modal-quick-btn" id="move-last3-btn" type="button">Last 3 accounts</button>
       </div>
+      <div class="modal-quick-row">
+        <button class="modal-quick-btn" id="move-team1-btn" type="button">Select Team 1</button>
+        <button class="modal-quick-btn" id="move-team2-btn" type="button">Select Team 2</button>
+      </div>
       <button class="sync-action-btn" id="move-modal-apply" type="button">Apply to selected</button>
       <div class="modal-accounts" id="move-modal-accounts"></div>
     </div>
@@ -840,6 +852,10 @@
       <div class="modal-quick-row">
         <button class="modal-quick-btn" id="gain-first4-btn" type="button">First 4 accounts</button>
         <button class="modal-quick-btn" id="gain-last3-btn" type="button">Last 3 accounts</button>
+      </div>
+      <div class="modal-quick-row">
+        <button class="modal-quick-btn" id="gain-team1-btn" type="button">Select Team 1</button>
+        <button class="modal-quick-btn" id="gain-team2-btn" type="button">Select Team 2</button>
       </div>
       <button class="sync-action-btn" id="gain-modal-apply" type="button">Apply to selected</button>
       <div class="modal-accounts" id="gain-modal-accounts"></div>
@@ -1514,6 +1530,8 @@
   }
   document.getElementById('modal-first4-btn').addEventListener('click', () => checkModalAccounts(FIRST_FOUR_ACCOUNTS));
   document.getElementById('modal-last3-btn').addEventListener('click', () => checkModalAccounts(LAST_THREE_ACCOUNTS));
+  document.getElementById('modal-team1-btn').addEventListener('click', () => checkModalAccounts(TEAM_1_ACCOUNTS));
+  document.getElementById('modal-team2-btn').addEventListener('click', () => checkModalAccounts(TEAM_2_ACCOUNTS));
 
   modalCloseBtn.addEventListener('click', closeModal);
   modalBackdrop.addEventListener('click', (e) => {
@@ -1597,6 +1615,14 @@
   });
   document.getElementById('bulk-last3-btn').addEventListener('click', () => {
     LAST_THREE_ACCOUNTS.forEach(name => bulkSelected.add(name));
+    renderBulkAccounts();
+  });
+  document.getElementById('bulk-team1-btn').addEventListener('click', () => {
+    TEAM_1_ACCOUNTS.forEach(name => bulkSelected.add(name));
+    renderBulkAccounts();
+  });
+  document.getElementById('bulk-team2-btn').addEventListener('click', () => {
+    TEAM_2_ACCOUNTS.forEach(name => bulkSelected.add(name));
     renderBulkAccounts();
   });
 
@@ -1914,6 +1940,14 @@
     LAST_THREE_ACCOUNTS.forEach(name => moveModalSelected.add(name));
     renderMoveModalAccounts();
   });
+  document.getElementById('move-team1-btn').addEventListener('click', () => {
+    TEAM_1_ACCOUNTS.forEach(name => moveModalSelected.add(name));
+    renderMoveModalAccounts();
+  });
+  document.getElementById('move-team2-btn').addEventListener('click', () => {
+    TEAM_2_ACCOUNTS.forEach(name => moveModalSelected.add(name));
+    renderMoveModalAccounts();
+  });
 
   moveModalApplyBtn.addEventListener('click', () => {
     if (moveModalSelected.size === 0) return;
@@ -2028,6 +2062,14 @@
   });
   document.getElementById('gain-last3-btn').addEventListener('click', () => {
     LAST_THREE_ACCOUNTS.forEach(name => gainModalSelected.add(name));
+    renderGainModalAccounts();
+  });
+  document.getElementById('gain-team1-btn').addEventListener('click', () => {
+    TEAM_1_ACCOUNTS.forEach(name => gainModalSelected.add(name));
+    renderGainModalAccounts();
+  });
+  document.getElementById('gain-team2-btn').addEventListener('click', () => {
+    TEAM_2_ACCOUNTS.forEach(name => gainModalSelected.add(name));
     renderGainModalAccounts();
   });
 
