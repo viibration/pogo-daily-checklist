@@ -805,6 +805,10 @@
         <button class="modal-quick-btn" id="spend-first4-btn" type="button">First 4 accounts</button>
         <button class="modal-quick-btn" id="spend-last3-btn" type="button">Last 3 accounts</button>
       </div>
+      <div class="modal-quick-row">
+        <button class="modal-quick-btn" id="spend-team1-btn" type="button">Select Team 1</button>
+        <button class="modal-quick-btn" id="spend-team2-btn" type="button">Select Team 2</button>
+      </div>
       <button class="sync-action-btn" id="spend-modal-apply" type="button">Apply to selected</button>
       <div class="modal-accounts" id="spend-modal-accounts"></div>
     </div>
@@ -1015,6 +1019,8 @@
   // reused across every account-picker modal below.
   const FIRST_FOUR_ACCOUNTS = accountNames.slice(0, 4);
   const LAST_THREE_ACCOUNTS = accountNames.slice(-3);
+  const TEAM_1_ACCOUNTS = ['Viibration', 'ViizierSV', 'ViisitorXY', 'ViitaminEV'];
+  const TEAM_2_ACCOUNTS = accountNames.filter(name => !TEAM_1_ACCOUNTS.includes(name));
 
   const accountCodes = {
     ViictoriaZA: 'e1a06',
@@ -1786,6 +1792,14 @@
   });
   document.getElementById('spend-last3-btn').addEventListener('click', () => {
     LAST_THREE_ACCOUNTS.forEach(name => spendModalSelected.add(name));
+    renderSpendModalAccounts();
+  });
+  document.getElementById('spend-team1-btn').addEventListener('click', () => {
+    TEAM_1_ACCOUNTS.forEach(name => spendModalSelected.add(name));
+    renderSpendModalAccounts();
+  });
+  document.getElementById('spend-team2-btn').addEventListener('click', () => {
+    TEAM_2_ACCOUNTS.forEach(name => spendModalSelected.add(name));
     renderSpendModalAccounts();
   });
 
