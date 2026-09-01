@@ -92,6 +92,8 @@
   .panel-theme-violet .task-row .badge { background: #2a2140; border-color: rgba(179, 137, 255, 0.4); color: #b389ff; }
   .panel-theme-violet .item { background: #221b34; border-color: rgba(179, 137, 255, 0.4); }
   .panel-theme-violet .item:hover { border-color: #b389ff; }
+  .panel-theme-violet .modal-quick-btn { background: #221b34; color: #b389ff; border-color: rgba(179, 137, 255, 0.4); }
+  .panel-theme-violet .modal-quick-btn:hover { border-color: #b389ff; }
 
   .panel-theme-gold { background: #232a3a; border-color: rgba(138, 148, 173, 0.5); }
   .panel-theme-gold .particle-actions-label { color: #8a94ad; }
@@ -715,6 +717,10 @@
     </div>
     <div class="panel panel-theme-violet">
       <button class="check-all-btn" id="bulk-open-btn" type="button">Check all tasks for account(s)&hellip;</button>
+      <div class="modal-quick-row">
+        <button class="modal-quick-btn" id="farm-open-btn" type="button">Check farm task</button>
+        <button class="modal-quick-btn" id="route-open-btn" type="button">Check route task</button>
+      </div>
       <button class="check-all-btn" id="custom-tasks-open-btn" type="button">Manage Custom Tasks&hellip;</button>
       <div class="items" id="master-tasks"></div>
     </div>
@@ -784,7 +790,7 @@
   <div class="modal-backdrop" id="bulk-modal-backdrop" hidden>
     <div class="modal-panel">
       <div class="modal-header">
-        <span class="modal-title">Check all tasks</span>
+        <span class="modal-title" id="bulk-modal-title">Check all tasks</span>
         <button class="modal-close" id="bulk-modal-close" type="button" aria-label="Close">&times;</button>
       </div>
       <button class="check-all-btn" id="bulk-select-all-btn" type="button">Select all accounts</button>
@@ -1013,6 +1019,9 @@
     { id: 'max-raid', label: 'Max Battle' },
     { id: 'special-trade', label: 'Special Trade' },
   ];
+
+  const FARM_TASK_IDS = ['first-catch', 'first-spin', 'first-research'];
+  const ROUTE_TASK_IDS = ['route-1', 'route-2', 'route-3', 'route-4', 'route-5', 'route-6'];
 
   // Custom tasks are user-added extras layered on top of the fixed list
   // above; they live in state.customTasks and reset/disappear daily
@@ -1543,15 +1552,21 @@
   // --- Bulk complete: mark every task done for one or more accounts ---
   const bulkOpenBtn = document.getElementById('bulk-open-btn');
   const bulkModalBackdrop = document.getElementById('bulk-modal-backdrop');
+  const bulkModalTitleEl = document.getElementById('bulk-modal-title');
   const bulkModalCloseBtn = document.getElementById('bulk-modal-close');
   const bulkAccountsEl = document.getElementById('bulk-accounts');
   const bulkSelectAllBtn = document.getElementById('bulk-select-all-btn');
   const bulkApplyBtn = document.getElementById('bulk-apply-btn');
   const bulkUncheckBtn = document.getElementById('bulk-uncheck-btn');
   let bulkSelected = new Set();
+  let bulkTaskIds = null;
 
-  function openBulkModal() {
+  function openBulkModal(taskIds, scopeLabel) {
     bulkSelected = new Set();
+    bulkTaskIds = taskIds;
+    bulkModalTitleEl.textContent = `Check ${scopeLabel}`;
+    bulkApplyBtn.textContent = `Mark ${scopeLabel} done for selected`;
+    bulkUncheckBtn.textContent = `Mark ${scopeLabel} not done for selected`;
     renderBulkAccounts();
     bulkModalBackdrop.hidden = false;
     history.pushState({ view: 'bulk-modal' }, '');
@@ -1598,7 +1613,9 @@
     renderBulkAccounts();
   }
 
-  bulkOpenBtn.addEventListener('click', openBulkModal);
+  bulkOpenBtn.addEventListener('click', () => openBulkModal(null, 'all tasks'));
+  document.getElementById('farm-open-btn').addEventListener('click', () => openBulkModal(FARM_TASK_IDS, 'farm task'));
+  document.getElementById('route-open-btn').addEventListener('click', () => openBulkModal(ROUTE_TASK_IDS, 'route task'));
   bulkModalCloseBtn.addEventListener('click', closeBulkModal);
   bulkModalBackdrop.addEventListener('click', (e) => {
     if (e.target === bulkModalBackdrop) closeBulkModal();
@@ -1630,8 +1647,9 @@
 
   bulkApplyBtn.addEventListener('click', () => {
     if (bulkSelected.size === 0) return;
+    const ids = bulkTaskIds || allTasks().map(t => t.id);
     bulkSelected.forEach(name => {
-      allTasks().forEach(t => { state.accounts[name].done[t.id] = true; });
+      ids.forEach(id => { state.accounts[name].done[id] = true; });
     });
     saveState(state);
     renderDashboard();
@@ -1640,8 +1658,9 @@
 
   bulkUncheckBtn.addEventListener('click', () => {
     if (bulkSelected.size === 0) return;
+    const ids = bulkTaskIds || allTasks().map(t => t.id);
     bulkSelected.forEach(name => {
-      allTasks().forEach(t => { state.accounts[name].done[t.id] = false; });
+      ids.forEach(id => { state.accounts[name].done[id] = false; });
     });
     saveState(state);
     renderDashboard();
