@@ -1049,6 +1049,15 @@
   const TEAM_1_ACCOUNTS = ['Viibration', 'ViizierSV', 'ViisitorXY', 'ViitaminEV'];
   const TEAM_2_ACCOUNTS = accountNames.filter(name => !TEAM_1_ACCOUNTS.includes(name));
 
+  // First4/Last3/Team1/Team2 quick-select buttons toggle: pressing one
+  // again while its whole group is already selected deselects that
+  // group instead of being a no-op, so a wrong press is one tap to undo.
+  function toggleGroupSelection(selectedSet, group) {
+    const allSelected = group.every(name => selectedSet.has(name));
+    if (allSelected) group.forEach(name => selectedSet.delete(name));
+    else group.forEach(name => selectedSet.add(name));
+  }
+
   const accountCodes = {
     ViictoriaZA: 'e1a06',
     ViisitorXY: '03d55',
@@ -1533,16 +1542,17 @@
     renderDashboard();
   });
 
-  function checkModalAccounts(names) {
-    names.forEach(name => { state.accounts[name].done[modalTaskId] = true; });
+  function toggleModalAccounts(names) {
+    const allDone = names.every(name => !!state.accounts[name].done[modalTaskId]);
+    names.forEach(name => { state.accounts[name].done[modalTaskId] = !allDone; });
     saveState(state);
     renderModalAccounts();
     renderDashboard();
   }
-  document.getElementById('modal-first4-btn').addEventListener('click', () => checkModalAccounts(FIRST_FOUR_ACCOUNTS));
-  document.getElementById('modal-last3-btn').addEventListener('click', () => checkModalAccounts(LAST_THREE_ACCOUNTS));
-  document.getElementById('modal-team1-btn').addEventListener('click', () => checkModalAccounts(TEAM_1_ACCOUNTS));
-  document.getElementById('modal-team2-btn').addEventListener('click', () => checkModalAccounts(TEAM_2_ACCOUNTS));
+  document.getElementById('modal-first4-btn').addEventListener('click', () => toggleModalAccounts(FIRST_FOUR_ACCOUNTS));
+  document.getElementById('modal-last3-btn').addEventListener('click', () => toggleModalAccounts(LAST_THREE_ACCOUNTS));
+  document.getElementById('modal-team1-btn').addEventListener('click', () => toggleModalAccounts(TEAM_1_ACCOUNTS));
+  document.getElementById('modal-team2-btn').addEventListener('click', () => toggleModalAccounts(TEAM_2_ACCOUNTS));
 
   modalCloseBtn.addEventListener('click', closeModal);
   modalBackdrop.addEventListener('click', (e) => {
@@ -1629,19 +1639,19 @@
   });
 
   document.getElementById('bulk-first4-btn').addEventListener('click', () => {
-    FIRST_FOUR_ACCOUNTS.forEach(name => bulkSelected.add(name));
+    toggleGroupSelection(bulkSelected, FIRST_FOUR_ACCOUNTS);
     renderBulkAccounts();
   });
   document.getElementById('bulk-last3-btn').addEventListener('click', () => {
-    LAST_THREE_ACCOUNTS.forEach(name => bulkSelected.add(name));
+    toggleGroupSelection(bulkSelected, LAST_THREE_ACCOUNTS);
     renderBulkAccounts();
   });
   document.getElementById('bulk-team1-btn').addEventListener('click', () => {
-    TEAM_1_ACCOUNTS.forEach(name => bulkSelected.add(name));
+    toggleGroupSelection(bulkSelected, TEAM_1_ACCOUNTS);
     renderBulkAccounts();
   });
   document.getElementById('bulk-team2-btn').addEventListener('click', () => {
-    TEAM_2_ACCOUNTS.forEach(name => bulkSelected.add(name));
+    toggleGroupSelection(bulkSelected, TEAM_2_ACCOUNTS);
     renderBulkAccounts();
   });
 
@@ -1832,21 +1842,21 @@
   });
 
   // Disabled (unaffordable) accounts get filtered back out by
-  // renderSpendModalAccounts itself, so these can add blindly.
+  // renderSpendModalAccounts itself, so these can select blindly.
   document.getElementById('spend-first4-btn').addEventListener('click', () => {
-    FIRST_FOUR_ACCOUNTS.forEach(name => spendModalSelected.add(name));
+    toggleGroupSelection(spendModalSelected, FIRST_FOUR_ACCOUNTS);
     renderSpendModalAccounts();
   });
   document.getElementById('spend-last3-btn').addEventListener('click', () => {
-    LAST_THREE_ACCOUNTS.forEach(name => spendModalSelected.add(name));
+    toggleGroupSelection(spendModalSelected, LAST_THREE_ACCOUNTS);
     renderSpendModalAccounts();
   });
   document.getElementById('spend-team1-btn').addEventListener('click', () => {
-    TEAM_1_ACCOUNTS.forEach(name => spendModalSelected.add(name));
+    toggleGroupSelection(spendModalSelected, TEAM_1_ACCOUNTS);
     renderSpendModalAccounts();
   });
   document.getElementById('spend-team2-btn').addEventListener('click', () => {
-    TEAM_2_ACCOUNTS.forEach(name => spendModalSelected.add(name));
+    toggleGroupSelection(spendModalSelected, TEAM_2_ACCOUNTS);
     renderSpendModalAccounts();
   });
 
@@ -1954,19 +1964,19 @@
   });
 
   document.getElementById('move-first4-btn').addEventListener('click', () => {
-    FIRST_FOUR_ACCOUNTS.forEach(name => moveModalSelected.add(name));
+    toggleGroupSelection(moveModalSelected, FIRST_FOUR_ACCOUNTS);
     renderMoveModalAccounts();
   });
   document.getElementById('move-last3-btn').addEventListener('click', () => {
-    LAST_THREE_ACCOUNTS.forEach(name => moveModalSelected.add(name));
+    toggleGroupSelection(moveModalSelected, LAST_THREE_ACCOUNTS);
     renderMoveModalAccounts();
   });
   document.getElementById('move-team1-btn').addEventListener('click', () => {
-    TEAM_1_ACCOUNTS.forEach(name => moveModalSelected.add(name));
+    toggleGroupSelection(moveModalSelected, TEAM_1_ACCOUNTS);
     renderMoveModalAccounts();
   });
   document.getElementById('move-team2-btn').addEventListener('click', () => {
-    TEAM_2_ACCOUNTS.forEach(name => moveModalSelected.add(name));
+    toggleGroupSelection(moveModalSelected, TEAM_2_ACCOUNTS);
     renderMoveModalAccounts();
   });
 
@@ -2076,21 +2086,21 @@
   });
 
   // Disabled (over-quota) accounts get filtered back out by
-  // renderGainModalAccounts itself, so these can add blindly.
+  // renderGainModalAccounts itself, so these can select blindly.
   document.getElementById('gain-first4-btn').addEventListener('click', () => {
-    FIRST_FOUR_ACCOUNTS.forEach(name => gainModalSelected.add(name));
+    toggleGroupSelection(gainModalSelected, FIRST_FOUR_ACCOUNTS);
     renderGainModalAccounts();
   });
   document.getElementById('gain-last3-btn').addEventListener('click', () => {
-    LAST_THREE_ACCOUNTS.forEach(name => gainModalSelected.add(name));
+    toggleGroupSelection(gainModalSelected, LAST_THREE_ACCOUNTS);
     renderGainModalAccounts();
   });
   document.getElementById('gain-team1-btn').addEventListener('click', () => {
-    TEAM_1_ACCOUNTS.forEach(name => gainModalSelected.add(name));
+    toggleGroupSelection(gainModalSelected, TEAM_1_ACCOUNTS);
     renderGainModalAccounts();
   });
   document.getElementById('gain-team2-btn').addEventListener('click', () => {
-    TEAM_2_ACCOUNTS.forEach(name => gainModalSelected.add(name));
+    toggleGroupSelection(gainModalSelected, TEAM_2_ACCOUNTS);
     renderGainModalAccounts();
   });
 
