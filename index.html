@@ -884,6 +884,10 @@
 
     <div class="panel panel-theme-violet">
       <button class="check-all-btn" id="checklist-check-all-btn" type="button">Check all</button>
+      <div class="modal-quick-row">
+        <button class="modal-quick-btn" id="checklist-farm-btn" type="button">Check farm task</button>
+        <button class="modal-quick-btn" id="checklist-route-btn" type="button">Check route task</button>
+      </div>
       <div class="items" id="items"></div>
       <button class="reset-btn" id="reset-btn" type="button">Reset today's checklist</button>
     </div>
@@ -1020,7 +1024,7 @@
     { id: 'special-trade', label: 'Special Trade' },
   ];
 
-  const FARM_TASK_IDS = ['first-catch', 'first-spin', 'first-research'];
+  const FARM_TASK_IDS = ['first-catch', 'first-spin', 'first-research', 'daily-incense'];
   const ROUTE_TASK_IDS = ['route-1', 'route-2', 'route-3', 'route-4', 'route-5', 'route-6'];
 
   // Custom tasks are user-added extras layered on top of the fixed list
@@ -2606,6 +2610,16 @@
     saveState(state);
     renderChecklist();
   });
+
+  function toggleChecklistTasks(taskIds) {
+    const done = state.accounts[currentAccount].done;
+    const allDone = taskIds.every(id => !!done[id]);
+    taskIds.forEach(id => { done[id] = !allDone; });
+    saveState(state);
+    renderChecklist();
+  }
+  document.getElementById('checklist-farm-btn').addEventListener('click', () => toggleChecklistTasks(FARM_TASK_IDS));
+  document.getElementById('checklist-route-btn').addEventListener('click', () => toggleChecklistTasks(ROUTE_TASK_IDS));
 
   resetBtn.addEventListener('click', () => {
     state.accounts[currentAccount] = { done: {} };
