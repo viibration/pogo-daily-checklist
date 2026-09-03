@@ -779,10 +779,6 @@
         <button class="modal-quick-btn" id="modal-first4-btn" type="button">First 4 accounts</button>
         <button class="modal-quick-btn" id="modal-last3-btn" type="button">Last 3 accounts</button>
       </div>
-      <div class="modal-quick-row">
-        <button class="modal-quick-btn" id="modal-team1-btn" type="button">Select Team 1</button>
-        <button class="modal-quick-btn" id="modal-team2-btn" type="button">Select Team 2</button>
-      </div>
       <div class="modal-accounts" id="modal-accounts"></div>
     </div>
   </div>
@@ -797,10 +793,6 @@
       <div class="modal-quick-row">
         <button class="modal-quick-btn" id="bulk-first4-btn" type="button">First 4 accounts</button>
         <button class="modal-quick-btn" id="bulk-last3-btn" type="button">Last 3 accounts</button>
-      </div>
-      <div class="modal-quick-row">
-        <button class="modal-quick-btn" id="bulk-team1-btn" type="button">Select Team 1</button>
-        <button class="modal-quick-btn" id="bulk-team2-btn" type="button">Select Team 2</button>
       </div>
       <button class="sync-action-btn" id="bulk-apply-btn" type="button">Mark all tasks done for selected</button>
       <button class="reset-btn" id="bulk-uncheck-btn" type="button">Mark all tasks not done for selected</button>
@@ -1567,8 +1559,6 @@
   }
   document.getElementById('modal-first4-btn').addEventListener('click', () => toggleModalAccounts(FIRST_FOUR_ACCOUNTS));
   document.getElementById('modal-last3-btn').addEventListener('click', () => toggleModalAccounts(LAST_THREE_ACCOUNTS));
-  document.getElementById('modal-team1-btn').addEventListener('click', () => toggleModalAccounts(TEAM_1_ACCOUNTS));
-  document.getElementById('modal-team2-btn').addEventListener('click', () => toggleModalAccounts(TEAM_2_ACCOUNTS));
 
   modalCloseBtn.addEventListener('click', closeModal);
   modalBackdrop.addEventListener('click', (e) => {
@@ -1660,14 +1650,6 @@
   });
   document.getElementById('bulk-last3-btn').addEventListener('click', () => {
     toggleGroupSelection(bulkSelected, LAST_THREE_ACCOUNTS);
-    renderBulkAccounts();
-  });
-  document.getElementById('bulk-team1-btn').addEventListener('click', () => {
-    toggleGroupSelection(bulkSelected, TEAM_1_ACCOUNTS);
-    renderBulkAccounts();
-  });
-  document.getElementById('bulk-team2-btn').addEventListener('click', () => {
-    toggleGroupSelection(bulkSelected, TEAM_2_ACCOUNTS);
     renderBulkAccounts();
   });
 
