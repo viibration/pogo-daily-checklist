@@ -405,6 +405,8 @@
   }
   .particle-grid-item:hover { border-color: var(--accent); }
   .particle-grid-item:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+  .team1-name { color: #ffd166; }
+  .team2-name { color: #ff6fb0; }
   .particle-grid-item .name {
     font-size: 15px;
     font-weight: 700;
@@ -1057,6 +1059,15 @@
   const TEAM_1_ACCOUNTS = ['Viibration', 'ViizierSV', 'ViisitorXY', 'ViitaminEV'];
   const TEAM_2_ACCOUNTS = accountNames.filter(name => !TEAM_1_ACCOUNTS.includes(name));
 
+  // Max Particle page: tag each account name with its team so the two
+  // groups are easy to tell apart at a glance in the lists and modals.
+  function teamNameHtml(name) {
+    const isTeam1 = TEAM_1_ACCOUNTS.includes(name);
+    const cls = isTeam1 ? 'team1-name' : 'team2-name';
+    const tag = isTeam1 ? 'T1' : 'T2';
+    return `<span class="${cls}">${name} (${tag})</span>`;
+  }
+
   // First4/Last3/Team1/Team2 quick-select buttons toggle: pressing one
   // again while its whole group is already selected deselects that
   // group instead of being a no-op, so a wrong press is one tap to undo.
@@ -1705,7 +1716,7 @@
       const toMax = Math.max(0, MAX_TOTAL_CAP - total);
       const toDailyLimit = Math.max(0, PARTICLE_LIMIT - gained);
       card.innerHTML = `
-        <div class="name">${name}</div>
+        <div class="name">${teamNameHtml(name)}</div>
         <div class="count${total >= MAX_TOTAL_CAP ? ' maxed' : ''}">${total}/${MAX_TOTAL_CAP} (${toMax})</div>
         <div class="gained-sub${gained >= PARTICLE_LIMIT ? ' over-limit' : ''}">${gained}/${PARTICLE_LIMIT} (${toDailyLimit})</div>
       `;
@@ -1732,7 +1743,7 @@
       const row = document.createElement('div');
       row.className = 'particle-manual-row';
       row.innerHTML = `
-        <div class="particle-manual-name">${name}</div>
+        <div class="particle-manual-name">${teamNameHtml(name)}</div>
         <input class="particle-manual-input" type="number" inputmode="numeric" min="0" value="${total}">
       `;
       const input = row.querySelector('.particle-manual-input');
@@ -1793,7 +1804,7 @@
           </svg>
         </span>
         <span class="modal-account-text">
-          <span class="name">${name}</span>
+          <span class="name">${teamNameHtml(name)}</span>
           <span class="modal-account-total${selected ? ' preview-spend' : ''}">${previewTotal}</span>
         </span>
       `;
@@ -1915,7 +1926,7 @@
           </svg>
         </span>
         <span class="modal-account-text">
-          <span class="name">${name}</span>
+          <span class="name">${teamNameHtml(name)}</span>
           <span class="modal-account-total${selected ? ' preview-spend' : ''}">${previewTotal}</span>
         </span>
       `;
@@ -2037,7 +2048,7 @@
           </svg>
         </span>
         <span class="modal-account-text">
-          <span class="name">${name}</span>
+          <span class="name">${teamNameHtml(name)}</span>
           <span class="modal-account-total${selected ? ' preview' : ''}">${previewGained}/${PARTICLE_LIMIT}</span>
         </span>
       `;
@@ -2120,7 +2131,7 @@
     const name = currentParticleAccount;
     const total = state.accounts[name].currentTotal || 0;
     const gained = state.accounts[name].particles || 0;
-    particleDetailNameEl.textContent = name;
+    particleDetailNameEl.innerHTML = teamNameHtml(name);
     particleDetailTotalEl.textContent = total;
     particleDetailGainedEl.textContent = `(+${gained}/${PARTICLE_LIMIT})`;
     particleDetailGainedEl.classList.toggle('over-limit', gained >= PARTICLE_LIMIT);
