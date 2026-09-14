@@ -530,8 +530,25 @@
   .candy-result-row .particle-total { margin-top: 0; }
   .candy-result-row .particle-gained-sub { margin-top: 0; }
   .candy-result-icon { width: 30px; height: 30px; object-fit: contain; flex-shrink: 0; }
-  .candy-result-text { display: flex; flex-direction: column; }
+  .candy-result-text { display: flex; flex-direction: column; min-width: 0; }
   .candy-steps-sub { display: block; margin-top: 14px; font-size: 13px; color: var(--text-faint); }
+
+  .total-cost-split { display: grid; grid-template-columns: 1fr 1fr; gap: 8px 14px; }
+  .total-cost-col { display: flex; flex-direction: column; min-width: 0; }
+  .total-cost-col-title {
+    font-size: 11px;
+    font-weight: 800;
+    color: var(--text-faint);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    margin-bottom: 8px;
+  }
+  .total-cost-col .candy-result-row { align-items: flex-start; gap: 8px; }
+  .total-cost-col .candy-result-row + .candy-result-row { margin-top: 10px; }
+  .total-cost-col .candy-result-icon { width: 22px; height: 22px; margin-top: 2px; }
+  .total-cost-col .particle-total { font-size: 19px; line-height: 1.25; word-break: break-word; }
+  .total-cost-col .particle-gained-sub { font-size: 11px; }
+  .total-cost-col .candy-steps-sub { margin-top: 10px; font-size: 11px; }
 
   .maxmove-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px 12px; }
   .maxmove-check {
@@ -1110,49 +1127,64 @@
     </div>
     <div class="panel panel-theme-teal">
       <div class="particle-actions-label">Total cost</div>
-      <div class="candy-result-row">
-        <img class="candy-result-icon" src="icons/stardust.webp" alt="">
-        <div class="candy-result-text">
-          <span class="particle-total" id="candy-stardust-total">0</span>
-          <span class="particle-gained-sub">Stardust</span>
+      <div class="total-cost-split">
+        <div class="total-cost-col">
+          <div class="total-cost-col-title">Power Up</div>
+          <div class="candy-result-row">
+            <img class="candy-result-icon" src="icons/stardust.webp" alt="">
+            <div class="candy-result-text">
+              <span class="particle-total" id="candy-stardust-total">0</span>
+              <span class="particle-gained-sub">Stardust</span>
+            </div>
+          </div>
+          <div class="candy-result-row" id="candy-candy-row" hidden>
+            <img class="candy-result-icon" src="icons/candy.webp" alt="">
+            <div class="candy-result-text">
+              <span class="particle-total" id="candy-candy-total">0</span>
+              <span class="particle-gained-sub">Candy</span>
+            </div>
+          </div>
+          <div class="candy-result-row" id="candy-xl-row" hidden>
+            <img class="candy-result-icon" src="icons/candy-xl.webp" alt="">
+            <div class="candy-result-text">
+              <span class="particle-total" id="candy-xl-total">0</span>
+              <span class="particle-gained-sub">Candy XL</span>
+            </div>
+          </div>
+          <span class="candy-steps-sub" id="candy-steps-sub"></span>
+        </div>
+        <div class="total-cost-col">
+          <div class="total-cost-col-title">Max Move</div>
+          <div class="candy-result-row" id="candy-mp-row" hidden>
+            <img class="candy-result-icon" src="icons/max-particle.webp" alt="">
+            <div class="candy-result-text">
+              <span class="particle-total" id="candy-mp-total">0</span>
+              <span class="particle-gained-sub">Max Particles</span>
+            </div>
+          </div>
+          <div class="candy-result-row" id="maxmove-dust-row" hidden>
+            <img class="candy-result-icon" src="icons/stardust.webp" alt="">
+            <div class="candy-result-text">
+              <span class="particle-total" id="maxmove-dust-total">0</span>
+              <span class="particle-gained-sub">Stardust</span>
+            </div>
+          </div>
+          <div class="candy-result-row" id="maxmove-candy-row" hidden>
+            <img class="candy-result-icon" src="icons/candy.webp" alt="">
+            <div class="candy-result-text">
+              <span class="particle-total" id="maxmove-candy-total">0</span>
+              <span class="particle-gained-sub">Candy</span>
+            </div>
+          </div>
+          <div class="candy-result-row" id="maxmove-xl-row" hidden>
+            <img class="candy-result-icon" src="icons/candy-xl.webp" alt="">
+            <div class="candy-result-text">
+              <span class="particle-total" id="maxmove-xl-total">0</span>
+              <span class="particle-gained-sub">Candy XL</span>
+            </div>
+          </div>
         </div>
       </div>
-      <div class="candy-result-row" id="candy-mp-row" hidden>
-        <img class="candy-result-icon" src="icons/max-particle.webp" alt="">
-        <div class="candy-result-text">
-          <span class="particle-total" id="candy-mp-total">0</span>
-          <span class="particle-gained-sub">Max Particles</span>
-        </div>
-      </div>
-      <div class="candy-result-row" id="candy-candy-row" hidden>
-        <img class="candy-result-icon" src="icons/candy.webp" alt="">
-        <div class="candy-result-text">
-          <span class="particle-total" id="candy-candy-total">0</span>
-          <span class="particle-gained-sub">Candy &mdash; Power Up</span>
-        </div>
-      </div>
-      <div class="candy-result-row" id="candy-xl-row" hidden>
-        <img class="candy-result-icon" src="icons/candy-xl.webp" alt="">
-        <div class="candy-result-text">
-          <span class="particle-total" id="candy-xl-total">0</span>
-          <span class="particle-gained-sub">Candy XL &mdash; Power Up</span>
-        </div>
-      </div>
-      <div class="candy-result-row" id="maxmove-candy-row" hidden>
-        <img class="candy-result-icon" src="icons/candy.webp" alt="">
-        <div class="candy-result-text">
-          <span class="particle-total" id="maxmove-candy-total">0</span>
-          <span class="particle-gained-sub">Candy &mdash; Max Move</span>
-        </div>
-      </div>
-      <div class="candy-result-row" id="maxmove-xl-row" hidden>
-        <img class="candy-result-icon" src="icons/candy-xl.webp" alt="">
-        <div class="candy-result-text">
-          <span class="particle-total" id="maxmove-xl-total">0</span>
-          <span class="particle-gained-sub">Candy XL &mdash; Max Move</span>
-        </div>
-      </div>
-      <span class="candy-steps-sub" id="candy-steps-sub"></span>
     </div>
     <div class="panel">
       <div class="particle-actions-label">Notes</div>
@@ -2502,26 +2534,30 @@
   const candyXlTotalEl = document.getElementById('candy-xl-total');
   const candyMpRowEl = document.getElementById('candy-mp-row');
   const candyMpTotalEl = document.getElementById('candy-mp-total');
+  const maxmoveDustRowEl = document.getElementById('maxmove-dust-row');
+  const maxmoveDustTotalEl = document.getElementById('maxmove-dust-total');
   const maxmoveCandyRowEl = document.getElementById('maxmove-candy-row');
   const maxmoveCandyTotalEl = document.getElementById('maxmove-candy-total');
   const maxmoveXlRowEl = document.getElementById('maxmove-xl-row');
   const maxmoveXlTotalEl = document.getElementById('maxmove-xl-total');
   const candyStepsSubEl = document.getElementById('candy-steps-sub');
 
-  // Power Up (level) totals and Max Move totals are computed independently,
-  // then combined here into one Total cost panel - Stardust and Max
-  // Particles are summed together (only one of the two sources ever
-  // contributes to a given resource: Group Z Max Moves spend Stardust
-  // instead of MP), but Candy/Candy XL are kept as separate line items
-  // per level vs. Max Move since they're spent on different things.
+  // Power Up (level) totals and Max Move totals are computed independently
+  // and rendered into two separate columns (Power Up / Max Move) so
+  // checking Max Move boxes never changes the height of the Power Up
+  // side. Stardust is shown on both sides rather than combined into one
+  // number, since a Group Z Max Move Stardust cost is a distinct spend
+  // from the Power Up Stardust cost, same reasoning as keeping Candy
+  // separate per side.
   let levelUpTotals = { dust: 0, candy: 0, candyXL: 0, steps: 0 };
   let maxmoveTotals = { mp: 0, dust: 0, candyDisplay: '0', candyXLDisplay: '0', candyIsZero: true, candyXLIsZero: true };
 
   function renderTotalCostPanel() {
-    const dust = levelUpTotals.dust + maxmoveTotals.dust;
-    candyStardustTotalEl.textContent = dust.toLocaleString();
+    candyStardustTotalEl.textContent = levelUpTotals.dust.toLocaleString();
     candyMpTotalEl.textContent = maxmoveTotals.mp.toLocaleString();
     candyMpRowEl.hidden = maxmoveTotals.mp <= 0;
+    maxmoveDustTotalEl.textContent = maxmoveTotals.dust.toLocaleString();
+    maxmoveDustRowEl.hidden = maxmoveTotals.dust <= 0;
     candyCandyTotalEl.textContent = levelUpTotals.candy.toLocaleString();
     candyCandyRowEl.hidden = levelUpTotals.candy <= 0;
     candyXlTotalEl.textContent = levelUpTotals.candyXL.toLocaleString();
