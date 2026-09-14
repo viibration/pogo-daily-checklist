@@ -515,6 +515,20 @@
   .particle-manual-row .particle-manual-input,
   #particle-detail-manual-input { display: block; width: 100%; }
 
+  .candy-level-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .candy-level-field + .candy-level-field { margin-top: 0; }
+  .candy-level-label {
+    display: block;
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--text-dim);
+    margin-bottom: 6px;
+  }
+  select.particle-manual-input { display: block; width: 100%; }
+  .candy-result-row + .candy-result-row { margin-top: 14px; }
+  .candy-result-row .particle-total { margin-top: 0; }
+  .candy-steps-sub { display: block; margin-top: 14px; font-size: 13px; color: var(--text-faint); }
+
   .modal-accounts { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
   #bulk-modal-backdrop .modal-accounts,
   #spend-modal-backdrop .modal-accounts,
@@ -605,9 +619,8 @@
     border-top: 1px solid var(--line);
     flex-wrap: wrap;
   }
-  .app-tabs { display: flex; gap: 8px; }
+  .app-tabs { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; }
   .app-tab {
-    flex: 1;
     font: inherit;
     font-size: 15px;
     font-weight: 700;
@@ -625,6 +638,7 @@
   }
   .app-tab:hover { border-color: var(--accent); }
   .app-tab:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+  .app-tabs .app-tab:nth-child(3) { grid-column: 1 / -1; }
 
   .tz-tabs { display: flex; gap: 6px; flex-wrap: wrap; }
   .tz-tab {
@@ -687,6 +701,7 @@
       <div class="app-tabs">
         <button class="app-tab active" data-tab="dashboard" type="button">Daily Checklist</button>
         <button class="app-tab" data-tab="particles" type="button">Max Particle</button>
+        <button class="app-tab" data-tab="candy" type="button">Candy Calculator</button>
       </div>
       <div class="tz-row">
         <div class="tz-tabs" id="tz-tabs"></div>
@@ -892,6 +907,7 @@
       <div class="app-tabs">
         <button class="app-tab" data-tab="dashboard" type="button">Daily Checklist</button>
         <button class="app-tab active" data-tab="particles" type="button">Max Particle</button>
+        <button class="app-tab" data-tab="candy" type="button">Candy Calculator</button>
       </div>
       <div class="tz-row">
         <div class="tz-tabs" id="tz-tabs-2"></div>
@@ -1006,6 +1022,59 @@
     <div class="panel panel-theme-gold">
       <div class="particle-actions-label">Manual edit Current Max particle</div>
       <input class="particle-manual-input" id="particle-detail-manual-input" type="number" inputmode="numeric" min="0">
+    </div>
+  </div>
+
+  <div id="view-candy" hidden>
+    <div class="panel">
+      <div class="app-tabs">
+        <button class="app-tab" data-tab="dashboard" type="button">Daily Checklist</button>
+        <button class="app-tab" data-tab="particles" type="button">Max Particle</button>
+        <button class="app-tab active" data-tab="candy" type="button">Candy Calculator</button>
+      </div>
+    </div>
+    <div class="panel">
+      <div class="particle-actions-label">Power up a Pok&eacute;mon from&hellip;</div>
+      <div class="candy-level-row">
+        <div class="candy-level-field">
+          <label class="candy-level-label" for="candy-from-level">From Level</label>
+          <select class="particle-manual-input" id="candy-from-level"></select>
+        </div>
+        <div class="candy-level-field">
+          <label class="candy-level-label" for="candy-to-level">To Level</label>
+          <select class="particle-manual-input" id="candy-to-level"></select>
+        </div>
+      </div>
+      <div class="candy-level-field" style="margin-top: 12px">
+        <label class="candy-level-label" for="candy-status">Pok&eacute;mon status</label>
+        <select class="particle-manual-input" id="candy-status">
+          <option value="normal">Normal</option>
+          <option value="lucky">Lucky</option>
+          <option value="shadow">Shadow</option>
+          <option value="purified">Purified</option>
+          <option value="lucky-purified">Lucky &amp; Purified</option>
+        </select>
+      </div>
+    </div>
+    <div class="panel panel-theme-teal">
+      <div class="particle-actions-label">Total cost</div>
+      <div class="candy-result-row">
+        <span class="particle-total" id="candy-stardust-total">0</span>
+        <span class="particle-gained-sub">Stardust</span>
+      </div>
+      <div class="candy-result-row" id="candy-candy-row" hidden>
+        <span class="particle-total" id="candy-candy-total">0</span>
+        <span class="particle-gained-sub">Candy</span>
+      </div>
+      <div class="candy-result-row" id="candy-xl-row" hidden>
+        <span class="particle-total" id="candy-xl-total">0</span>
+        <span class="particle-gained-sub">Candy XL</span>
+      </div>
+      <span class="candy-steps-sub" id="candy-steps-sub"></span>
+    </div>
+    <div class="panel">
+      <div class="particle-actions-label">Notes</div>
+      <p style="margin: 0; font-size: 13px; color: var(--text-dim); line-height: 1.5;">Lucky halves the Stardust cost. Shadow costs 1.2&times; Stardust and Candy. Purified costs 90% of both, rounded up (Lucky + Purified stacks to 45% Stardust). Candy switches to Candy XL from Level 40 onward &mdash; Level 50 is the max reachable by powering up.</p>
     </div>
   </div>
 </div>
@@ -1184,6 +1253,7 @@
   const viewChecklist = document.getElementById('view-checklist');
   const viewParticles = document.getElementById('view-particles');
   const viewParticleDetail = document.getElementById('view-particle-detail');
+  const viewCandy = document.getElementById('view-candy');
   const viewCustomTasks = document.getElementById('view-custom-tasks');
   const viewSync = document.getElementById('view-sync');
   const accountsEl = document.getElementById('accounts');
@@ -2207,29 +2277,38 @@
     updateParticleDetailDisplays();
   });
 
-  // Checklist and Particles are peer top-level tabs (equal priority),
-  // not a parent/child pair, so switching between them doesn't push a
-  // history entry - only genuine sub-views (account checklist, particle
-  // detail, custom tasks, sync, modals) do that.
+  // Checklist, Particles and Candy Calculator are peer top-level tabs
+  // (equal priority), not a parent/child pair, so switching between them
+  // doesn't push a history entry - only genuine sub-views (account
+  // checklist, particle detail, custom tasks, sync, modals) do that.
+  const ROOT_TAB_ORDER = ['dashboard', 'particles', 'candy'];
   function switchTab(tab) {
-    const showDashboard = tab === 'dashboard';
-    viewDashboard.hidden = !showDashboard;
-    viewParticles.hidden = showDashboard;
+    viewDashboard.hidden = tab !== 'dashboard';
+    viewParticles.hidden = tab !== 'particles';
+    viewCandy.hidden = tab !== 'candy';
     document.querySelectorAll('.app-tab').forEach(btn => {
       btn.classList.toggle('active', btn.dataset.tab === tab);
     });
-    if (showDashboard) renderDashboard();
-    else renderParticleList();
+    if (tab === 'dashboard') renderDashboard();
+    else if (tab === 'particles') renderParticleList();
+    else renderCandyCalculator();
   }
 
   document.querySelectorAll('.app-tab').forEach(btn => {
     btn.addEventListener('click', () => switchTab(btn.dataset.tab));
   });
 
-  // Swipe left/right between the two root tabs on touch devices. Only
-  // active while an actual root tab is showing (not a sub-view/modal),
-  // and ignores touches starting in a text field so it doesn't fight
-  // cursor placement/selection there.
+  function currentRootTab() {
+    if (!viewDashboard.hidden) return 'dashboard';
+    if (!viewParticles.hidden) return 'particles';
+    if (!viewCandy.hidden) return 'candy';
+    return null;
+  }
+
+  // Swipe left/right between the root tabs on touch devices. Only active
+  // while an actual root tab is showing (not a sub-view/modal), and
+  // ignores touches starting in a text field so it doesn't fight cursor
+  // placement/selection there.
   (function setupSwipeNav() {
     const SWIPE_THRESHOLD = 60;
     const SWIPE_RESTRAINT = 75;
@@ -2239,10 +2318,10 @@
 
     document.addEventListener('touchstart', (e) => {
       tracking = false;
-      if (viewDashboard.hidden && viewParticles.hidden) return;
+      if (!currentRootTab()) return;
       if (e.touches.length !== 1) return;
       const tag = e.target.tagName;
-      if (tag === 'INPUT' || tag === 'TEXTAREA') return;
+      if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') return;
       startX = e.touches[0].clientX;
       startY = e.touches[0].clientY;
       tracking = true;
@@ -2257,8 +2336,11 @@
       if (Math.abs(dx) < SWIPE_THRESHOLD) return;
       if (Math.abs(dy) > SWIPE_RESTRAINT) return;
       if (Math.abs(dx) < Math.abs(dy) * 1.2) return;
-      if (dx < 0 && !viewDashboard.hidden) switchTab('particles');
-      else if (dx > 0 && !viewParticles.hidden) switchTab('dashboard');
+      const cur = currentRootTab();
+      if (!cur) return;
+      const idx = ROOT_TAB_ORDER.indexOf(cur);
+      if (dx < 0 && idx < ROOT_TAB_ORDER.length - 1) switchTab(ROOT_TAB_ORDER[idx + 1]);
+      else if (dx > 0 && idx > 0) switchTab(ROOT_TAB_ORDER[idx - 1]);
     }, { passive: true });
   })();
 
@@ -2275,6 +2357,115 @@
   }
 
   particleDetailBackBtn.addEventListener('click', closeParticleDetail);
+
+  // --- Candy Calculator: Power Up cost, transcribed from Bulbapedia's
+  // "Power up" cost table (per-half-level Stardust/Candy, read directly
+  // off the page's raw table, not summarized). Candy switches to Candy
+  // XL starting at level 40; levels above 50 need Best Buddy status and
+  // aren't included here.
+  const CANDY_STEPS = [
+    // level 1 - 39.5: regular Candy
+    [200, 1], [200, 1], [200, 1], [200, 1],
+    [400, 1], [400, 1], [400, 1], [400, 1],
+    [600, 1], [600, 1], [600, 1], [600, 1],
+    [800, 1], [800, 1], [800, 1], [800, 1],
+    [1000, 1], [1000, 1], [1000, 1], [1000, 1],
+    [1300, 2], [1300, 2], [1300, 2], [1300, 2],
+    [1600, 2], [1600, 2], [1600, 2], [1600, 2],
+    [1900, 2], [1900, 2], [1900, 2], [1900, 2],
+    [2200, 2], [2200, 2], [2200, 2], [2200, 2],
+    [2500, 2], [2500, 2], [2500, 2], [2500, 2],
+    [3000, 3], [3000, 3], [3000, 3], [3000, 3],
+    [3500, 3], [3500, 3], [3500, 3], [3500, 3],
+    [4000, 3], [4000, 3],
+    [4000, 4], [4000, 4],
+    [4500, 4], [4500, 4], [4500, 4], [4500, 4],
+    [5000, 4], [5000, 4], [5000, 4], [5000, 4],
+    [6000, 6], [6000, 6], [6000, 6], [6000, 6],
+    [7000, 8], [7000, 8], [7000, 8], [7000, 8],
+    [8000, 10], [8000, 10], [8000, 10], [8000, 10],
+    [9000, 12], [9000, 12], [9000, 12], [9000, 12],
+    [10000, 15], [10000, 15],
+    // level 40 - 49.5: Candy XL
+    [10000, 10], [10000, 10],
+    [11000, 10], [11000, 10],
+    [11000, 12], [11000, 12],
+    [12000, 12], [12000, 12],
+    [12000, 15], [12000, 15],
+    [13000, 15], [13000, 15],
+    [13000, 17], [13000, 17],
+    [14000, 17], [14000, 17],
+    [14000, 20], [14000, 20],
+    [15000, 20], [15000, 20],
+  ];
+  const CANDY_XL_START_INDEX = 78; // index of the level-40 step (first Candy XL entry)
+  const CANDY_MIN_LEVEL = 1;
+  const CANDY_MAX_LEVEL = 50;
+
+  const CANDY_STATUS_MULT = {
+    normal: { dust: 1, candy: 1 },
+    lucky: { dust: 0.5, candy: 1 },
+    shadow: { dust: 1.2, candy: 1.2 },
+    purified: { dust: 0.9, candy: 0.9 },
+    'lucky-purified': { dust: 0.45, candy: 0.9 },
+  };
+
+  const candyFromLevelEl = document.getElementById('candy-from-level');
+  const candyToLevelEl = document.getElementById('candy-to-level');
+  const candyStatusEl = document.getElementById('candy-status');
+  const candyStardustTotalEl = document.getElementById('candy-stardust-total');
+  const candyCandyRowEl = document.getElementById('candy-candy-row');
+  const candyCandyTotalEl = document.getElementById('candy-candy-total');
+  const candyXlRowEl = document.getElementById('candy-xl-row');
+  const candyXlTotalEl = document.getElementById('candy-xl-total');
+  const candyStepsSubEl = document.getElementById('candy-steps-sub');
+
+  function populateCandyLevelSelect(select, defaultLevel) {
+    select.innerHTML = '';
+    for (let l = CANDY_MIN_LEVEL; l <= CANDY_MAX_LEVEL; l += 0.5) {
+      const opt = document.createElement('option');
+      opt.value = String(l);
+      opt.textContent = String(l);
+      if (l === defaultLevel) opt.selected = true;
+      select.appendChild(opt);
+    }
+  }
+  populateCandyLevelSelect(candyFromLevelEl, 1);
+  populateCandyLevelSelect(candyToLevelEl, 50);
+
+  function renderCandyCalculator() {
+    const from = parseFloat(candyFromLevelEl.value);
+    const to = parseFloat(candyToLevelEl.value);
+    const mult = CANDY_STATUS_MULT[candyStatusEl.value] || CANDY_STATUS_MULT.normal;
+
+    let dust = 0, candy = 0, candyXL = 0, steps = 0;
+    if (to > from) {
+      const startIdx = Math.round((from - CANDY_MIN_LEVEL) * 2);
+      const endIdx = Math.round((to - CANDY_MIN_LEVEL) * 2);
+      for (let i = startIdx; i < endIdx; i++) {
+        const step = CANDY_STEPS[i];
+        if (!step) continue;
+        const stepDust = Math.ceil(step[0] * mult.dust - 1e-6);
+        const stepCandy = Math.ceil(step[1] * mult.candy - 1e-6);
+        dust += stepDust;
+        if (i >= CANDY_XL_START_INDEX) candyXL += stepCandy;
+        else candy += stepCandy;
+        steps++;
+      }
+    }
+
+    candyStardustTotalEl.textContent = dust.toLocaleString();
+    candyCandyTotalEl.textContent = candy.toLocaleString();
+    candyCandyRowEl.hidden = candy <= 0;
+    candyXlTotalEl.textContent = candyXL.toLocaleString();
+    candyXlRowEl.hidden = candyXL <= 0;
+    candyStepsSubEl.textContent = steps > 0 ? `${steps} power-up${steps === 1 ? '' : 's'}` : '';
+  }
+
+  [candyFromLevelEl, candyToLevelEl, candyStatusEl].forEach(el => {
+    el.addEventListener('change', renderCandyCalculator);
+  });
+  renderCandyCalculator();
 
   function renderCustomTasks() {
     customTasksListEl.innerHTML = '';
