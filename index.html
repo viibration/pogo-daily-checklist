@@ -525,9 +525,38 @@
     margin-bottom: 6px;
   }
   select.particle-manual-input { display: block; width: 100%; }
+  .candy-result-row { display: flex; align-items: center; gap: 10px; }
   .candy-result-row + .candy-result-row { margin-top: 14px; }
   .candy-result-row .particle-total { margin-top: 0; }
+  .candy-result-row .particle-gained-sub { margin-top: 0; }
+  .candy-result-icon { width: 30px; height: 30px; object-fit: contain; flex-shrink: 0; }
+  .candy-result-text { display: flex; flex-direction: column; }
   .candy-steps-sub { display: block; margin-top: 14px; font-size: 13px; color: var(--text-faint); }
+
+  .maxmove-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px 12px; }
+  .maxmove-check {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--text-dim);
+    background: var(--panel-2);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    padding: 8px 10px;
+    cursor: pointer;
+    user-select: none;
+  }
+  .maxmove-check:hover { border-color: var(--accent); }
+  .maxmove-check input[type="checkbox"] {
+    width: 17px;
+    height: 17px;
+    accent-color: var(--accent);
+    flex-shrink: 0;
+    cursor: pointer;
+  }
+  .maxmove-check.checked { color: var(--text); border-color: var(--accent); }
 
   .modal-accounts { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
   #bulk-modal-backdrop .modal-accounts,
@@ -1038,11 +1067,11 @@
       <div class="candy-level-row">
         <div class="candy-level-field">
           <label class="candy-level-label" for="candy-from-level">From Level</label>
-          <select class="particle-manual-input" id="candy-from-level"></select>
+          <input class="particle-manual-input" id="candy-from-level" type="number" inputmode="decimal" min="1" max="50" step="0.5" value="1">
         </div>
         <div class="candy-level-field">
           <label class="candy-level-label" for="candy-to-level">To Level</label>
-          <select class="particle-manual-input" id="candy-to-level"></select>
+          <input class="particle-manual-input" id="candy-to-level" type="number" inputmode="decimal" min="1" max="50" step="0.5" value="50">
         </div>
       </div>
       <div class="candy-level-field" style="margin-top: 12px">
@@ -1059,22 +1088,57 @@
     <div class="panel panel-theme-teal">
       <div class="particle-actions-label">Total cost</div>
       <div class="candy-result-row">
-        <span class="particle-total" id="candy-stardust-total">0</span>
-        <span class="particle-gained-sub">Stardust</span>
+        <img class="candy-result-icon" src="icons/Pokemon-Go-Stardust.webp" alt="">
+        <div class="candy-result-text">
+          <span class="particle-total" id="candy-stardust-total">0</span>
+          <span class="particle-gained-sub">Stardust</span>
+        </div>
       </div>
       <div class="candy-result-row" id="candy-candy-row" hidden>
-        <span class="particle-total" id="candy-candy-total">0</span>
-        <span class="particle-gained-sub">Candy</span>
+        <img class="candy-result-icon" src="icons/Rare_Candy.webp" alt="">
+        <div class="candy-result-text">
+          <span class="particle-total" id="candy-candy-total">0</span>
+          <span class="particle-gained-sub">Candy</span>
+        </div>
       </div>
       <div class="candy-result-row" id="candy-xl-row" hidden>
-        <span class="particle-total" id="candy-xl-total">0</span>
-        <span class="particle-gained-sub">Candy XL</span>
+        <img class="candy-result-icon" src="icons/Rare_Candy_XL.webp" alt="">
+        <div class="candy-result-text">
+          <span class="particle-total" id="candy-xl-total">0</span>
+          <span class="particle-gained-sub">Candy XL</span>
+        </div>
       </div>
       <span class="candy-steps-sub" id="candy-steps-sub"></span>
     </div>
     <div class="panel">
       <div class="particle-actions-label">Notes</div>
       <p style="margin: 0; font-size: 13px; color: var(--text-dim); line-height: 1.5;">Lucky halves the Stardust cost. Shadow costs 1.2&times; Stardust and Candy. Purified costs 90% of both, rounded up (Lucky + Purified stacks to 45% Stardust). Candy switches to Candy XL from Level 40 onward &mdash; Level 50 is the max reachable by powering up.</p>
+    </div>
+
+    <div class="panel">
+      <div class="particle-actions-label">Max Move upgrade cost</div>
+      <div class="maxmove-grid" id="maxmove-grid">
+        <label class="maxmove-check"><input type="checkbox" data-move="attack" data-level="1"> Max Attack 1</label>
+        <label class="maxmove-check"><input type="checkbox" data-move="guard" data-level="1"> Max Guard 1</label>
+        <label class="maxmove-check"><input type="checkbox" data-move="spirit" data-level="1"> Max Spirit 1</label>
+        <label class="maxmove-check"><input type="checkbox" data-move="attack" data-level="2"> Max Attack 2</label>
+        <label class="maxmove-check"><input type="checkbox" data-move="guard" data-level="2"> Max Guard 2</label>
+        <label class="maxmove-check"><input type="checkbox" data-move="spirit" data-level="2"> Max Spirit 2</label>
+        <label class="maxmove-check"><input type="checkbox" data-move="attack" data-level="3"> Max Attack 3</label>
+        <label class="maxmove-check"><input type="checkbox" data-move="guard" data-level="3"> Max Guard 3</label>
+        <label class="maxmove-check"><input type="checkbox" data-move="spirit" data-level="3"> Max Spirit 3</label>
+      </div>
+    </div>
+    <div class="panel panel-theme-violet">
+      <div class="particle-actions-label">Max Move total cost</div>
+      <div class="candy-result-row">
+        <img class="candy-result-icon" src="icons/max-particle.jpg" alt="">
+        <div class="candy-result-text">
+          <span class="particle-total" id="maxmove-mp-total">0</span>
+          <span class="particle-gained-sub">Max Particles</span>
+        </div>
+      </div>
+      <span class="candy-steps-sub" style="margin-top: 10px">Levels 1/2/3 cost 400/600/800 MP each, checked separately per move &mdash; check a level only once you already have the one before it. Candy/Candy XL cost for Max Moves varies by species group, so it isn't included here.</span>
     </div>
   </div>
 </div>
@@ -2420,18 +2484,16 @@
   const candyXlTotalEl = document.getElementById('candy-xl-total');
   const candyStepsSubEl = document.getElementById('candy-steps-sub');
 
-  function populateCandyLevelSelect(select, defaultLevel) {
-    select.innerHTML = '';
-    for (let l = CANDY_MIN_LEVEL; l <= CANDY_MAX_LEVEL; l += 0.5) {
-      const opt = document.createElement('option');
-      opt.value = String(l);
-      opt.textContent = String(l);
-      if (l === defaultLevel) opt.selected = true;
-      select.appendChild(opt);
-    }
+  function clampCandyLevelInput(el) {
+    let v = parseFloat(el.value);
+    if (Number.isNaN(v)) v = CANDY_MIN_LEVEL;
+    v = Math.round(v * 2) / 2;
+    v = Math.min(CANDY_MAX_LEVEL, Math.max(CANDY_MIN_LEVEL, v));
+    el.value = String(v);
   }
-  populateCandyLevelSelect(candyFromLevelEl, 1);
-  populateCandyLevelSelect(candyToLevelEl, 50);
+  [candyFromLevelEl, candyToLevelEl].forEach(el => {
+    el.addEventListener('blur', () => { clampCandyLevelInput(el); renderCandyCalculator(); });
+  });
 
   function renderCandyCalculator() {
     const from = parseFloat(candyFromLevelEl.value);
@@ -2462,10 +2524,30 @@
     candyStepsSubEl.textContent = steps > 0 ? `${steps} power-up${steps === 1 ? '' : 's'}` : '';
   }
 
-  [candyFromLevelEl, candyToLevelEl, candyStatusEl].forEach(el => {
-    el.addEventListener('change', renderCandyCalculator);
-  });
+  candyFromLevelEl.addEventListener('input', renderCandyCalculator);
+  candyToLevelEl.addEventListener('input', renderCandyCalculator);
+  candyStatusEl.addEventListener('change', renderCandyCalculator);
   renderCandyCalculator();
+
+  // --- Max Move upgrade cost: Max Particle cost per level is the same
+  // across Max Attack/Guard/Spirit and doesn't depend on species (only
+  // the Candy/Candy XL cost does, via the species' upgrade-cost group),
+  // so this only totals the MP side - straight from Bulbapedia's
+  // "Max Move upgrade costs" table (Groups 1-4/8 row).
+  const MAXMOVE_MP_BY_LEVEL = { 1: 400, 2: 600, 3: 800 };
+  const maxmoveMpTotalEl = document.getElementById('maxmove-mp-total');
+  const maxmoveCheckboxes = Array.from(document.querySelectorAll('#maxmove-grid input[type="checkbox"]'));
+
+  function renderMaxMoveCalculator() {
+    let total = 0;
+    maxmoveCheckboxes.forEach(cb => {
+      cb.closest('.maxmove-check').classList.toggle('checked', cb.checked);
+      if (cb.checked) total += MAXMOVE_MP_BY_LEVEL[cb.dataset.level] || 0;
+    });
+    maxmoveMpTotalEl.textContent = total.toLocaleString();
+  }
+  maxmoveCheckboxes.forEach(cb => cb.addEventListener('change', renderMaxMoveCalculator));
+  renderMaxMoveCalculator();
 
   function renderCustomTasks() {
     customTasksListEl.innerHTML = '';
