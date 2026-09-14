@@ -1090,12 +1090,9 @@
       <div class="candy-level-field" style="margin-bottom: 12px">
         <label class="candy-level-label" for="maxmove-group">Cost group <span style="font-weight:400">(see Max Move upgrade cost groups on the wiki)</span></label>
         <select class="particle-manual-input" id="maxmove-group">
-          <option value="1">Group 1</option>
-          <option value="2">Group 2</option>
-          <option value="3">Group 3</option>
-          <option value="4">Group 4</option>
+          <option value="1-4">Groups 1-4 (most species)</option>
           <option value="8">Group 8</option>
-          <option value="Z">Group Z</option>
+          <option value="Z">Group Z (Zacian/Zamazenta)</option>
         </select>
       </div>
       <div class="maxmove-grid" id="maxmove-grid">
@@ -2518,7 +2515,7 @@
   // instead of MP), but Candy/Candy XL are kept as separate line items
   // per level vs. Max Move since they're spent on different things.
   let levelUpTotals = { dust: 0, candy: 0, candyXL: 0, steps: 0 };
-  let maxmoveTotals = { mp: 0, dust: 0, candy: 0, candyXL: 0 };
+  let maxmoveTotals = { mp: 0, dust: 0, candyDisplay: '0', candyXLDisplay: '0', candyIsZero: true, candyXLIsZero: true };
 
   function renderTotalCostPanel() {
     const dust = levelUpTotals.dust + maxmoveTotals.dust;
@@ -2529,10 +2526,10 @@
     candyCandyRowEl.hidden = levelUpTotals.candy <= 0;
     candyXlTotalEl.textContent = levelUpTotals.candyXL.toLocaleString();
     candyXlRowEl.hidden = levelUpTotals.candyXL <= 0;
-    maxmoveCandyTotalEl.textContent = maxmoveTotals.candy.toLocaleString();
-    maxmoveCandyRowEl.hidden = maxmoveTotals.candy <= 0;
-    maxmoveXlTotalEl.textContent = maxmoveTotals.candyXL.toLocaleString();
-    maxmoveXlRowEl.hidden = maxmoveTotals.candyXL <= 0;
+    maxmoveCandyTotalEl.textContent = maxmoveTotals.candyDisplay;
+    maxmoveCandyRowEl.hidden = maxmoveTotals.candyIsZero;
+    maxmoveXlTotalEl.textContent = maxmoveTotals.candyXLDisplay;
+    maxmoveXlRowEl.hidden = maxmoveTotals.candyXLIsZero;
     const steps = levelUpTotals.steps;
     candyStepsSubEl.textContent = steps > 0 ? `${steps} power-up${steps === 1 ? '' : 's'}` : '';
   }
@@ -2582,11 +2579,17 @@
   // Candy/Candy XL cost depends on the species' upgrade-cost group (1-4,
   // 8 or Z) - all six groups' costs read directly off the wiki's "Max
   // Move upgrade cost groups" page (one row per group, not summarized).
-  const MAXMOVE_GROUPS = {
-    1: { mp: [400, 600, 800], dust: [0, 0, 0], candy: [50, 100, 0], candyXL: [0, 0, 40] },
-    2: { mp: [400, 600, 800], dust: [0, 0, 0], candy: [60, 110, 0], candyXL: [0, 0, 45] },
-    3: { mp: [400, 600, 800], dust: [0, 0, 0], candy: [70, 120, 0], candyXL: [0, 0, 50] },
-    4: { mp: [400, 600, 800], dust: [0, 0, 0], candy: [80, 130, 0], candyXL: [0, 0, 55] },
+  // Groups 1-4 cover most species and only differ by their Candy amount,
+  // so rather than making the user guess their Pokemon's exact group,
+  // that mode shows all four side by side (e.g. "50/60/70/80").
+  const MAXMOVE_MP = [400, 600, 800];
+  const MAXMOVE_SUBGROUPS = [
+    { candy: [50, 100, 0], candyXL: [0, 0, 40] }, // Group 1
+    { candy: [60, 110, 0], candyXL: [0, 0, 45] }, // Group 2
+    { candy: [70, 120, 0], candyXL: [0, 0, 50] }, // Group 3
+    { candy: [80, 130, 0], candyXL: [0, 0, 55] }, // Group 4
+  ];
+  const MAXMOVE_OTHER_GROUPS = {
     8: { mp: [400, 600, 800], dust: [0, 0, 0], candy: [400, 1200, 1200], candyXL: [0, 0, 320] },
     Z: { mp: [0, 0, 0], dust: [25000, 50000, 100000], candy: [80, 130, 0], candyXL: [0, 0, 55] },
   };
@@ -2594,18 +2597,46 @@
   const maxmoveCheckboxes = Array.from(document.querySelectorAll('#maxmove-grid input[type="checkbox"]'));
 
   function renderMaxMoveCalculator() {
-    const group = MAXMOVE_GROUPS[maxmoveGroupEl.value] || MAXMOVE_GROUPS[1];
-    let mp = 0, dust = 0, candy = 0, candyXL = 0;
-    maxmoveCheckboxes.forEach(cb => {
-      cb.closest('.maxmove-check').classList.toggle('checked', cb.checked);
-      if (!cb.checked) return;
-      const idx = Number(cb.dataset.level) - 1;
-      mp += group.mp[idx] || 0;
-      dust += group.dust[idx] || 0;
-      candy += group.candy[idx] || 0;
-      candyXL += group.candyXL[idx] || 0;
-    });
-    maxmoveTotals = { mp, dust, candy, candyXL };
+    const mode = maxmoveGroupEl.value;
+    let mp = 0, dust = 0;
+    let candyDisplay, candyXLDisplay, candyIsZero, candyXLIsZero;
+
+    if (mode === '1-4') {
+      const candyArr = [0, 0, 0, 0];
+      const candyXLArr = [0, 0, 0, 0];
+      maxmoveCheckboxes.forEach(cb => {
+        cb.closest('.maxmove-check').classList.toggle('checked', cb.checked);
+        if (!cb.checked) return;
+        const idx = Number(cb.dataset.level) - 1;
+        mp += MAXMOVE_MP[idx] || 0;
+        MAXMOVE_SUBGROUPS.forEach((g, gi) => {
+          candyArr[gi] += g.candy[idx] || 0;
+          candyXLArr[gi] += g.candyXL[idx] || 0;
+        });
+      });
+      candyDisplay = candyArr.map(n => n.toLocaleString()).join('/');
+      candyXLDisplay = candyXLArr.map(n => n.toLocaleString()).join('/');
+      candyIsZero = candyArr.every(n => n === 0);
+      candyXLIsZero = candyXLArr.every(n => n === 0);
+    } else {
+      const group = MAXMOVE_OTHER_GROUPS[mode] || MAXMOVE_OTHER_GROUPS[8];
+      let candy = 0, candyXL = 0;
+      maxmoveCheckboxes.forEach(cb => {
+        cb.closest('.maxmove-check').classList.toggle('checked', cb.checked);
+        if (!cb.checked) return;
+        const idx = Number(cb.dataset.level) - 1;
+        mp += group.mp[idx] || 0;
+        dust += group.dust[idx] || 0;
+        candy += group.candy[idx] || 0;
+        candyXL += group.candyXL[idx] || 0;
+      });
+      candyDisplay = candy.toLocaleString();
+      candyXLDisplay = candyXL.toLocaleString();
+      candyIsZero = candy === 0;
+      candyXLIsZero = candyXL === 0;
+    }
+
+    maxmoveTotals = { mp, dust, candyDisplay, candyXLDisplay, candyIsZero, candyXLIsZero };
     renderTotalCostPanel();
   }
   maxmoveGroupEl.addEventListener('change', renderMaxMoveCalculator);
