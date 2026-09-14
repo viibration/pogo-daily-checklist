@@ -1085,38 +1085,19 @@
         </select>
       </div>
     </div>
-    <div class="panel panel-theme-teal">
-      <div class="particle-actions-label">Total cost</div>
-      <div class="candy-result-row">
-        <img class="candy-result-icon" src="icons/Pokemon-Go-Stardust.webp" alt="">
-        <div class="candy-result-text">
-          <span class="particle-total" id="candy-stardust-total">0</span>
-          <span class="particle-gained-sub">Stardust</span>
-        </div>
-      </div>
-      <div class="candy-result-row" id="candy-candy-row" hidden>
-        <img class="candy-result-icon" src="icons/Rare_Candy.webp" alt="">
-        <div class="candy-result-text">
-          <span class="particle-total" id="candy-candy-total">0</span>
-          <span class="particle-gained-sub">Candy</span>
-        </div>
-      </div>
-      <div class="candy-result-row" id="candy-xl-row" hidden>
-        <img class="candy-result-icon" src="icons/Rare_Candy_XL.webp" alt="">
-        <div class="candy-result-text">
-          <span class="particle-total" id="candy-xl-total">0</span>
-          <span class="particle-gained-sub">Candy XL</span>
-        </div>
-      </div>
-      <span class="candy-steps-sub" id="candy-steps-sub"></span>
-    </div>
-    <div class="panel">
-      <div class="particle-actions-label">Notes</div>
-      <p style="margin: 0; font-size: 13px; color: var(--text-dim); line-height: 1.5;">Lucky halves the Stardust cost. Shadow costs 1.2&times; Stardust and Candy. Purified costs 90% of both, rounded up (Lucky + Purified stacks to 45% Stardust). Candy switches to Candy XL from Level 40 onward &mdash; Level 50 is the max reachable by powering up.</p>
-    </div>
-
     <div class="panel">
       <div class="particle-actions-label">Max Move upgrade cost</div>
+      <div class="candy-level-field" style="margin-bottom: 12px">
+        <label class="candy-level-label" for="maxmove-group">Cost group <span style="font-weight:400">(see Max Move upgrade cost groups on the wiki)</span></label>
+        <select class="particle-manual-input" id="maxmove-group">
+          <option value="1">Group 1</option>
+          <option value="2">Group 2</option>
+          <option value="3">Group 3</option>
+          <option value="4">Group 4</option>
+          <option value="8">Group 8</option>
+          <option value="Z">Group Z</option>
+        </select>
+      </div>
       <div class="maxmove-grid" id="maxmove-grid">
         <label class="maxmove-check"><input type="checkbox" data-move="attack" data-level="1"> Max Attack 1</label>
         <label class="maxmove-check"><input type="checkbox" data-move="guard" data-level="1"> Max Guard 1</label>
@@ -1128,17 +1109,57 @@
         <label class="maxmove-check"><input type="checkbox" data-move="guard" data-level="3"> Max Guard 3</label>
         <label class="maxmove-check"><input type="checkbox" data-move="spirit" data-level="3"> Max Spirit 3</label>
       </div>
+      <span class="candy-steps-sub" style="margin-top: 10px">Check a level only once you already have the one before it. Group Z (Zacian/Zamazenta) spends Stardust instead of Max Particles.</span>
     </div>
-    <div class="panel panel-theme-violet">
-      <div class="particle-actions-label">Max Move total cost</div>
+    <div class="panel panel-theme-teal">
+      <div class="particle-actions-label">Total cost</div>
       <div class="candy-result-row">
-        <img class="candy-result-icon" src="icons/max-particle.jpg" alt="">
+        <img class="candy-result-icon" src="icons/stardust.webp" alt="">
         <div class="candy-result-text">
-          <span class="particle-total" id="maxmove-mp-total">0</span>
+          <span class="particle-total" id="candy-stardust-total">0</span>
+          <span class="particle-gained-sub">Stardust</span>
+        </div>
+      </div>
+      <div class="candy-result-row" id="candy-mp-row" hidden>
+        <img class="candy-result-icon" src="icons/max-particle.webp" alt="">
+        <div class="candy-result-text">
+          <span class="particle-total" id="candy-mp-total">0</span>
           <span class="particle-gained-sub">Max Particles</span>
         </div>
       </div>
-      <span class="candy-steps-sub" style="margin-top: 10px">Levels 1/2/3 cost 400/600/800 MP each, checked separately per move &mdash; check a level only once you already have the one before it. Candy/Candy XL cost for Max Moves varies by species group, so it isn't included here.</span>
+      <div class="candy-result-row" id="candy-candy-row" hidden>
+        <img class="candy-result-icon" src="icons/candy.webp" alt="">
+        <div class="candy-result-text">
+          <span class="particle-total" id="candy-candy-total">0</span>
+          <span class="particle-gained-sub">Candy &mdash; Power Up</span>
+        </div>
+      </div>
+      <div class="candy-result-row" id="candy-xl-row" hidden>
+        <img class="candy-result-icon" src="icons/candy-xl.webp" alt="">
+        <div class="candy-result-text">
+          <span class="particle-total" id="candy-xl-total">0</span>
+          <span class="particle-gained-sub">Candy XL &mdash; Power Up</span>
+        </div>
+      </div>
+      <div class="candy-result-row" id="maxmove-candy-row" hidden>
+        <img class="candy-result-icon" src="icons/candy.webp" alt="">
+        <div class="candy-result-text">
+          <span class="particle-total" id="maxmove-candy-total">0</span>
+          <span class="particle-gained-sub">Candy &mdash; Max Move</span>
+        </div>
+      </div>
+      <div class="candy-result-row" id="maxmove-xl-row" hidden>
+        <img class="candy-result-icon" src="icons/candy-xl.webp" alt="">
+        <div class="candy-result-text">
+          <span class="particle-total" id="maxmove-xl-total">0</span>
+          <span class="particle-gained-sub">Candy XL &mdash; Max Move</span>
+        </div>
+      </div>
+      <span class="candy-steps-sub" id="candy-steps-sub"></span>
+    </div>
+    <div class="panel">
+      <div class="particle-actions-label">Notes</div>
+      <p style="margin: 0; font-size: 13px; color: var(--text-dim); line-height: 1.5;">Lucky halves the Stardust cost. Shadow costs 1.2&times; Stardust and Candy. Purified costs 90% of both, rounded up (Lucky + Purified stacks to 45% Stardust). Candy switches to Candy XL from Level 40 onward &mdash; Level 50 is the max reachable by powering up. Power Up and Max Move candy are shown separately since they're spent on different things.</p>
     </div>
   </div>
 </div>
@@ -2482,7 +2503,39 @@
   const candyCandyTotalEl = document.getElementById('candy-candy-total');
   const candyXlRowEl = document.getElementById('candy-xl-row');
   const candyXlTotalEl = document.getElementById('candy-xl-total');
+  const candyMpRowEl = document.getElementById('candy-mp-row');
+  const candyMpTotalEl = document.getElementById('candy-mp-total');
+  const maxmoveCandyRowEl = document.getElementById('maxmove-candy-row');
+  const maxmoveCandyTotalEl = document.getElementById('maxmove-candy-total');
+  const maxmoveXlRowEl = document.getElementById('maxmove-xl-row');
+  const maxmoveXlTotalEl = document.getElementById('maxmove-xl-total');
   const candyStepsSubEl = document.getElementById('candy-steps-sub');
+
+  // Power Up (level) totals and Max Move totals are computed independently,
+  // then combined here into one Total cost panel - Stardust and Max
+  // Particles are summed together (only one of the two sources ever
+  // contributes to a given resource: Group Z Max Moves spend Stardust
+  // instead of MP), but Candy/Candy XL are kept as separate line items
+  // per level vs. Max Move since they're spent on different things.
+  let levelUpTotals = { dust: 0, candy: 0, candyXL: 0, steps: 0 };
+  let maxmoveTotals = { mp: 0, dust: 0, candy: 0, candyXL: 0 };
+
+  function renderTotalCostPanel() {
+    const dust = levelUpTotals.dust + maxmoveTotals.dust;
+    candyStardustTotalEl.textContent = dust.toLocaleString();
+    candyMpTotalEl.textContent = maxmoveTotals.mp.toLocaleString();
+    candyMpRowEl.hidden = maxmoveTotals.mp <= 0;
+    candyCandyTotalEl.textContent = levelUpTotals.candy.toLocaleString();
+    candyCandyRowEl.hidden = levelUpTotals.candy <= 0;
+    candyXlTotalEl.textContent = levelUpTotals.candyXL.toLocaleString();
+    candyXlRowEl.hidden = levelUpTotals.candyXL <= 0;
+    maxmoveCandyTotalEl.textContent = maxmoveTotals.candy.toLocaleString();
+    maxmoveCandyRowEl.hidden = maxmoveTotals.candy <= 0;
+    maxmoveXlTotalEl.textContent = maxmoveTotals.candyXL.toLocaleString();
+    maxmoveXlRowEl.hidden = maxmoveTotals.candyXL <= 0;
+    const steps = levelUpTotals.steps;
+    candyStepsSubEl.textContent = steps > 0 ? `${steps} power-up${steps === 1 ? '' : 's'}` : '';
+  }
 
   function clampCandyLevelInput(el) {
     let v = parseFloat(el.value);
@@ -2516,12 +2569,8 @@
       }
     }
 
-    candyStardustTotalEl.textContent = dust.toLocaleString();
-    candyCandyTotalEl.textContent = candy.toLocaleString();
-    candyCandyRowEl.hidden = candy <= 0;
-    candyXlTotalEl.textContent = candyXL.toLocaleString();
-    candyXlRowEl.hidden = candyXL <= 0;
-    candyStepsSubEl.textContent = steps > 0 ? `${steps} power-up${steps === 1 ? '' : 's'}` : '';
+    levelUpTotals = { dust, candy, candyXL, steps };
+    renderTotalCostPanel();
   }
 
   candyFromLevelEl.addEventListener('input', renderCandyCalculator);
@@ -2529,23 +2578,37 @@
   candyStatusEl.addEventListener('change', renderCandyCalculator);
   renderCandyCalculator();
 
-  // --- Max Move upgrade cost: Max Particle cost per level is the same
-  // across Max Attack/Guard/Spirit and doesn't depend on species (only
-  // the Candy/Candy XL cost does, via the species' upgrade-cost group),
-  // so this only totals the MP side - straight from Bulbapedia's
-  // "Max Move upgrade costs" table (Groups 1-4/8 row).
-  const MAXMOVE_MP_BY_LEVEL = { 1: 400, 2: 600, 3: 800 };
-  const maxmoveMpTotalEl = document.getElementById('maxmove-mp-total');
+  // --- Max Move upgrade cost: MP/Stardust cost per level is fixed, but
+  // Candy/Candy XL cost depends on the species' upgrade-cost group (1-4,
+  // 8 or Z) - all six groups' costs read directly off the wiki's "Max
+  // Move upgrade cost groups" page (one row per group, not summarized).
+  const MAXMOVE_GROUPS = {
+    1: { mp: [400, 600, 800], dust: [0, 0, 0], candy: [50, 100, 0], candyXL: [0, 0, 40] },
+    2: { mp: [400, 600, 800], dust: [0, 0, 0], candy: [60, 110, 0], candyXL: [0, 0, 45] },
+    3: { mp: [400, 600, 800], dust: [0, 0, 0], candy: [70, 120, 0], candyXL: [0, 0, 50] },
+    4: { mp: [400, 600, 800], dust: [0, 0, 0], candy: [80, 130, 0], candyXL: [0, 0, 55] },
+    8: { mp: [400, 600, 800], dust: [0, 0, 0], candy: [400, 1200, 1200], candyXL: [0, 0, 320] },
+    Z: { mp: [0, 0, 0], dust: [25000, 50000, 100000], candy: [80, 130, 0], candyXL: [0, 0, 55] },
+  };
+  const maxmoveGroupEl = document.getElementById('maxmove-group');
   const maxmoveCheckboxes = Array.from(document.querySelectorAll('#maxmove-grid input[type="checkbox"]'));
 
   function renderMaxMoveCalculator() {
-    let total = 0;
+    const group = MAXMOVE_GROUPS[maxmoveGroupEl.value] || MAXMOVE_GROUPS[1];
+    let mp = 0, dust = 0, candy = 0, candyXL = 0;
     maxmoveCheckboxes.forEach(cb => {
       cb.closest('.maxmove-check').classList.toggle('checked', cb.checked);
-      if (cb.checked) total += MAXMOVE_MP_BY_LEVEL[cb.dataset.level] || 0;
+      if (!cb.checked) return;
+      const idx = Number(cb.dataset.level) - 1;
+      mp += group.mp[idx] || 0;
+      dust += group.dust[idx] || 0;
+      candy += group.candy[idx] || 0;
+      candyXL += group.candyXL[idx] || 0;
     });
-    maxmoveMpTotalEl.textContent = total.toLocaleString();
+    maxmoveTotals = { mp, dust, candy, candyXL };
+    renderTotalCostPanel();
   }
+  maxmoveGroupEl.addEventListener('change', renderMaxMoveCalculator);
   maxmoveCheckboxes.forEach(cb => cb.addEventListener('change', renderMaxMoveCalculator));
   renderMaxMoveCalculator();
 
