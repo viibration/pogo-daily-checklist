@@ -2255,12 +2255,12 @@
       row.tabIndex = 0;
       row.setAttribute('role', 'checkbox');
       row.setAttribute('aria-checked', String(selected));
-      // While checked, preview what applying would make the daily total,
-      // capped at the daily limit since that's what actually lands (real
-      // gains stop counting once the day's total hits it) - highlighted
-      // so it reads as "not committed yet"; reverts to the real value the
-      // instant it's unchecked.
-      const previewGained = selected ? Math.min(PARTICLE_LIMIT, gained + gainModalAmt) : gained;
+      // While checked, preview what applying would make the daily total -
+      // this can land over the limit (the cap only blocks further gains
+      // once already at/over it, it doesn't clip the gain that crosses
+      // it) - highlighted so it reads as "not committed yet"; reverts to
+      // the real value the instant it's unchecked.
+      const previewGained = selected ? gained + gainModalAmt : gained;
       row.innerHTML = `
         <span class="box">
           <svg viewBox="0 0 24 24" fill="none" stroke="#0e1620" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
@@ -2337,9 +2337,8 @@
     if (gainModalSelected.size === 0) return;
     gainModalSelected.forEach(name => {
       const gained = state.accounts[name].particles || 0;
-      const actual = Math.max(0, Math.min(gainModalAmt, PARTICLE_LIMIT - gained));
-      state.accounts[name].particles = gained + actual;
-      state.accounts[name].currentTotal = (state.accounts[name].currentTotal || 0) + actual;
+      state.accounts[name].particles = gained + gainModalAmt;
+      state.accounts[name].currentTotal = (state.accounts[name].currentTotal || 0) + gainModalAmt;
     });
     saveState(state);
     renderParticleList();
@@ -2374,16 +2373,16 @@
     particleDetailManualInput.value = state.accounts[currentParticleAccount].currentTotal || 0;
   }
 
-  // Real Max Particle gains stop counting toward the daily total once it
-  // hits PARTICLE_LIMIT, so an event/button that would push it over only
-  // actually grants the remaining headroom - never the full face value.
+  // The daily total can overshoot PARTICLE_LIMIT on the gain that pushes
+  // it past the cap (e.g. 799 + 300 = 1099) - the cap only blocks further
+  // gains once the account is already at or over it, it doesn't clip the
+  // gain that crosses it.
   function adjustParticles(amt) {
     const name = currentParticleAccount;
     const gained = state.accounts[name].particles || 0;
-    const actual = Math.max(0, Math.min(amt, PARTICLE_LIMIT - gained));
-    if (actual <= 0) return;
-    state.accounts[name].particles = gained + actual;
-    state.accounts[name].currentTotal = (state.accounts[name].currentTotal || 0) + actual;
+    if (gained >= PARTICLE_LIMIT) return;
+    state.accounts[name].particles = gained + amt;
+    state.accounts[name].currentTotal = (state.accounts[name].currentTotal || 0) + amt;
     saveState(state);
     renderParticleDetail();
   }
