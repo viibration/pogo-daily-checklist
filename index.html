@@ -222,6 +222,12 @@
     text-decoration: line-through;
   }
 
+  .item.locked, .task-row.locked { cursor: not-allowed; opacity: 0.75; }
+  .item.locked:hover, .task-row.locked:hover { border-color: var(--line); }
+  .label.lucky-off, .task-row.locked .label.lucky-off { color: var(--bad); }
+  .label.lucky-on, .task-row .label.lucky-on { color: var(--accent); }
+  .item.done .label.lucky-off, .item.done .label.lucky-on { color: var(--text-faint); }
+
   .reset-btn {
     width: 100%;
     margin-top: 12px;
@@ -1210,7 +1216,11 @@
     { id: 'daily-raid-pass', label: 'Daily Raid Pass' },
     { id: 'raid-boss', label: 'Raid Boss' },
     { id: 'max-raid', label: 'Max Battle' },
+    { id: 'league-master', label: 'Win Master League' },
+    { id: 'league-ultra', label: 'Win Ultra League' },
+    { id: 'league-great', label: 'Win Great League' },
     { id: 'special-trade', label: 'Special Trade' },
+    { id: 'league-lucky', label: 'Lucky Trade (Friday)' },
   ];
 
   const FARM_TASK_IDS = ['first-catch', 'first-spin', 'first-research', 'daily-incense'];
@@ -1305,6 +1315,18 @@
     const m = String(shifted.getUTCMonth() + 1).padStart(2, '0');
     const d = String(shifted.getUTCDate()).padStart(2, '0');
     return `${y}-${m}-${d}`;
+  }
+
+  // Lucky Trade is only available on Fridays; follows the same New York
+  // day boundary as the rest of the checklist (see todayKey above).
+  function isLuckyTradeDay() {
+    return new Intl.DateTimeFormat('en-US', { timeZone: 'America/New_York', weekday: 'short' }).format(new Date()) === 'Fri';
+  }
+  function isTaskLocked(task) {
+    return task.id === 'league-lucky' && !isLuckyTradeDay();
+  }
+  function countableTasks() {
+    return allTasks().filter(t => !isTaskLocked(t));
   }
 
   const STORAGE_KEY = 'pogo-daily-checklist';
@@ -1615,14 +1637,14 @@
 
   function countDone(name) {
     const done = state.accounts[name].done;
-    return allTasks().filter(t => done[t.id]).length;
+    return countableTasks().filter(t => done[t.id]).length;
   }
 
   function renderDashboard() {
     accountsEl.innerHTML = '';
     accountNames.forEach(name => {
       const doneCount = countDone(name);
-      const total = allTasks().length;
+      const total = countableTasks().length;
       const pct = total ? (doneCount / total) * 100 : 0;
       const complete = doneCount === total;
 
@@ -1663,29 +1685,36 @@
       const total = accountNames.length;
       const complete = doneAccounts.length === total;
       const partial = doneAccounts.length > 0 && !complete;
+      const locked = isTaskLocked(task);
+      const isLucky = task.id === 'league-lucky';
+      const labelClass = isLucky ? (locked ? ' lucky-off' : ' lucky-on') : '';
 
       const row = document.createElement('div');
-      row.className = 'task-row';
-      row.tabIndex = 0;
+      row.className = 'task-row' + (locked ? ' locked' : '');
+      row.tabIndex = locked ? -1 : 0;
       row.setAttribute('role', 'button');
+      if (locked) row.setAttribute('aria-disabled', 'true');
       row.innerHTML = `
-        <span class="label">${task.label}</span>
+        <span class="label${labelClass}">${task.label}</span>
         <span class="badge${complete ? ' complete' : ''}${partial ? ' partial' : ''}">${doneAccounts.length} / ${total}</span>
       `;
-      row.addEventListener('click', () => openModal(task.id));
-      row.addEventListener('keydown', (e) => {
-        if (e.key === ' ' || e.key === 'Enter') {
-          e.preventDefault();
-          openModal(task.id);
-        }
-      });
+      if (!locked) {
+        row.addEventListener('click', () => openModal(task.id));
+        row.addEventListener('keydown', (e) => {
+          if (e.key === ' ' || e.key === 'Enter') {
+            e.preventDefault();
+            openModal(task.id);
+          }
+        });
+      }
       masterTasksEl.appendChild(row);
     });
   }
 
   function openModal(taskId) {
-    modalTaskId = taskId;
     const task = allTasks().find(t => t.id === taskId);
+    if (isTaskLocked(task)) return;
+    modalTaskId = taskId;
     modalTitleEl.textContent = task.label;
     renderModalAccounts();
     modalBackdrop.hidden = false;
@@ -1850,7 +1879,7 @@
 
   bulkApplyBtn.addEventListener('click', () => {
     if (bulkSelected.size === 0) return;
-    const ids = bulkTaskIds || allTasks().map(t => t.id);
+    const ids = bulkTaskIds || countableTasks().map(t => t.id);
     bulkSelected.forEach(name => {
       ids.forEach(id => { state.accounts[name].done[id] = true; });
     });
@@ -1861,7 +1890,7 @@
 
   bulkUncheckBtn.addEventListener('click', () => {
     if (bulkSelected.size === 0) return;
-    const ids = bulkTaskIds || allTasks().map(t => t.id);
+    const ids = bulkTaskIds || countableTasks().map(t => t.id);
     bulkSelected.forEach(name => {
       ids.forEach(id => { state.accounts[name].done[id] = false; });
     });
@@ -2988,31 +3017,37 @@
     itemsEl.innerHTML = '';
     allTasks().forEach(task => {
       const isDone = !!done[task.id];
+      const locked = isTaskLocked(task);
+      const isLucky = task.id === 'league-lucky';
       const row = document.createElement('div');
-      row.className = 'item' + (isDone ? ' done' : '');
-      row.tabIndex = 0;
+      row.className = 'item' + (isDone ? ' done' : '') + (locked ? ' locked' : '');
+      row.tabIndex = locked ? -1 : 0;
       row.setAttribute('role', 'checkbox');
       row.setAttribute('aria-checked', String(isDone));
+      if (locked) row.setAttribute('aria-disabled', 'true');
+      const labelClass = isLucky ? (locked ? ' lucky-off' : ' lucky-on') : '';
       row.innerHTML = `
         <span class="box">
           <svg viewBox="0 0 24 24" fill="none" stroke="#0e1620" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
             <polyline points="4 12 10 18 20 6"></polyline>
           </svg>
         </span>
-        <span class="label">${task.label}</span>
+        <span class="label${labelClass}">${task.label}</span>
       `;
-      row.addEventListener('click', () => toggle(task.id));
-      row.addEventListener('keydown', (e) => {
-        if (e.key === ' ' || e.key === 'Enter') {
-          e.preventDefault();
-          toggle(task.id);
-        }
-      });
+      if (!locked) {
+        row.addEventListener('click', () => toggle(task.id));
+        row.addEventListener('keydown', (e) => {
+          if (e.key === ' ' || e.key === 'Enter') {
+            e.preventDefault();
+            toggle(task.id);
+          }
+        });
+      }
       itemsEl.appendChild(row);
     });
 
     const doneCount = countDone(currentAccount);
-    const total = allTasks().length;
+    const total = countableTasks().length;
     const pct = total ? (doneCount / total) * 100 : 0;
     const complete = doneCount === total;
     progressFillEl.style.width = `${pct}%`;
@@ -3031,8 +3066,9 @@
 
   checklistCheckAllBtn.addEventListener('click', () => {
     const done = state.accounts[currentAccount].done;
-    const allDone = allTasks().every(t => !!done[t.id]);
-    allTasks().forEach(t => { done[t.id] = !allDone; });
+    const tasksToToggle = countableTasks();
+    const allDone = tasksToToggle.every(t => !!done[t.id]);
+    tasksToToggle.forEach(t => { done[t.id] = !allDone; });
     saveState(state);
     renderChecklist();
   });
