@@ -572,7 +572,8 @@
     user-select: none;
   }
   .maxmove-check:hover { border-color: var(--accent); }
-  .maxmove-check input[type="checkbox"] {
+  .maxmove-check input[type="checkbox"],
+  .maxmove-check input[type="radio"] {
     width: 17px;
     height: 17px;
     accent-color: var(--accent);
@@ -580,6 +581,9 @@
     cursor: pointer;
   }
   .maxmove-check.checked { color: var(--text); border-color: var(--accent); }
+
+  .maxmove-group-radios { display: flex; flex-direction: column; gap: 8px; }
+  .maxmove-radio:has(input:checked) { color: var(--text); border-color: var(--accent); }
 
   .modal-accounts { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
   #bulk-modal-backdrop .modal-accounts,
@@ -789,6 +793,9 @@
       <div class="modal-quick-row">
         <button class="modal-quick-btn" id="farm-open-btn" type="button">Check farm task</button>
         <button class="modal-quick-btn" id="route-open-btn" type="button">Check route task</button>
+      </div>
+      <div class="modal-quick-row">
+        <button class="modal-quick-btn" id="pvp-open-btn" type="button">Check win pvp all leagues</button>
       </div>
       <button class="check-all-btn" id="custom-tasks-open-btn" type="button">Manage Custom Tasks&hellip;</button>
       <div class="items" id="master-tasks"></div>
@@ -1111,12 +1118,12 @@
     <div class="panel">
       <div class="particle-actions-label">Max Move upgrade cost</div>
       <div class="candy-level-field" style="margin-bottom: 12px">
-        <label class="candy-level-label" for="maxmove-group">Cost group <span style="font-weight:400">(see Max Move upgrade cost groups on the wiki)</span></label>
-        <select class="particle-manual-input" id="maxmove-group">
-          <option value="1-4">Groups 1-4 (most species)</option>
-          <option value="8">Group 8</option>
-          <option value="Z">Group Z (Zacian/Zamazenta)</option>
-        </select>
+        <label class="candy-level-label">Cost group <span style="font-weight:400">(see Max Move upgrade cost groups on the wiki)</span></label>
+        <div class="maxmove-group-radios" id="maxmove-group-radios">
+          <label class="maxmove-check maxmove-radio"><input type="radio" name="maxmove-group" value="1-4" checked> Groups 1-4 (most species)</label>
+          <label class="maxmove-check maxmove-radio"><input type="radio" name="maxmove-group" value="8"> Group 8</label>
+          <label class="maxmove-check maxmove-radio"><input type="radio" name="maxmove-group" value="Z"> Group Z (Zacian/Zamazenta)</label>
+        </div>
       </div>
       <div class="maxmove-grid" id="maxmove-grid">
         <label class="maxmove-check"><input type="checkbox" data-move="attack" data-level="1"> Max Attack 1</label>
@@ -1162,17 +1169,10 @@
         <div class="total-cost-col">
           <div class="total-cost-col-title">Max Move</div>
           <div class="candy-result-row" id="candy-mp-row" hidden>
-            <img class="candy-result-icon" src="icons/max-particle.webp" alt="">
+            <img class="candy-result-icon" id="candy-mp-icon" src="icons/max-particle.webp" alt="">
             <div class="candy-result-text">
               <span class="particle-total" id="candy-mp-total">0</span>
-              <span class="particle-gained-sub">Max Particles</span>
-            </div>
-          </div>
-          <div class="candy-result-row" id="maxmove-dust-row" hidden>
-            <img class="candy-result-icon" src="icons/stardust.webp" alt="">
-            <div class="candy-result-text">
-              <span class="particle-total" id="maxmove-dust-total">0</span>
-              <span class="particle-gained-sub">Stardust</span>
+              <span class="particle-gained-sub" id="candy-mp-label">Max Particles</span>
             </div>
           </div>
           <div class="candy-result-row" id="maxmove-candy-row" hidden>
@@ -1225,6 +1225,7 @@
 
   const FARM_TASK_IDS = ['first-catch', 'first-spin', 'first-research', 'daily-incense'];
   const ROUTE_TASK_IDS = ['route-1', 'route-2', 'route-3', 'route-4', 'route-5', 'route-6'];
+  const WIN_LEAGUE_TASK_IDS = ['league-master', 'league-ultra', 'league-great'];
 
   // Custom tasks are user-added extras layered on top of the fixed list
   // above; they live in state.customTasks and reset/disappear daily
@@ -1856,6 +1857,7 @@
   bulkOpenBtn.addEventListener('click', () => openBulkModal(null, 'all tasks'));
   document.getElementById('farm-open-btn').addEventListener('click', () => openBulkModal(FARM_TASK_IDS, 'farm task'));
   document.getElementById('route-open-btn').addEventListener('click', () => openBulkModal(ROUTE_TASK_IDS, 'route task'));
+  document.getElementById('pvp-open-btn').addEventListener('click', () => openBulkModal(WIN_LEAGUE_TASK_IDS, 'win PvP league task'));
   bulkModalCloseBtn.addEventListener('click', closeBulkModal);
   bulkModalBackdrop.addEventListener('click', (e) => {
     if (e.target === bulkModalBackdrop) closeBulkModal();
@@ -2575,9 +2577,9 @@
   const candyXlRowEl = document.getElementById('candy-xl-row');
   const candyXlTotalEl = document.getElementById('candy-xl-total');
   const candyMpRowEl = document.getElementById('candy-mp-row');
+  const candyMpIconEl = document.getElementById('candy-mp-icon');
   const candyMpTotalEl = document.getElementById('candy-mp-total');
-  const maxmoveDustRowEl = document.getElementById('maxmove-dust-row');
-  const maxmoveDustTotalEl = document.getElementById('maxmove-dust-total');
+  const candyMpLabelEl = document.getElementById('candy-mp-label');
   const maxmoveCandyRowEl = document.getElementById('maxmove-candy-row');
   const maxmoveCandyTotalEl = document.getElementById('maxmove-candy-total');
   const maxmoveXlRowEl = document.getElementById('maxmove-xl-row');
@@ -2587,24 +2589,20 @@
   // Power Up (level) totals and Max Move totals are computed independently
   // and rendered into two separate columns (Power Up / Max Move) so
   // checking Max Move boxes never changes the height of the Power Up
-  // side. Stardust is shown on both sides rather than combined into one
-  // number, since a Group Z Max Move Stardust cost is a distinct spend
-  // from the Power Up Stardust cost, same reasoning as keeping Candy
-  // separate per side.
+  // side. Max Move's MP and Stardust share a single row instead of one
+  // each, since a given cost group only ever uses one of the two (MP for
+  // Groups 1-4/8, Stardust for Group Z) - the row just swaps icon/label
+  // to whichever currency is active, keeping the column at 3 rows.
   let levelUpTotals = { dust: 0, candy: 0, candyXL: 0, steps: 0 };
-  let maxmoveTotals = { mp: 0, dust: 0, candyDisplay: '0', candyXLDisplay: '0', candyIsZero: true, candyXLIsZero: true };
+  let maxmoveTotals = { currencyType: 'mp', currencyValue: 0, candyDisplay: '0', candyXLDisplay: '0', candyIsZero: true, candyXLIsZero: true };
 
   function renderTotalCostPanel() {
     candyStardustTotalEl.textContent = levelUpTotals.dust.toLocaleString();
-    // Max Particles and Stardust are shown as a pair: whichever currency
-    // the checked levels actually cost, the other one still shows "0"
-    // right next to it, so it's clear at a glance which one applies (MP
-    // for Groups 1-4/8, Stardust for Group Z) instead of just vanishing.
-    const showMaxMoveCurrency = maxmoveTotals.mp > 0 || maxmoveTotals.dust > 0;
-    candyMpTotalEl.textContent = maxmoveTotals.mp.toLocaleString();
-    candyMpRowEl.hidden = !showMaxMoveCurrency;
-    maxmoveDustTotalEl.textContent = maxmoveTotals.dust.toLocaleString();
-    maxmoveDustRowEl.hidden = !showMaxMoveCurrency;
+    const isStardust = maxmoveTotals.currencyType === 'dust';
+    candyMpIconEl.src = isStardust ? 'icons/stardust.webp' : 'icons/max-particle.webp';
+    candyMpLabelEl.textContent = isStardust ? 'Stardust' : 'Max Particles';
+    candyMpTotalEl.textContent = maxmoveTotals.currencyValue.toLocaleString();
+    candyMpRowEl.hidden = maxmoveTotals.currencyValue <= 0;
     candyCandyTotalEl.textContent = levelUpTotals.candy.toLocaleString();
     candyCandyRowEl.hidden = levelUpTotals.candy <= 0;
     candyXlTotalEl.textContent = levelUpTotals.candyXL.toLocaleString();
@@ -2676,11 +2674,12 @@
     8: { mp: [400, 600, 800], dust: [0, 0, 0], candy: [400, 1200, 1200], candyXL: [0, 0, 320] },
     Z: { mp: [0, 0, 0], dust: [25000, 50000, 100000], candy: [80, 130, 0], candyXL: [0, 0, 55] },
   };
-  const maxmoveGroupEl = document.getElementById('maxmove-group');
+  const maxmoveGroupRadios = Array.from(document.querySelectorAll('input[name="maxmove-group"]'));
   const maxmoveCheckboxes = Array.from(document.querySelectorAll('#maxmove-grid input[type="checkbox"]'));
 
   function renderMaxMoveCalculator() {
-    const mode = maxmoveGroupEl.value;
+    maxmoveGroupRadios.forEach(r => r.closest('.maxmove-radio').classList.toggle('checked', r.checked));
+    const mode = (maxmoveGroupRadios.find(r => r.checked) || maxmoveGroupRadios[0]).value;
     let mp = 0, dust = 0;
     let candyDisplay, candyXLDisplay, candyIsZero, candyXLIsZero;
 
@@ -2719,10 +2718,11 @@
       candyXLIsZero = candyXL === 0;
     }
 
-    maxmoveTotals = { mp, dust, candyDisplay, candyXLDisplay, candyIsZero, candyXLIsZero };
+    const currencyType = mode === 'Z' ? 'dust' : 'mp';
+    maxmoveTotals = { currencyType, currencyValue: currencyType === 'dust' ? dust : mp, candyDisplay, candyXLDisplay, candyIsZero, candyXLIsZero };
     renderTotalCostPanel();
   }
-  maxmoveGroupEl.addEventListener('change', renderMaxMoveCalculator);
+  maxmoveGroupRadios.forEach(r => r.addEventListener('change', renderMaxMoveCalculator));
   maxmoveCheckboxes.forEach(cb => cb.addEventListener('change', renderMaxMoveCalculator));
   renderMaxMoveCalculator();
 
