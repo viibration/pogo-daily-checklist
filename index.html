@@ -956,6 +956,9 @@
         <button class="modal-quick-btn" id="checklist-farm-btn" type="button">Check farm task</button>
         <button class="modal-quick-btn" id="checklist-route-btn" type="button">Check route task</button>
       </div>
+      <div class="modal-quick-row">
+        <button class="modal-quick-btn" id="checklist-pvp-btn" type="button">Check win pvp all leagues</button>
+      </div>
       <div class="items" id="items"></div>
       <button class="reset-btn" id="reset-btn" type="button">Reset today's checklist</button>
     </div>
@@ -3082,6 +3085,7 @@
   }
   document.getElementById('checklist-farm-btn').addEventListener('click', () => toggleChecklistTasks(FARM_TASK_IDS));
   document.getElementById('checklist-route-btn').addEventListener('click', () => toggleChecklistTasks(ROUTE_TASK_IDS));
+  document.getElementById('checklist-pvp-btn').addEventListener('click', () => toggleChecklistTasks(WIN_LEAGUE_TASK_IDS));
 
   resetBtn.addEventListener('click', () => {
     state.accounts[currentAccount] = { done: {} };
