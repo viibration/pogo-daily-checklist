@@ -1033,6 +1033,10 @@
     </div>
     <div class="panel panel-theme-gold">
       <div class="particle-actions-label">Manual edit Current Max particle</div>
+      <div class="particle-action-row" style="margin-bottom: 12px">
+        <input class="particle-manual-input" id="particle-manual-all-input" type="number" inputmode="numeric" placeholder="+ amount for all accounts">
+        <button class="particle-btn" type="button" id="particle-manual-all-btn">Apply to all</button>
+      </div>
       <div class="particle-manual-list" id="particle-manual-list"></div>
     </div>
   </div>
@@ -1953,6 +1957,25 @@
     renderParticleGrid();
     renderParticleManualList();
   }
+
+  const particleManualAllInput = document.getElementById('particle-manual-all-input');
+  const particleManualAllBtn = document.getElementById('particle-manual-all-btn');
+
+  function applyParticleManualAll() {
+    const value = parseInt(particleManualAllInput.value, 10);
+    if (Number.isNaN(value)) return;
+    accountNames.forEach(name => {
+      state.accounts[name].currentTotal = Math.max(0, (state.accounts[name].currentTotal || 0) + value);
+    });
+    saveState(state);
+    renderParticleGrid();
+    renderParticleManualList();
+    particleManualAllInput.value = '';
+  }
+  particleManualAllBtn.addEventListener('click', applyParticleManualAll);
+  particleManualAllInput.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') applyParticleManualAll();
+  });
 
   function renderParticleManualList() {
     particleManualListEl.innerHTML = '';
