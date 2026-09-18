@@ -1401,6 +1401,12 @@
   }
 
   let state = loadState();
+  // Captured once at load so a later visibilitychange/pageshow can tell
+  // whether a day boundary was crossed while this PWA instance sat
+  // backgrounded (opening the home-screen icon often just resumes the
+  // existing page instead of reloading it, so today/particleDayKey()
+  // never get re-evaluated on their own).
+  const loadedParticleDay = state.particleDate;
   let currentAccount = null;
 
   const viewDashboard = document.getElementById('view-dashboard');
@@ -3133,6 +3139,22 @@
   });
 
   renderDashboard();
+
+  // Reopening the PWA from the home screen often resumes this same page
+  // instance rather than reloading it, so a stale daily gain (or a
+  // checklist that should've reset at midnight) can sit there showing
+  // yesterday's numbers until something forces a reload. Catch that by
+  // reloading whenever the page becomes visible again after either day
+  // boundary has actually passed.
+  function reloadIfDayRolledOver() {
+    if (todayKey() !== today || particleDayKey() !== loadedParticleDay) {
+      window.location.reload();
+    }
+  }
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'visible') reloadIfDayRolledOver();
+  });
+  window.addEventListener('pageshow', reloadIfDayRolledOver);
 
   if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
