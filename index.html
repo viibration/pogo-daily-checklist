@@ -796,6 +796,7 @@
       </div>
       <div class="modal-quick-row">
         <button class="modal-quick-btn" id="pvp-open-btn" type="button">Check win pvp all leagues</button>
+        <button class="modal-quick-btn" id="boss-open-btn" type="button">Check daily boss</button>
       </div>
       <button class="check-all-btn" id="custom-tasks-open-btn" type="button">Manage Custom Tasks&hellip;</button>
       <div class="items" id="master-tasks"></div>
@@ -958,6 +959,7 @@
       </div>
       <div class="modal-quick-row">
         <button class="modal-quick-btn" id="checklist-pvp-btn" type="button">Check win pvp all leagues</button>
+        <button class="modal-quick-btn" id="checklist-boss-btn" type="button">Check daily boss</button>
       </div>
       <div class="items" id="items"></div>
       <button class="reset-btn" id="reset-btn" type="button">Reset today's checklist</button>
@@ -1214,12 +1216,6 @@
     { id: 'daily-incense', label: 'Daily Incense' },
     { id: 'send-gifts', label: 'Send gift' },
     { id: 'open-gift', label: 'Open gift' },
-    { id: 'route-1', label: 'R1: Zygarde' },
-    { id: 'route-2', label: 'R2: Bryant Park small loop' },
-    { id: 'route-3', label: 'R3: Bryant park one' },
-    { id: 'route-4', label: 'R4: Around Bryant Park' },
-    { id: 'route-5', label: 'R5: Yep pokemongo' },
-    { id: 'route-6', label: 'R6: BP Inside Lap' },
     { id: 'daily-raid-pass', label: 'Daily Raid Pass' },
     { id: 'raid-boss', label: 'Raid Boss' },
     { id: 'max-raid', label: 'Max Battle' },
@@ -1228,11 +1224,18 @@
     { id: 'league-great', label: 'Win Great League' },
     { id: 'special-trade', label: 'Special Trade' },
     { id: 'league-lucky', label: 'Lucky Trade (Friday)' },
+    { id: 'route-1', label: 'R1: Zygarde' },
+    { id: 'route-2', label: 'R2: Bryant Park small loop' },
+    { id: 'route-3', label: 'R3: Bryant park one' },
+    { id: 'route-4', label: 'R4: Around Bryant Park' },
+    { id: 'route-5', label: 'R5: Yep pokemongo' },
+    { id: 'route-6', label: 'R6: BP Inside Lap' },
   ];
 
   const FARM_TASK_IDS = ['first-catch', 'first-spin', 'first-research', 'daily-incense'];
   const ROUTE_TASK_IDS = ['route-1', 'route-2', 'route-3', 'route-4', 'route-5', 'route-6'];
   const WIN_LEAGUE_TASK_IDS = ['league-master', 'league-ultra', 'league-great'];
+  const DAILY_BOSS_TASK_IDS = ['daily-raid-pass', 'raid-boss'];
 
   // Custom tasks are user-added extras layered on top of the fixed list
   // above; they live in state.customTasks and reset/disappear daily
@@ -1865,6 +1868,7 @@
   document.getElementById('farm-open-btn').addEventListener('click', () => openBulkModal(FARM_TASK_IDS, 'farm task'));
   document.getElementById('route-open-btn').addEventListener('click', () => openBulkModal(ROUTE_TASK_IDS, 'route task'));
   document.getElementById('pvp-open-btn').addEventListener('click', () => openBulkModal(WIN_LEAGUE_TASK_IDS, 'win PvP league task'));
+  document.getElementById('boss-open-btn').addEventListener('click', () => openBulkModal(DAILY_BOSS_TASK_IDS, 'daily boss task'));
   bulkModalCloseBtn.addEventListener('click', closeBulkModal);
   bulkModalBackdrop.addEventListener('click', (e) => {
     if (e.target === bulkModalBackdrop) closeBulkModal();
@@ -3108,6 +3112,7 @@
   document.getElementById('checklist-farm-btn').addEventListener('click', () => toggleChecklistTasks(FARM_TASK_IDS));
   document.getElementById('checklist-route-btn').addEventListener('click', () => toggleChecklistTasks(ROUTE_TASK_IDS));
   document.getElementById('checklist-pvp-btn').addEventListener('click', () => toggleChecklistTasks(WIN_LEAGUE_TASK_IDS));
+  document.getElementById('checklist-boss-btn').addEventListener('click', () => toggleChecklistTasks(DAILY_BOSS_TASK_IDS));
 
   resetBtn.addEventListener('click', () => {
     state.accounts[currentAccount] = { done: {} };
