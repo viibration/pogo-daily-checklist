@@ -854,9 +854,6 @@
       <button class="check-all-btn" id="modal-check-all" type="button">Check all</button>
       <div class="modal-quick-row">
         <button class="modal-quick-btn" id="modal-first4-btn" type="button">First 4 accounts</button>
-        <button class="modal-quick-btn" id="modal-last3-btn" type="button">Last 3 accounts</button>
-      </div>
-      <div class="modal-quick-row">
         <button class="modal-quick-btn" id="modal-last4-btn" type="button">Last 4 accounts</button>
       </div>
       <div class="modal-accounts" id="modal-accounts"></div>
@@ -872,9 +869,6 @@
       <button class="check-all-btn" id="bulk-select-all-btn" type="button">Select all accounts</button>
       <div class="modal-quick-row">
         <button class="modal-quick-btn" id="bulk-first4-btn" type="button">First 4 accounts</button>
-        <button class="modal-quick-btn" id="bulk-last3-btn" type="button">Last 3 accounts</button>
-      </div>
-      <div class="modal-quick-row">
         <button class="modal-quick-btn" id="bulk-last4-btn" type="button">Last 4 accounts</button>
       </div>
       <button class="sync-action-btn" id="bulk-apply-btn" type="button">Mark all tasks done for selected</button>
@@ -890,10 +884,6 @@
         <button class="modal-close" id="spend-modal-close" type="button" aria-label="Close">&times;</button>
       </div>
       <button class="check-all-btn" id="spend-modal-select-all" type="button">Select all accounts</button>
-      <div class="modal-quick-row">
-        <button class="modal-quick-btn" id="spend-first4-btn" type="button">First 4 accounts</button>
-        <button class="modal-quick-btn" id="spend-last3-btn" type="button">Last 3 accounts</button>
-      </div>
       <div class="modal-quick-row">
         <button class="modal-quick-btn" id="spend-team1-btn" type="button">Select Team 1</button>
         <button class="modal-quick-btn" id="spend-team2-btn" type="button">Select Team 2</button>
@@ -911,10 +901,6 @@
       </div>
       <button class="check-all-btn" id="move-modal-select-all" type="button">Select all accounts</button>
       <div class="modal-quick-row">
-        <button class="modal-quick-btn" id="move-first4-btn" type="button">First 4 accounts</button>
-        <button class="modal-quick-btn" id="move-last3-btn" type="button">Last 3 accounts</button>
-      </div>
-      <div class="modal-quick-row">
         <button class="modal-quick-btn" id="move-team1-btn" type="button">Select Team 1</button>
         <button class="modal-quick-btn" id="move-team2-btn" type="button">Select Team 2</button>
       </div>
@@ -930,10 +916,6 @@
         <button class="modal-close" id="gain-modal-close" type="button" aria-label="Close">&times;</button>
       </div>
       <button class="check-all-btn" id="gain-modal-select-all" type="button">Select all accounts</button>
-      <div class="modal-quick-row">
-        <button class="modal-quick-btn" id="gain-first4-btn" type="button">First 4 accounts</button>
-        <button class="modal-quick-btn" id="gain-last3-btn" type="button">Last 3 accounts</button>
-      </div>
       <div class="modal-quick-row">
         <button class="modal-quick-btn" id="gain-team1-btn" type="button">Select Team 1</button>
         <button class="modal-quick-btn" id="gain-team2-btn" type="button">Select Team 2</button>
@@ -1254,21 +1236,24 @@
   const accountNames = [
     'Viibration',
     'ViictoriaZA',
-    'ViisitorXY',
     'ViitaminEV',
+    'ViillainousNX',
     'ViineyardistEX',
+    'ViisitorXY',
     'ViizierSV',
     'ViiperGX',
-    'ViillainousNX',
   ];
 
   // Quick-select shortcuts for the most commonly checked subsets,
-  // reused across every account-picker modal below.
+  // reused across every account-picker modal below. Team 1 is exactly
+  // the first 4 accounts and Team 2 exactly the last 4, so the two
+  // pairs of buttons select the same groups (checklist modals use the
+  // First 4/Last 4 labels, Max Particle modals use the Team 1/Team 2
+  // labels - both point at the same underlying lists).
   const FIRST_FOUR_ACCOUNTS = accountNames.slice(0, 4);
-  const LAST_THREE_ACCOUNTS = accountNames.slice(-3);
   const LAST_FOUR_ACCOUNTS = accountNames.slice(-4);
-  const TEAM_1_ACCOUNTS = ['Viibration', 'ViizierSV', 'ViisitorXY', 'ViitaminEV'];
-  const TEAM_2_ACCOUNTS = accountNames.filter(name => !TEAM_1_ACCOUNTS.includes(name));
+  const TEAM_1_ACCOUNTS = FIRST_FOUR_ACCOUNTS;
+  const TEAM_2_ACCOUNTS = LAST_FOUR_ACCOUNTS;
 
   // Max Particle page: tag each account name with its team so the two
   // groups are easy to tell apart at a glance in the lists and modals.
@@ -1806,7 +1791,6 @@
     renderDashboard();
   }
   document.getElementById('modal-first4-btn').addEventListener('click', () => toggleModalAccounts(FIRST_FOUR_ACCOUNTS));
-  document.getElementById('modal-last3-btn').addEventListener('click', () => toggleModalAccounts(LAST_THREE_ACCOUNTS));
   document.getElementById('modal-last4-btn').addEventListener('click', () => toggleModalAccounts(LAST_FOUR_ACCOUNTS));
 
   modalCloseBtn.addEventListener('click', closeModal);
@@ -1897,10 +1881,6 @@
 
   document.getElementById('bulk-first4-btn').addEventListener('click', () => {
     toggleGroupSelection(bulkSelected, FIRST_FOUR_ACCOUNTS);
-    renderBulkAccounts();
-  });
-  document.getElementById('bulk-last3-btn').addEventListener('click', () => {
-    toggleGroupSelection(bulkSelected, LAST_THREE_ACCOUNTS);
     renderBulkAccounts();
   });
   document.getElementById('bulk-last4-btn').addEventListener('click', () => {
@@ -2115,14 +2095,6 @@
 
   // Disabled (unaffordable) accounts get filtered back out by
   // renderSpendModalAccounts itself, so these can select blindly.
-  document.getElementById('spend-first4-btn').addEventListener('click', () => {
-    toggleGroupSelection(spendModalSelected, FIRST_FOUR_ACCOUNTS);
-    renderSpendModalAccounts();
-  });
-  document.getElementById('spend-last3-btn').addEventListener('click', () => {
-    toggleGroupSelection(spendModalSelected, LAST_THREE_ACCOUNTS);
-    renderSpendModalAccounts();
-  });
   document.getElementById('spend-team1-btn').addEventListener('click', () => {
     toggleGroupSelection(spendModalSelected, TEAM_1_ACCOUNTS);
     renderSpendModalAccounts();
@@ -2235,14 +2207,6 @@
     renderMoveModalAccounts();
   });
 
-  document.getElementById('move-first4-btn').addEventListener('click', () => {
-    toggleGroupSelection(moveModalSelected, FIRST_FOUR_ACCOUNTS);
-    renderMoveModalAccounts();
-  });
-  document.getElementById('move-last3-btn').addEventListener('click', () => {
-    toggleGroupSelection(moveModalSelected, LAST_THREE_ACCOUNTS);
-    renderMoveModalAccounts();
-  });
   document.getElementById('move-team1-btn').addEventListener('click', () => {
     toggleGroupSelection(moveModalSelected, TEAM_1_ACCOUNTS);
     renderMoveModalAccounts();
@@ -2361,14 +2325,6 @@
 
   // Disabled (over-quota) accounts get filtered back out by
   // renderGainModalAccounts itself, so these can select blindly.
-  document.getElementById('gain-first4-btn').addEventListener('click', () => {
-    toggleGroupSelection(gainModalSelected, FIRST_FOUR_ACCOUNTS);
-    renderGainModalAccounts();
-  });
-  document.getElementById('gain-last3-btn').addEventListener('click', () => {
-    toggleGroupSelection(gainModalSelected, LAST_THREE_ACCOUNTS);
-    renderGainModalAccounts();
-  });
   document.getElementById('gain-team1-btn').addEventListener('click', () => {
     toggleGroupSelection(gainModalSelected, TEAM_1_ACCOUNTS);
     renderGainModalAccounts();
