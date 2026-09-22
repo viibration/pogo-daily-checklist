@@ -866,13 +866,19 @@
         <span class="modal-title" id="bulk-modal-title">Check all tasks</span>
         <button class="modal-close" id="bulk-modal-close" type="button" aria-label="Close">&times;</button>
       </div>
-      <button class="check-all-btn" id="bulk-select-all-btn" type="button">Select all accounts</button>
-      <div class="modal-quick-row">
+      <button class="check-all-btn" id="bulk-select-all-btn" type="button">Check all</button>
+      <div class="modal-quick-row" id="bulk-first4last4-row">
         <button class="modal-quick-btn" id="bulk-first4-btn" type="button">First 4 accounts</button>
         <button class="modal-quick-btn" id="bulk-last4-btn" type="button">Last 4 accounts</button>
       </div>
-      <button class="sync-action-btn" id="bulk-apply-btn" type="button">Mark all tasks done for selected</button>
-      <button class="reset-btn" id="bulk-uncheck-btn" type="button">Mark all tasks not done for selected</button>
+      <div class="modal-quick-row" id="bulk-duo-row-1" hidden>
+        <button class="modal-quick-btn" id="bulk-duo1-btn" type="button">1st Duo</button>
+        <button class="modal-quick-btn" id="bulk-duo2-btn" type="button">2nd Duo</button>
+      </div>
+      <div class="modal-quick-row" id="bulk-duo-row-2" hidden>
+        <button class="modal-quick-btn" id="bulk-duo3-btn" type="button">3rd Duo</button>
+        <button class="modal-quick-btn" id="bulk-duo4-btn" type="button">4th Duo</button>
+      </div>
       <div class="modal-accounts" id="bulk-accounts"></div>
     </div>
   </div>
@@ -1250,6 +1256,12 @@
   const LAST_FOUR_ACCOUNTS = accountNames.slice(-4);
   const TEAM_1_ACCOUNTS = ['Viibration', 'ViizierSV', 'ViisitorXY', 'ViitaminEV'];
   const TEAM_2_ACCOUNTS = accountNames.filter(name => !TEAM_1_ACCOUNTS.includes(name));
+
+  // PvP league bulk-check duos, paired for the "Check win pvp all leagues" modal.
+  const DUO_1_ACCOUNTS = ['Viibration', 'ViisitorXY'];
+  const DUO_2_ACCOUNTS = ['ViictoriaZA', 'ViitaminEV'];
+  const DUO_3_ACCOUNTS = ['ViineyardistEX', 'ViiperGX'];
+  const DUO_4_ACCOUNTS = ['ViizierSV', 'ViillainousNX'];
 
   // Max Particle page: tag each account name with its team so the two
   // groups are easy to tell apart at a glance in the lists and modals.
@@ -1794,24 +1806,29 @@
     if (e.target === modalBackdrop) closeModal();
   });
 
-  // --- Bulk complete: mark every task done for one or more accounts ---
+  // --- Bulk toggle: directly flip a set of tasks done/not-done for one or more accounts ---
   const bulkOpenBtn = document.getElementById('bulk-open-btn');
   const bulkModalBackdrop = document.getElementById('bulk-modal-backdrop');
   const bulkModalTitleEl = document.getElementById('bulk-modal-title');
   const bulkModalCloseBtn = document.getElementById('bulk-modal-close');
   const bulkAccountsEl = document.getElementById('bulk-accounts');
   const bulkSelectAllBtn = document.getElementById('bulk-select-all-btn');
-  const bulkApplyBtn = document.getElementById('bulk-apply-btn');
-  const bulkUncheckBtn = document.getElementById('bulk-uncheck-btn');
-  let bulkSelected = new Set();
+  const bulkFirst4Last4Row = document.getElementById('bulk-first4last4-row');
+  const bulkDuoRow1 = document.getElementById('bulk-duo-row-1');
+  const bulkDuoRow2 = document.getElementById('bulk-duo-row-2');
   let bulkTaskIds = null;
 
-  function openBulkModal(taskIds, scopeLabel) {
-    bulkSelected = new Set();
+  function bulkIds() {
+    return bulkTaskIds || countableTasks().map(t => t.id);
+  }
+
+  function openBulkModal(taskIds, scopeLabel, quickSelect) {
     bulkTaskIds = taskIds;
     bulkModalTitleEl.textContent = `Check ${scopeLabel}`;
-    bulkApplyBtn.textContent = `Mark ${scopeLabel} done for selected`;
-    bulkUncheckBtn.textContent = `Mark ${scopeLabel} not done for selected`;
+    const isDuo = quickSelect === 'duo';
+    bulkFirst4Last4Row.hidden = isDuo;
+    bulkDuoRow1.hidden = !isDuo;
+    bulkDuoRow2.hidden = !isDuo;
     renderBulkAccounts();
     bulkModalBackdrop.hidden = false;
     history.pushState({ view: 'bulk-modal' }, '');
@@ -1823,13 +1840,14 @@
 
   function renderBulkAccounts() {
     bulkAccountsEl.innerHTML = '';
+    const ids = bulkIds();
     accountNames.forEach(name => {
-      const selected = bulkSelected.has(name);
+      const done = ids.every(id => !!state.accounts[name].done[id]);
       const row = document.createElement('div');
-      row.className = 'modal-account-row' + (selected ? ' done' : '');
+      row.className = 'modal-account-row' + (done ? ' done' : '');
       row.tabIndex = 0;
       row.setAttribute('role', 'checkbox');
-      row.setAttribute('aria-checked', String(selected));
+      row.setAttribute('aria-checked', String(done));
       row.innerHTML = `
         <span class="box">
           <svg viewBox="0 0 24 24" fill="none" stroke="#0e1620" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
@@ -1848,20 +1866,32 @@
       bulkAccountsEl.appendChild(row);
     });
 
-    const allSelected = accountNames.every(name => bulkSelected.has(name));
-    bulkSelectAllBtn.textContent = allSelected ? 'Deselect all accounts' : 'Select all accounts';
+    const allDone = accountNames.every(name => ids.every(id => !!state.accounts[name].done[id]));
+    bulkSelectAllBtn.textContent = allDone ? 'Uncheck all' : 'Check all';
   }
 
   function toggleBulkAccount(name) {
-    if (bulkSelected.has(name)) bulkSelected.delete(name);
-    else bulkSelected.add(name);
+    const ids = bulkIds();
+    const done = ids.every(id => !!state.accounts[name].done[id]);
+    ids.forEach(id => { state.accounts[name].done[id] = !done; });
+    saveState(state);
     renderBulkAccounts();
+    renderDashboard();
+  }
+
+  function toggleBulkGroup(names) {
+    const ids = bulkIds();
+    const allDone = names.every(name => ids.every(id => !!state.accounts[name].done[id]));
+    names.forEach(name => { ids.forEach(id => { state.accounts[name].done[id] = !allDone; }); });
+    saveState(state);
+    renderBulkAccounts();
+    renderDashboard();
   }
 
   bulkOpenBtn.addEventListener('click', () => openBulkModal(null, 'all tasks'));
   document.getElementById('farm-open-btn').addEventListener('click', () => openBulkModal(FARM_TASK_IDS, 'farm task'));
   document.getElementById('route-open-btn').addEventListener('click', () => openBulkModal(ROUTE_TASK_IDS, 'route task'));
-  document.getElementById('pvp-open-btn').addEventListener('click', () => openBulkModal(WIN_LEAGUE_TASK_IDS, 'win PvP league task'));
+  document.getElementById('pvp-open-btn').addEventListener('click', () => openBulkModal(WIN_LEAGUE_TASK_IDS, 'win PvP league task', 'duo'));
   document.getElementById('boss-open-btn').addEventListener('click', () => openBulkModal(DAILY_BOSS_TASK_IDS, 'daily boss task'));
   bulkModalCloseBtn.addEventListener('click', closeBulkModal);
   bulkModalBackdrop.addEventListener('click', (e) => {
@@ -1869,42 +1899,20 @@
   });
 
   bulkSelectAllBtn.addEventListener('click', () => {
-    const allSelected = accountNames.every(name => bulkSelected.has(name));
-    if (allSelected) bulkSelected.clear();
-    else accountNames.forEach(name => bulkSelected.add(name));
-    renderBulkAccounts();
-  });
-
-  document.getElementById('bulk-first4-btn').addEventListener('click', () => {
-    toggleGroupSelection(bulkSelected, FIRST_FOUR_ACCOUNTS);
-    renderBulkAccounts();
-  });
-  document.getElementById('bulk-last4-btn').addEventListener('click', () => {
-    toggleGroupSelection(bulkSelected, LAST_FOUR_ACCOUNTS);
-    renderBulkAccounts();
-  });
-
-  bulkApplyBtn.addEventListener('click', () => {
-    if (bulkSelected.size === 0) return;
-    const ids = bulkTaskIds || countableTasks().map(t => t.id);
-    bulkSelected.forEach(name => {
-      ids.forEach(id => { state.accounts[name].done[id] = true; });
-    });
+    const ids = bulkIds();
+    const allDone = accountNames.every(name => ids.every(id => !!state.accounts[name].done[id]));
+    accountNames.forEach(name => { ids.forEach(id => { state.accounts[name].done[id] = !allDone; }); });
     saveState(state);
+    renderBulkAccounts();
     renderDashboard();
-    closeBulkModal();
   });
 
-  bulkUncheckBtn.addEventListener('click', () => {
-    if (bulkSelected.size === 0) return;
-    const ids = bulkTaskIds || countableTasks().map(t => t.id);
-    bulkSelected.forEach(name => {
-      ids.forEach(id => { state.accounts[name].done[id] = false; });
-    });
-    saveState(state);
-    renderDashboard();
-    closeBulkModal();
-  });
+  document.getElementById('bulk-first4-btn').addEventListener('click', () => toggleBulkGroup(FIRST_FOUR_ACCOUNTS));
+  document.getElementById('bulk-last4-btn').addEventListener('click', () => toggleBulkGroup(LAST_FOUR_ACCOUNTS));
+  document.getElementById('bulk-duo1-btn').addEventListener('click', () => toggleBulkGroup(DUO_1_ACCOUNTS));
+  document.getElementById('bulk-duo2-btn').addEventListener('click', () => toggleBulkGroup(DUO_2_ACCOUNTS));
+  document.getElementById('bulk-duo3-btn').addEventListener('click', () => toggleBulkGroup(DUO_3_ACCOUNTS));
+  document.getElementById('bulk-duo4-btn').addEventListener('click', () => toggleBulkGroup(DUO_4_ACCOUNTS));
 
   function openAccount(name) {
     currentAccount = name;
