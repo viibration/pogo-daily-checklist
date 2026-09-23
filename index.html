@@ -3214,7 +3214,26 @@
   const pokedexImportInput = document.getElementById('pokedex-import-input');
   const pokedexImportBtn = document.getElementById('pokedex-import-btn');
   const pokedexSelectedCountEl = document.getElementById('pokedex-selected-count');
-  let pokedexSelected = new Set();
+
+  // Kept in its own localStorage key, separate from the day-scoped
+  // `state` object, so it survives closing/reopening the app and never
+  // gets touched by the midnight/5am resets that clear the checklist
+  // and Max Particle data - only the Clear selection button empties it.
+  const POKEDEX_SELECTION_KEY = 'pogo-daily-checklist-pokedex-selection';
+  function loadPokedexSelection() {
+    try {
+      const raw = JSON.parse(localStorage.getItem(POKEDEX_SELECTION_KEY) || '[]');
+      if (Array.isArray(raw)) return new Set(raw.filter(n => Number.isInteger(n)));
+    } catch {}
+    return new Set();
+  }
+  function savePokedexSelection() {
+    try {
+      localStorage.setItem(POKEDEX_SELECTION_KEY, JSON.stringify(Array.from(pokedexSelected)));
+    } catch {}
+  }
+
+  let pokedexSelected = loadPokedexSelection();
   const pokedexRowByNum = new Map();
 
   function updatePokedexSummary() {
@@ -3222,16 +3241,18 @@
     const sorted = Array.from(pokedexSelected).sort((a, b) => a - b);
     pokedexResultEl.value = generatePokedexSearchTerm(sorted);
     pokedexListResultEl.value = sorted.length ? `[${sorted.join(',')}]` : '';
+    savePokedexSelection();
   }
 
   function renderPokedexList() {
     pokedexListEl.innerHTML = '';
     POKEDEX.forEach(entry => {
+      const selected = pokedexSelected.has(entry.num);
       const row = document.createElement('div');
-      row.className = 'modal-account-row';
+      row.className = 'modal-account-row' + (selected ? ' done' : '');
       row.tabIndex = 0;
       row.setAttribute('role', 'checkbox');
-      row.setAttribute('aria-checked', 'false');
+      row.setAttribute('aria-checked', String(selected));
       row.dataset.num = String(entry.num);
       row.dataset.search = entry.name.toLowerCase();
       row.innerHTML = `
@@ -3390,6 +3411,7 @@
   });
 
   renderPokedexList();
+  updatePokedexSummary();
 
   renderDashboard();
 
