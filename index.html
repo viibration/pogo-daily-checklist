@@ -1232,6 +1232,11 @@
       <button class="reset-btn" id="pokedex-clear-btn" type="button" style="margin-top: 0;">Clear selection</button>
       <div class="progress-label" id="pokedex-selected-count" style="text-align: left; margin-top: 10px;">0 selected</div>
     </div>
+    <div class="panel panel-theme-gold">
+      <div class="particle-actions-label">Import a search term or list &mdash; adds to your current selection, doesn&rsquo;t replace it</div>
+      <textarea class="particle-manual-input sync-textarea" id="pokedex-import-input" placeholder="Paste a search term like 1-3,7,9 or a list like [1,2,3,7,9] here"></textarea>
+      <button class="particle-btn" id="pokedex-import-btn" type="button" style="width: 100%;">Add to selection</button>
+    </div>
     <div class="panel">
       <div class="modal-accounts" id="pokedex-list"></div>
     </div>
@@ -3206,6 +3211,8 @@
   const pokedexClearBtn = document.getElementById('pokedex-clear-btn');
   const pokedexResultEl = document.getElementById('pokedex-result');
   const pokedexListResultEl = document.getElementById('pokedex-list-result');
+  const pokedexImportInput = document.getElementById('pokedex-import-input');
+  const pokedexImportBtn = document.getElementById('pokedex-import-btn');
   const pokedexSelectedCountEl = document.getElementById('pokedex-selected-count');
   let pokedexSelected = new Set();
   const pokedexRowByNum = new Map();
@@ -3329,6 +3336,57 @@
       row.setAttribute('aria-checked', 'false');
     });
     updatePokedexSummary();
+  });
+
+  // Accepts either a generated search term ("1-3,7,9") or a plain list
+  // ("[1,2,3,7,9]") and merges the Pokemon it names into the current
+  // selection rather than replacing it, so pasting a newly-expanded
+  // list doesn't force re-picking everything already checked.
+  function parsePokedexNumbers(text) {
+    const cleaned = text.trim().replace(/^\[/, '').replace(/\]$/, '');
+    const nums = new Set();
+    cleaned.split(',').forEach(part => {
+      const trimmed = part.trim();
+      if (!trimmed) return;
+      const range = trimmed.match(/^(\d+)\s*-\s*(\d+)$/);
+      if (range) {
+        const lo = Math.min(parseInt(range[1], 10), parseInt(range[2], 10));
+        const hi = Math.max(parseInt(range[1], 10), parseInt(range[2], 10));
+        for (let n = lo; n <= hi; n++) nums.add(n);
+      } else if (/^\d+$/.test(trimmed)) {
+        nums.add(parseInt(trimmed, 10));
+      }
+    });
+    return nums;
+  }
+
+  function importPokedexSelection(text) {
+    let added = 0;
+    parsePokedexNumbers(text).forEach(num => {
+      const row = pokedexRowByNum.get(num);
+      if (!row) return;
+      if (!pokedexSelected.has(num)) added++;
+      pokedexSelected.add(num);
+      row.classList.add('done');
+      row.setAttribute('aria-checked', 'true');
+    });
+    updatePokedexSummary();
+    return added;
+  }
+
+  function applyPokedexImport(text) {
+    const added = importPokedexSelection(text);
+    flashButton(pokedexImportBtn, added > 0 ? `Added ${added}` : 'Nothing new');
+    pokedexImportInput.value = '';
+  }
+
+  pokedexImportBtn.addEventListener('click', () => applyPokedexImport(pokedexImportInput.value));
+
+  // Same "paste applies immediately" pattern as Manual Sync's import box.
+  pokedexImportInput.addEventListener('paste', (e) => {
+    const text = (e.clipboardData || window.clipboardData).getData('text');
+    e.preventDefault();
+    applyPokedexImport(text);
   });
 
   renderPokedexList();
