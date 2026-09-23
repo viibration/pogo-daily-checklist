@@ -2853,18 +2853,48 @@
   // moves them. Dragging repositions the row live in the DOM (swapping
   // past whichever neighbor's midpoint the pointer crosses); on
   // release, the DOM order becomes the new persisted taskOrder.
+  //
+  // Move/up listeners are on `document`, not the handle itself: once
+  // dragging starts, row gets repositioned in the DOM on every swap,
+  // and re-parenting the handle mid-gesture isn't reliable everywhere
+  // for keeping a pointer's events targeted at it (some browsers drop
+  // the connection), which showed up as a drag stopping after a single
+  // swap. Listening on `document` and filtering by pointerId sidesteps
+  // that entirely - nothing needs to keep tracking a moving element.
   function setupTaskDrag(handle, row) {
     let pointerId = null;
     let scrollRaf = null;
+    let lastClientY = 0;
 
-    function autoScroll(clientY) {
+    // Recomputes row's full target slot from scratch every time, rather
+    // than swapping past one neighbor at a time - a single pointermove
+    // (or scroll frame) can easily cross several rows' worth of
+    // distance, and swap-one-at-a-time only ever caught up by one row
+    // per event, which is what made a drag look like it stalled after
+    // a single move.
+    function updateDragPosition(clientY) {
+      const siblings = Array.from(customTasksListEl.children).filter(el => el !== row);
+      const target = siblings.find(other => {
+        const rect = other.getBoundingClientRect();
+        return clientY < rect.top + rect.height / 2;
+      });
+      if (target) customTasksListEl.insertBefore(row, target);
+      else customTasksListEl.appendChild(row);
+    }
+
+    // Re-checks the swap on every scroll frame too (not just on a new
+    // pointermove), so holding near the top/bottom edge keeps
+    // reordering against rows as they scroll into range under a
+    // finger that's otherwise sitting still.
+    function autoScroll() {
       const margin = 70;
       let speed = 0;
-      if (clientY < margin) speed = -(margin - clientY) / 3;
-      else if (clientY > window.innerHeight - margin) speed = (clientY - (window.innerHeight - margin)) / 3;
+      if (lastClientY < margin) speed = -(margin - lastClientY) / 3;
+      else if (lastClientY > window.innerHeight - margin) speed = (lastClientY - (window.innerHeight - margin)) / 3;
       if (speed !== 0) {
         window.scrollBy(0, speed);
-        scrollRaf = requestAnimationFrame(() => autoScroll(clientY));
+        updateDragPosition(lastClientY);
+        scrollRaf = requestAnimationFrame(autoScroll);
       } else {
         scrollRaf = null;
       }
@@ -2872,29 +2902,19 @@
 
     function onMove(e) {
       if (e.pointerId !== pointerId) return;
-      if (!scrollRaf) autoScroll(e.clientY);
-      const siblings = Array.from(customTasksListEl.children).filter(el => el !== row);
-      for (const other of siblings) {
-        const rect = other.getBoundingClientRect();
-        const midpoint = rect.top + rect.height / 2;
-        const rowIsBefore = !!(row.compareDocumentPosition(other) & Node.DOCUMENT_POSITION_FOLLOWING);
-        if (e.clientY < midpoint && !rowIsBefore) {
-          customTasksListEl.insertBefore(row, other);
-          break;
-        } else if (e.clientY > midpoint && rowIsBefore) {
-          customTasksListEl.insertBefore(row, other.nextSibling);
-          break;
-        }
-      }
+      e.preventDefault();
+      lastClientY = e.clientY;
+      updateDragPosition(lastClientY);
+      if (!scrollRaf) autoScroll();
     }
 
     function onUp(e) {
       if (e.pointerId !== pointerId) return;
       if (scrollRaf) { cancelAnimationFrame(scrollRaf); scrollRaf = null; }
       row.classList.remove('dragging');
-      handle.removeEventListener('pointermove', onMove);
-      handle.removeEventListener('pointerup', onUp);
-      handle.removeEventListener('pointercancel', onUp);
+      document.removeEventListener('pointermove', onMove);
+      document.removeEventListener('pointerup', onUp);
+      document.removeEventListener('pointercancel', onUp);
       pointerId = null;
       state.taskOrder = Array.from(customTasksListEl.children).map(el => el.dataset.taskId);
       saveState(state);
@@ -2903,11 +2923,11 @@
     handle.addEventListener('pointerdown', (e) => {
       e.preventDefault();
       pointerId = e.pointerId;
-      try { handle.setPointerCapture(pointerId); } catch {}
+      lastClientY = e.clientY;
       row.classList.add('dragging');
-      handle.addEventListener('pointermove', onMove);
-      handle.addEventListener('pointerup', onUp);
-      handle.addEventListener('pointercancel', onUp);
+      document.addEventListener('pointermove', onMove);
+      document.addEventListener('pointerup', onUp);
+      document.addEventListener('pointercancel', onUp);
     });
   }
 
