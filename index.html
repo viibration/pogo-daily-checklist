@@ -801,7 +801,7 @@
         <button class="modal-quick-btn" id="pvp-open-btn" type="button">Check win pvp all leagues</button>
         <button class="modal-quick-btn" id="boss-open-btn" type="button">Check daily boss</button>
       </div>
-      <button class="check-all-btn" id="custom-tasks-open-btn" type="button">Manage Custom Tasks&hellip;</button>
+      <button class="check-all-btn" id="custom-tasks-open-btn" type="button">Manage Tasks&hellip;</button>
       <div class="items" id="master-tasks"></div>
     </div>
   </div>
@@ -811,7 +811,7 @@
       <div class="header">
         <div class="header-with-back">
           <button class="back-btn" id="custom-tasks-back-btn" type="button" aria-label="Back to dashboard">&larr;</button>
-          <h1>Manage Custom Tasks</h1>
+          <h1>Manage Tasks</h1>
         </div>
       </div>
       <div class="particle-action-row">
@@ -820,6 +820,7 @@
       </div>
     </div>
     <div class="panel">
+      <div class="particle-actions-label">Use &uarr;/&darr; to move any task, including fixed ones &mdash; only custom tasks (&times;) can be removed</div>
       <div class="items" id="custom-tasks-list"></div>
     </div>
   </div>
@@ -1269,9 +1270,39 @@
   // Custom tasks are user-added extras layered on top of the fixed list
   // above; they live in state.customTasks and reset/disappear daily
   // along with the rest of state, unlike the fixed tasks which are
-  // permanent.
+  // permanent. state.taskOrder holds the day's display order for BOTH
+  // fixed and custom tasks together (by id), so a custom task can be
+  // moved in among the fixed ones instead of always trailing after
+  // them; it starts empty and is only filled in once the user actually
+  // reorders something (see moveTask), and anything missing from it
+  // (a fresh custom task, or a fixed task from before taskOrder existed)
+  // falls back to fixed-then-custom at the end, matching the old order.
   function allTasks() {
-    return tasks.concat(state.customTasks);
+    const byId = new Map();
+    tasks.forEach(t => byId.set(t.id, t));
+    state.customTasks.forEach(t => byId.set(t.id, t));
+    const ordered = [];
+    const seen = new Set();
+    state.taskOrder.forEach(id => {
+      if (byId.has(id) && !seen.has(id)) {
+        ordered.push(byId.get(id));
+        seen.add(id);
+      }
+    });
+    tasks.forEach(t => { if (!seen.has(t.id)) { ordered.push(t); seen.add(t.id); } });
+    state.customTasks.forEach(t => { if (!seen.has(t.id)) { ordered.push(t); seen.add(t.id); } });
+    return ordered;
+  }
+
+  function moveTask(id, delta) {
+    const order = allTasks().map(t => t.id);
+    const index = order.indexOf(id);
+    const newIndex = index + delta;
+    if (newIndex < 0 || newIndex >= order.length) return;
+    [order[index], order[newIndex]] = [order[newIndex], order[index]];
+    state.taskOrder = order;
+    saveState(state);
+    renderCustomTasks();
   }
 
   const accountNames = [
@@ -1396,7 +1427,7 @@
       // everything else here, unlike particles/currentTotal below which
       // are deliberately carried forward.
       const prevAccounts = stored.accounts || {};
-      stored = { date: today, particleDate: stored.particleDate, accounts: emptyAccounts(), customTasks: [] };
+      stored = { date: today, particleDate: stored.particleDate, accounts: emptyAccounts(), customTasks: [], taskOrder: [] };
       accountNames.forEach(name => {
         if (prevAccounts[name]) {
           stored.accounts[name].particles = prevAccounts[name].particles || 0;
@@ -1405,6 +1436,7 @@
       });
     }
     if (!Array.isArray(stored.customTasks)) stored.customTasks = [];
+    if (!Array.isArray(stored.taskOrder)) stored.taskOrder = [];
     accountNames.forEach(name => {
       if (!stored.accounts[name]) stored.accounts[name] = { done: {}, particles: 0, currentTotal: 0 };
       if (typeof stored.accounts[name].particles !== 'number') stored.accounts[name].particles = 0;
@@ -2771,39 +2803,32 @@
   maxmoveCheckboxes.forEach(cb => cb.addEventListener('change', renderMaxMoveCalculator));
   renderMaxMoveCalculator();
 
+  // Lists every task - fixed and custom alike - so a custom task can be
+  // moved in among the fixed ones instead of only reordering against
+  // other custom tasks. Only custom tasks get a remove button; fixed
+  // ones are tagged "Fixed" and can be moved but not deleted.
   function renderCustomTasks() {
     customTasksListEl.innerHTML = '';
-    if (state.customTasks.length === 0) {
-      const empty = document.createElement('div');
-      empty.className = 'progress-label';
-      empty.textContent = 'No custom tasks yet today.';
-      customTasksListEl.appendChild(empty);
-      return;
-    }
-    state.customTasks.forEach((task, index) => {
+    const customIds = new Set(state.customTasks.map(t => t.id));
+    const order = allTasks();
+    order.forEach((task, index) => {
+      const isCustom = customIds.has(task.id);
       const row = document.createElement('div');
       row.className = 'task-row';
       row.innerHTML = `
         <span class="label">${task.label}</span>
+        ${isCustom ? '' : '<span class="badge">Fixed</span>'}
         <button class="modal-close" type="button" aria-label="Move up"${index === 0 ? ' disabled' : ''}>&uarr;</button>
-        <button class="modal-close" type="button" aria-label="Move down"${index === state.customTasks.length - 1 ? ' disabled' : ''}>&darr;</button>
-        <button class="modal-close" type="button" aria-label="Remove task">&times;</button>
+        <button class="modal-close" type="button" aria-label="Move down"${index === order.length - 1 ? ' disabled' : ''}>&darr;</button>
+        ${isCustom ? '<button class="modal-close" type="button" aria-label="Remove task">&times;</button>' : ''}
       `;
-      const [upBtn, downBtn, removeBtn] = row.querySelectorAll('.modal-close');
-      upBtn.addEventListener('click', () => moveCustomTask(index, -1));
-      downBtn.addEventListener('click', () => moveCustomTask(index, 1));
-      removeBtn.addEventListener('click', () => removeCustomTask(task.id));
+      row.querySelector('[aria-label="Move up"]').addEventListener('click', () => moveTask(task.id, -1));
+      row.querySelector('[aria-label="Move down"]').addEventListener('click', () => moveTask(task.id, 1));
+      if (isCustom) {
+        row.querySelector('[aria-label="Remove task"]').addEventListener('click', () => removeCustomTask(task.id));
+      }
       customTasksListEl.appendChild(row);
     });
-  }
-
-  function moveCustomTask(index, delta) {
-    const newIndex = index + delta;
-    if (newIndex < 0 || newIndex >= state.customTasks.length) return;
-    const arr = state.customTasks;
-    [arr[index], arr[newIndex]] = [arr[newIndex], arr[index]];
-    saveState(state);
-    renderCustomTasks();
   }
 
   function addCustomTask() {
@@ -2819,6 +2844,7 @@
 
   function removeCustomTask(id) {
     state.customTasks = state.customTasks.filter(t => t.id !== id);
+    state.taskOrder = state.taskOrder.filter(tid => tid !== id);
     accountNames.forEach(name => { delete state.accounts[name].done[id]; });
     saveState(state);
     renderCustomTasks();
