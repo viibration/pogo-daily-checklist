@@ -845,6 +845,7 @@
     <div class="panel">
       <div class="particle-actions-label">Drag a custom task by &#8942;&#8942; to reposition it anywhere in the list &mdash; fixed tasks can&rsquo;t be moved or removed</div>
       <div class="items" id="custom-tasks-list"></div>
+      <button class="reset-btn" id="custom-tasks-clear-all-btn" type="button">Clear all custom tasks</button>
     </div>
   </div>
 
@@ -1296,17 +1297,17 @@
   const DAILY_BOSS_TASK_IDS = ['daily-raid-pass', 'raid-boss'];
 
   // Custom tasks are user-added extras layered on top of the fixed list
-  // above; they live in state.customTasks and reset/disappear daily
-  // along with the rest of state, unlike the fixed tasks which are
-  // permanent. state.taskOrder holds the day's display order for BOTH
-  // fixed and custom tasks together (by id), so a custom task can be
-  // dragged in among the fixed ones instead of always trailing after
-  // them (see setupTaskDrag below); it starts empty and is only filled
-  // in once the user actually drags something, and anything missing
-  // from it (a fresh custom task, or a fixed task from before taskOrder
-  // existed) falls back to fixed-then-custom at the end, matching the
-  // old order. Fixed tasks are never draggable, so their order relative
-  // to each other never changes.
+  // above; they live in state.customTasks and persist across the daily
+  // reset (only their per-account done state resets each day, same as
+  // fixed tasks) until removed via the Manage Tasks page. state.taskOrder
+  // holds the display order for BOTH fixed and custom tasks together (by
+  // id), so a custom task can be dragged in among the fixed ones instead
+  // of always trailing after them (see setupTaskDrag below); it starts
+  // empty and is only filled in once the user actually drags something,
+  // and anything missing from it (a fresh custom task, or a fixed task
+  // from before taskOrder existed) falls back to fixed-then-custom at
+  // the end, matching the old order. Fixed tasks are never draggable, so
+  // their order relative to each other never changes.
   function allTasks() {
     const byId = new Map();
     tasks.forEach(t => byId.set(t.id, t));
@@ -1442,11 +1443,13 @@
       stored = {};
     }
     if (stored.date !== today || !stored.accounts) {
-      // Custom tasks are day-scoped: they reset and disappear along with
-      // everything else here, unlike particles/currentTotal below which
-      // are deliberately carried forward.
+      // Custom tasks and their taskOrder persist across the daily reset,
+      // same as particles/currentTotal below - only each account's
+      // done/daily-gained state is actually day-scoped.
       const prevAccounts = stored.accounts || {};
-      stored = { date: today, particleDate: stored.particleDate, accounts: emptyAccounts(), customTasks: [], taskOrder: [] };
+      const prevCustomTasks = Array.isArray(stored.customTasks) ? stored.customTasks : [];
+      const prevTaskOrder = Array.isArray(stored.taskOrder) ? stored.taskOrder : [];
+      stored = { date: today, particleDate: stored.particleDate, accounts: emptyAccounts(), customTasks: prevCustomTasks, taskOrder: prevTaskOrder };
       accountNames.forEach(name => {
         if (prevAccounts[name]) {
           stored.accounts[name].particles = prevAccounts[name].particles || 0;
@@ -2950,10 +2953,22 @@
     renderCustomTasks();
   }
 
+  function clearAllCustomTasks() {
+    const customIds = new Set(state.customTasks.map(t => t.id));
+    state.customTasks = [];
+    state.taskOrder = state.taskOrder.filter(id => !customIds.has(id));
+    accountNames.forEach(name => {
+      customIds.forEach(id => { delete state.accounts[name].done[id]; });
+    });
+    saveState(state);
+    renderCustomTasks();
+  }
+
   customTaskAddBtn.addEventListener('click', addCustomTask);
   customTaskInput.addEventListener('keydown', (e) => {
     if (e.key === 'Enter') { e.preventDefault(); addCustomTask(); }
   });
+  document.getElementById('custom-tasks-clear-all-btn').addEventListener('click', clearAllCustomTasks);
 
   function openCustomTasks() {
     viewDashboard.hidden = true;
