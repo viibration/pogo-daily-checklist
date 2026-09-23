@@ -312,6 +312,29 @@
   .task-row .badge.complete { color: var(--good); border-color: var(--good); }
   .task-row .badge.partial { color: var(--accent); border-color: var(--accent); }
 
+  #custom-tasks-list .task-row { cursor: default; }
+  #custom-tasks-list .task-row.dragging {
+    position: relative;
+    z-index: 5;
+    border-color: var(--accent);
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.4);
+  }
+  .drag-handle {
+    flex-shrink: 0;
+    width: 30px;
+    height: 34px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    line-height: 1;
+    color: var(--text-faint);
+    cursor: grab;
+    touch-action: none;
+    user-select: none;
+  }
+  .drag-handle:hover { color: var(--accent); }
+
   .modal-backdrop {
     position: fixed;
     inset: 0;
@@ -820,7 +843,7 @@
       </div>
     </div>
     <div class="panel">
-      <div class="particle-actions-label">Use &uarr;/&darr; to move any task, including fixed ones &mdash; only custom tasks (&times;) can be removed</div>
+      <div class="particle-actions-label">Drag a custom task by &#8942;&#8942; to reposition it anywhere in the list &mdash; fixed tasks can&rsquo;t be moved or removed</div>
       <div class="items" id="custom-tasks-list"></div>
     </div>
   </div>
@@ -1277,11 +1300,13 @@
   // along with the rest of state, unlike the fixed tasks which are
   // permanent. state.taskOrder holds the day's display order for BOTH
   // fixed and custom tasks together (by id), so a custom task can be
-  // moved in among the fixed ones instead of always trailing after
-  // them; it starts empty and is only filled in once the user actually
-  // reorders something (see moveTask), and anything missing from it
-  // (a fresh custom task, or a fixed task from before taskOrder existed)
-  // falls back to fixed-then-custom at the end, matching the old order.
+  // dragged in among the fixed ones instead of always trailing after
+  // them (see setupTaskDrag below); it starts empty and is only filled
+  // in once the user actually drags something, and anything missing
+  // from it (a fresh custom task, or a fixed task from before taskOrder
+  // existed) falls back to fixed-then-custom at the end, matching the
+  // old order. Fixed tasks are never draggable, so their order relative
+  // to each other never changes.
   function allTasks() {
     const byId = new Map();
     tasks.forEach(t => byId.set(t.id, t));
@@ -1297,17 +1322,6 @@
     tasks.forEach(t => { if (!seen.has(t.id)) { ordered.push(t); seen.add(t.id); } });
     state.customTasks.forEach(t => { if (!seen.has(t.id)) { ordered.push(t); seen.add(t.id); } });
     return ordered;
-  }
-
-  function moveTask(id, delta) {
-    const order = allTasks().map(t => t.id);
-    const index = order.indexOf(id);
-    const newIndex = index + delta;
-    if (newIndex < 0 || newIndex >= order.length) return;
-    [order[index], order[newIndex]] = [order[newIndex], order[index]];
-    state.taskOrder = order;
-    saveState(state);
-    renderCustomTasks();
   }
 
   const accountNames = [
@@ -2815,24 +2829,85 @@
   function renderCustomTasks() {
     customTasksListEl.innerHTML = '';
     const customIds = new Set(state.customTasks.map(t => t.id));
-    const order = allTasks();
-    order.forEach((task, index) => {
+    allTasks().forEach(task => {
       const isCustom = customIds.has(task.id);
       const row = document.createElement('div');
       row.className = 'task-row';
+      row.dataset.taskId = task.id;
       row.innerHTML = `
+        ${isCustom ? '<span class="drag-handle" aria-label="Drag to reposition">&#8942;&#8942;</span>' : ''}
         <span class="label">${task.label}</span>
         ${isCustom ? '' : '<span class="badge">Fixed</span>'}
-        <button class="modal-close" type="button" aria-label="Move up"${index === 0 ? ' disabled' : ''}>&uarr;</button>
-        <button class="modal-close" type="button" aria-label="Move down"${index === order.length - 1 ? ' disabled' : ''}>&darr;</button>
         ${isCustom ? '<button class="modal-close" type="button" aria-label="Remove task">&times;</button>' : ''}
       `;
-      row.querySelector('[aria-label="Move up"]').addEventListener('click', () => moveTask(task.id, -1));
-      row.querySelector('[aria-label="Move down"]').addEventListener('click', () => moveTask(task.id, 1));
       if (isCustom) {
+        setupTaskDrag(row.querySelector('.drag-handle'), row);
         row.querySelector('[aria-label="Remove task"]').addEventListener('click', () => removeCustomTask(task.id));
       }
       customTasksListEl.appendChild(row);
+    });
+  }
+
+  // Only custom tasks get a drag handle, so fixed tasks can never be
+  // dragged - their relative order never changes since nothing ever
+  // moves them. Dragging repositions the row live in the DOM (swapping
+  // past whichever neighbor's midpoint the pointer crosses); on
+  // release, the DOM order becomes the new persisted taskOrder.
+  function setupTaskDrag(handle, row) {
+    let pointerId = null;
+    let scrollRaf = null;
+
+    function autoScroll(clientY) {
+      const margin = 70;
+      let speed = 0;
+      if (clientY < margin) speed = -(margin - clientY) / 3;
+      else if (clientY > window.innerHeight - margin) speed = (clientY - (window.innerHeight - margin)) / 3;
+      if (speed !== 0) {
+        window.scrollBy(0, speed);
+        scrollRaf = requestAnimationFrame(() => autoScroll(clientY));
+      } else {
+        scrollRaf = null;
+      }
+    }
+
+    function onMove(e) {
+      if (e.pointerId !== pointerId) return;
+      if (!scrollRaf) autoScroll(e.clientY);
+      const siblings = Array.from(customTasksListEl.children).filter(el => el !== row);
+      for (const other of siblings) {
+        const rect = other.getBoundingClientRect();
+        const midpoint = rect.top + rect.height / 2;
+        const rowIsBefore = !!(row.compareDocumentPosition(other) & Node.DOCUMENT_POSITION_FOLLOWING);
+        if (e.clientY < midpoint && !rowIsBefore) {
+          customTasksListEl.insertBefore(row, other);
+          break;
+        } else if (e.clientY > midpoint && rowIsBefore) {
+          customTasksListEl.insertBefore(row, other.nextSibling);
+          break;
+        }
+      }
+    }
+
+    function onUp(e) {
+      if (e.pointerId !== pointerId) return;
+      if (scrollRaf) { cancelAnimationFrame(scrollRaf); scrollRaf = null; }
+      row.classList.remove('dragging');
+      handle.removeEventListener('pointermove', onMove);
+      handle.removeEventListener('pointerup', onUp);
+      handle.removeEventListener('pointercancel', onUp);
+      pointerId = null;
+      state.taskOrder = Array.from(customTasksListEl.children).map(el => el.dataset.taskId);
+      saveState(state);
+    }
+
+    handle.addEventListener('pointerdown', (e) => {
+      e.preventDefault();
+      pointerId = e.pointerId;
+      try { handle.setPointerCapture(pointerId); } catch {}
+      row.classList.add('dragging');
+      handle.addEventListener('pointermove', onMove);
+      handle.addEventListener('pointerup', onUp);
+      handle.addEventListener('pointercancel', onUp);
     });
   }
 
