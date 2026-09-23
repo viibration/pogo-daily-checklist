@@ -360,6 +360,8 @@
   }
   .modal-close:hover { color: var(--bad); border-color: var(--bad); }
   .modal-close:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+  .modal-close:disabled { opacity: 0.3; cursor: not-allowed; pointer-events: none; }
+  .task-row .modal-close { font-size: 16px; }
 
   .check-all-btn {
     width: 100%;
@@ -2778,16 +2780,30 @@
       customTasksListEl.appendChild(empty);
       return;
     }
-    state.customTasks.forEach(task => {
+    state.customTasks.forEach((task, index) => {
       const row = document.createElement('div');
       row.className = 'task-row';
       row.innerHTML = `
         <span class="label">${task.label}</span>
+        <button class="modal-close" type="button" aria-label="Move up"${index === 0 ? ' disabled' : ''}>&uarr;</button>
+        <button class="modal-close" type="button" aria-label="Move down"${index === state.customTasks.length - 1 ? ' disabled' : ''}>&darr;</button>
         <button class="modal-close" type="button" aria-label="Remove task">&times;</button>
       `;
-      row.querySelector('.modal-close').addEventListener('click', () => removeCustomTask(task.id));
+      const [upBtn, downBtn, removeBtn] = row.querySelectorAll('.modal-close');
+      upBtn.addEventListener('click', () => moveCustomTask(index, -1));
+      downBtn.addEventListener('click', () => moveCustomTask(index, 1));
+      removeBtn.addEventListener('click', () => removeCustomTask(task.id));
       customTasksListEl.appendChild(row);
     });
+  }
+
+  function moveCustomTask(index, delta) {
+    const newIndex = index + delta;
+    if (newIndex < 0 || newIndex >= state.customTasks.length) return;
+    const arr = state.customTasks;
+    [arr[index], arr[newIndex]] = [arr[newIndex], arr[index]];
+    saveState(state);
+    renderCustomTasks();
   }
 
   function addCustomTask() {
