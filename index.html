@@ -868,10 +868,7 @@
     <div class="panel">
       <div class="particle-actions-label">Copy sync code (do this on the device that has the data you want to keep)</div>
       <textarea class="particle-manual-input sync-textarea" id="sync-export-text" readonly></textarea>
-      <div class="particle-action-row">
-        <button class="particle-btn" id="sync-copy-pc-btn" type="button"># `code`</button>
-        <button class="particle-btn" id="sync-copy-phone-btn" type="button">```code```</button>
-      </div>
+      <button class="particle-btn" id="sync-copy-btn" type="button" style="width: 100%;">Copy</button>
     </div>
     <div class="panel">
       <div class="particle-actions-label">Paste sync code (this overwrites this device)</div>
@@ -1519,8 +1516,7 @@
   const syncBackBtn = document.getElementById('sync-back-btn');
   const syncExportText = document.getElementById('sync-export-text');
   const syncImportText = document.getElementById('sync-import-text');
-  const syncCopyPcBtn = document.getElementById('sync-copy-pc-btn');
-  const syncCopyPhoneBtn = document.getElementById('sync-copy-phone-btn');
+  const syncCopyBtn = document.getElementById('sync-copy-btn');
   const syncPasteBtn = document.getElementById('sync-paste-btn');
 
   const particleListEl = document.getElementById('particle-list');
@@ -3072,29 +3068,23 @@
     setTimeout(() => { btn.textContent = restoreLabel; }, 1500);
   }
 
-  // Two wrapped formats so the code survives Discord's Markdown intact:
-  // an inline-code heading (easy to spot while scrolling on a PC) and a
-  // triple-backtick block (easier to select whole on a phone).
-  function copyWrapped(btn, wrap) {
-    const text = wrap(syncExportText.value);
+  function copySyncCode() {
+    const text = syncExportText.value;
     if (navigator.clipboard && navigator.clipboard.writeText) {
       navigator.clipboard.writeText(text)
-        .then(() => flashButton(btn, 'Copied!'))
-        .catch(() => flashButton(btn, 'Copy failed - try again'));
+        .then(() => flashButton(syncCopyBtn, 'Copied!'))
+        .catch(() => flashButton(syncCopyBtn, 'Copy failed - try again'));
     } else {
-      flashButton(btn, 'Copy failed - try again');
+      flashButton(syncCopyBtn, 'Copy failed - try again');
     }
   }
 
-  syncCopyPcBtn.addEventListener('click', () => {
-    copyWrapped(syncCopyPcBtn, (code) => '# `' + code + '`');
-  });
-  syncCopyPhoneBtn.addEventListener('click', () => {
-    copyWrapped(syncCopyPhoneBtn, (code) => '```' + code + '```');
-  });
+  syncCopyBtn.addEventListener('click', copySyncCode);
 
-  // Undoes the "# `code`" / "```code```" Discord wrappers from the PC/Phone
-  // copy buttons, so pasting straight from a Discord message works.
+  // Old codes copied before this was plain text may still be sitting in
+  // Discord message history wrapped as "# `code`" or "```code```" (from
+  // when Manual Sync was meant to be pasted there by hand); undo that on
+  // paste so those still import cleanly.
   function stripSyncWrapper(text) {
     const t = text.trim();
     const heading = t.match(/^#\s*`([\s\S]*)`$/);
