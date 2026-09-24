@@ -678,6 +678,13 @@
   }
   .modal-account-row .modal-account-total.preview { color: var(--accent); }
   .modal-account-row .modal-account-total.preview-spend { color: var(--bad); }
+  .modal-account-row .modal-account-sub {
+    flex-shrink: 0;
+    font-size: 11px;
+    font-variant-numeric: tabular-nums;
+    color: var(--text-faint);
+  }
+  .modal-account-row .modal-account-sub.preview { color: var(--accent); }
 
   .header-right { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; justify-content: flex-end; }
 
@@ -2352,6 +2359,7 @@
     accountNames.forEach(name => {
       const selected = gainModalSelected.has(name);
       const gained = state.accounts[name].particles || 0;
+      const total = state.accounts[name].currentTotal || 0;
       const underQuota = gained < PARTICLE_LIMIT;
       const row = document.createElement('div');
       row.className = 'modal-account-row' + (selected ? ' done' : '') + (underQuota ? '' : ' disabled');
@@ -2362,8 +2370,11 @@
       // this can land over the limit (the cap only blocks further gains
       // once already at/over it, it doesn't clip the gain that crosses
       // it) - highlighted so it reads as "not committed yet"; reverts to
-      // the real value the instant it's unchecked.
+      // the real value the instant it's unchecked. Shown alongside the
+      // real running total (same number Spend/Max Move show) so both
+      // are visible at once instead of only the capped daily figure.
       const previewGained = selected ? gained + gainModalAmt : gained;
+      const previewTotal = selected ? total + gainModalAmt : total;
       row.innerHTML = `
         <span class="box">
           <svg viewBox="0 0 24 24" fill="none" stroke="#0e1620" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
@@ -2372,7 +2383,8 @@
         </span>
         <span class="modal-account-text">
           <span class="name">${teamNameHtml(name)}</span>
-          <span class="modal-account-total${selected ? ' preview' : ''}">${previewGained}/${PARTICLE_LIMIT}</span>
+          <span class="modal-account-total${selected ? ' preview' : ''}">${previewTotal}</span>
+          <span class="modal-account-sub${selected ? ' preview' : ''}">${previewGained}/${PARTICLE_LIMIT} today</span>
         </span>
       `;
       if (underQuota) {
