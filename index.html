@@ -1301,11 +1301,14 @@
   // holds the display order for BOTH fixed and custom tasks together (by
   // id), so a custom task can be dragged in among the fixed ones instead
   // of always trailing after them (see setupTaskDrag below); it starts
-  // empty and is only filled in once the user actually drags something,
-  // and anything missing from it (a fresh custom task, or a fixed task
-  // from before taskOrder existed) falls back to fixed-then-custom at
-  // the end, matching the old order. Fixed tasks are never draggable, so
-  // their order relative to each other never changes.
+  // empty and is only filled in once the user actually drags something.
+  // A custom task missing from it (freshly added) falls back to the end.
+  // A FIXED task missing from it (e.g. a new one added to the `tasks`
+  // array in a later app update, after someone's device already saved a
+  // taskOrder from dragging) is spliced in next to its nearest tasks[]
+  // neighbor that IS already tracked, so it lands where the app defines
+  // it instead of always at the very end. Fixed tasks are never
+  // draggable, so their order relative to each other never changes.
   function allTasks() {
     const byId = new Map();
     tasks.forEach(t => byId.set(t.id, t));
@@ -1318,7 +1321,26 @@
         seen.add(id);
       }
     });
-    tasks.forEach(t => { if (!seen.has(t.id)) { ordered.push(t); seen.add(t.id); } });
+    tasks.forEach((t, idx) => {
+      if (seen.has(t.id)) return;
+      let insertAt = ordered.length;
+      for (let i = idx - 1; i >= 0; i--) {
+        if (seen.has(tasks[i].id)) {
+          insertAt = ordered.findIndex(o => o.id === tasks[i].id) + 1;
+          break;
+        }
+      }
+      if (insertAt === ordered.length) {
+        for (let i = idx + 1; i < tasks.length; i++) {
+          if (seen.has(tasks[i].id)) {
+            insertAt = ordered.findIndex(o => o.id === tasks[i].id);
+            break;
+          }
+        }
+      }
+      ordered.splice(insertAt, 0, t);
+      seen.add(t.id);
+    });
     state.customTasks.forEach(t => { if (!seen.has(t.id)) { ordered.push(t); seen.add(t.id); } });
     return ordered;
   }
