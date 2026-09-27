@@ -222,12 +222,6 @@
     text-decoration: line-through;
   }
 
-  .item.locked, .task-row.locked { cursor: not-allowed; opacity: 0.75; }
-  .item.locked:hover, .task-row.locked:hover { border-color: var(--line); }
-  .label.lucky-off, .task-row.locked .label.lucky-off { color: var(--bad); }
-  .label.lucky-on, .task-row .label.lucky-on { color: var(--accent); }
-  .item.done .label.lucky-off, .item.done .label.lucky-on { color: var(--text-faint); }
-
   .reset-btn {
     width: 100%;
     margin-top: 12px;
@@ -1281,12 +1275,12 @@
     { id: 'open-gift', label: 'Open gift' },
     { id: 'daily-raid-pass', label: 'Daily Raid Pass' },
     { id: 'raid-boss', label: 'Raid Boss' },
+    { id: 'max-particle', label: 'Max Particle' },
     { id: 'max-raid', label: 'Max Battle' },
     { id: 'league-master', label: 'Win Master League' },
     { id: 'league-ultra', label: 'Win Ultra League' },
     { id: 'league-great', label: 'Win Great League' },
-    { id: 'special-trade', label: 'Special Trade' },
-    { id: 'league-lucky', label: 'Lucky Trade (Friday)' },
+    { id: 'special-trade', label: 'Daily Trade' },
     { id: 'route-1', label: 'R1: Zygarde' },
     { id: 'route-2', label: 'R2: Bryant Park small loop' },
     { id: 'route-3', label: 'R3: Bryant park one' },
@@ -1418,16 +1412,8 @@
     return `${y}-${m}-${d}`;
   }
 
-  // Lucky Trade is only available on Fridays; follows the same New York
-  // day boundary as the rest of the checklist (see todayKey above).
-  function isLuckyTradeDay() {
-    return new Intl.DateTimeFormat('en-US', { timeZone: 'America/New_York', weekday: 'short' }).format(new Date()) === 'Fri';
-  }
-  function isTaskLocked(task) {
-    return task.id === 'league-lucky' && !isLuckyTradeDay();
-  }
   function countableTasks() {
-    return allTasks().filter(t => !isTaskLocked(t));
+    return allTasks();
   }
 
   const STORAGE_KEY = 'pogo-daily-checklist';
@@ -1795,35 +1781,28 @@
       const total = accountNames.length;
       const complete = doneAccounts.length === total;
       const partial = doneAccounts.length > 0 && !complete;
-      const locked = isTaskLocked(task);
-      const isLucky = task.id === 'league-lucky';
-      const labelClass = isLucky ? (locked ? ' lucky-off' : ' lucky-on') : '';
 
       const row = document.createElement('div');
-      row.className = 'task-row' + (locked ? ' locked' : '');
-      row.tabIndex = locked ? -1 : 0;
+      row.className = 'task-row';
+      row.tabIndex = 0;
       row.setAttribute('role', 'button');
-      if (locked) row.setAttribute('aria-disabled', 'true');
       row.innerHTML = `
-        <span class="label${labelClass}">${task.label}</span>
+        <span class="label">${task.label}</span>
         <span class="badge${complete ? ' complete' : ''}${partial ? ' partial' : ''}">${doneAccounts.length} / ${total}</span>
       `;
-      if (!locked) {
-        row.addEventListener('click', () => openModal(task.id));
-        row.addEventListener('keydown', (e) => {
-          if (e.key === ' ' || e.key === 'Enter') {
-            e.preventDefault();
-            openModal(task.id);
-          }
-        });
-      }
+      row.addEventListener('click', () => openModal(task.id));
+      row.addEventListener('keydown', (e) => {
+        if (e.key === ' ' || e.key === 'Enter') {
+          e.preventDefault();
+          openModal(task.id);
+        }
+      });
       masterTasksEl.appendChild(row);
     });
   }
 
   function openModal(taskId) {
     const task = allTasks().find(t => t.id === taskId);
-    if (isTaskLocked(task)) return;
     modalTaskId = taskId;
     modalTitleEl.textContent = task.label;
     renderModalAccounts();
@@ -3219,32 +3198,26 @@
     itemsEl.innerHTML = '';
     allTasks().forEach(task => {
       const isDone = !!done[task.id];
-      const locked = isTaskLocked(task);
-      const isLucky = task.id === 'league-lucky';
       const row = document.createElement('div');
-      row.className = 'item' + (isDone ? ' done' : '') + (locked ? ' locked' : '');
-      row.tabIndex = locked ? -1 : 0;
+      row.className = 'item' + (isDone ? ' done' : '');
+      row.tabIndex = 0;
       row.setAttribute('role', 'checkbox');
       row.setAttribute('aria-checked', String(isDone));
-      if (locked) row.setAttribute('aria-disabled', 'true');
-      const labelClass = isLucky ? (locked ? ' lucky-off' : ' lucky-on') : '';
       row.innerHTML = `
         <span class="box">
           <svg viewBox="0 0 24 24" fill="none" stroke="#0e1620" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
             <polyline points="4 12 10 18 20 6"></polyline>
           </svg>
         </span>
-        <span class="label${labelClass}">${task.label}</span>
+        <span class="label">${task.label}</span>
       `;
-      if (!locked) {
-        row.addEventListener('click', () => toggle(task.id));
-        row.addEventListener('keydown', (e) => {
-          if (e.key === ' ' || e.key === 'Enter') {
-            e.preventDefault();
-            toggle(task.id);
-          }
-        });
-      }
+      row.addEventListener('click', () => toggle(task.id));
+      row.addEventListener('keydown', (e) => {
+        if (e.key === ' ' || e.key === 'Enter') {
+          e.preventDefault();
+          toggle(task.id);
+        }
+      });
       itemsEl.appendChild(row);
     });
 
