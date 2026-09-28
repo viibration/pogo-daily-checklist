@@ -702,8 +702,8 @@
     border-top: 1px solid var(--line);
     flex-wrap: wrap;
   }
-  .app-tabs { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; }
-  .app-tab {
+  .app-tabs, .view-mode-tabs { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; }
+  .app-tab, .view-mode-btn {
     font: inherit;
     font-size: 15px;
     font-weight: 700;
@@ -714,13 +714,14 @@
     padding: 11px;
     cursor: pointer;
   }
-  .app-tab.active {
+  .app-tab.active, .view-mode-btn.active {
     background: var(--accent);
     border-color: var(--accent);
     color: #fff;
   }
-  .app-tab:hover { border-color: var(--accent); }
-  .app-tab:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+  .app-tab:hover, .view-mode-btn:hover { border-color: var(--accent); }
+  .app-tab:focus-visible, .view-mode-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+  .view-mode-tabs { margin-bottom: 12px; }
 
   .tz-tabs { display: flex; gap: 6px; flex-wrap: wrap; }
   .tz-tab {
@@ -1021,6 +1022,10 @@
       <button class="check-all-btn particles-open-btn" id="sync-open-btn-2" type="button">Manual Sync&hellip;</button>
     </div>
     <div class="panel">
+      <div class="view-mode-tabs" id="particle-view-mode-tabs">
+        <button class="view-mode-btn active" data-view-mode="normal" type="button">Normal View</button>
+        <button class="view-mode-btn" data-view-mode="team" type="button">Team View</button>
+      </div>
       <div class="particle-grid" id="particle-list"></div>
     </div>
     <div class="panel panel-theme-teal">
@@ -1362,6 +1367,12 @@
   const LAST_FOUR_ACCOUNTS = accountNames.slice(-4);
   const TEAM_1_ACCOUNTS = ['Viibration', 'ViizierSV', 'ViisitorXY', 'ViitaminEV'];
   const TEAM_2_ACCOUNTS = accountNames.filter(name => !TEAM_1_ACCOUNTS.includes(name));
+
+  // Max Particle page "Team View": groups accounts by team instead of the
+  // normal accountNames order. A specific requested order, not just
+  // TEAM_1_ACCOUNTS.concat(TEAM_2_ACCOUNTS) - the team 2 half isn't in
+  // accountNames order either.
+  const TEAM_MODE_ORDER = ['Viibration', 'ViizierSV', 'ViisitorXY', 'ViitaminEV', 'ViineyardistEX', 'ViictoriaZA', 'ViiperGX', 'ViillainousNX'];
 
   // PvP league bulk-check duos, paired for the "Check win pvp all leagues" modal.
   const DUO_1_ACCOUNTS = ['Viibration', 'ViisitorXY'];
@@ -2026,9 +2037,34 @@
   const PARTICLE_LIMIT = 800;
   const MAX_TOTAL_CAP = 1500;
 
+  // Max Particle page account view mode (Normal/Team), kept in its own
+  // localStorage key since it's a display preference, not day-scoped
+  // checklist state - persists across reloads until toggled again.
+  const PARTICLE_VIEW_MODE_KEY = 'pogo-daily-checklist-particle-view-mode';
+  let particleViewMode = localStorage.getItem(PARTICLE_VIEW_MODE_KEY) === 'team' ? 'team' : 'normal';
+  const particleViewModeTabs = document.getElementById('particle-view-mode-tabs');
+
+  function particleViewOrder() {
+    return particleViewMode === 'team' ? TEAM_MODE_ORDER : accountNames;
+  }
+
+  function setParticleViewMode(mode) {
+    particleViewMode = mode;
+    localStorage.setItem(PARTICLE_VIEW_MODE_KEY, mode);
+    particleViewModeTabs.querySelectorAll('.view-mode-btn').forEach(btn => {
+      btn.classList.toggle('active', btn.dataset.viewMode === mode);
+    });
+    renderParticleList();
+  }
+
+  particleViewModeTabs.querySelectorAll('.view-mode-btn').forEach(btn => {
+    btn.addEventListener('click', () => setParticleViewMode(btn.dataset.viewMode));
+  });
+  setParticleViewMode(particleViewMode);
+
   function renderParticleGrid() {
     particleListEl.innerHTML = '';
-    accountNames.forEach(name => {
+    particleViewOrder().forEach(name => {
       const total = state.accounts[name].currentTotal || 0;
       const gained = state.accounts[name].particles || 0;
       const card = document.createElement('div');
@@ -2079,7 +2115,7 @@
 
   function renderParticleManualList() {
     particleManualListEl.innerHTML = '';
-    accountNames.forEach(name => {
+    particleViewOrder().forEach(name => {
       const total = state.accounts[name].currentTotal || 0;
       const row = document.createElement('div');
       row.className = 'particle-manual-row';
