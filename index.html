@@ -2182,7 +2182,7 @@
 
   function renderSpendModalAccounts() {
     spendModalAccountsEl.innerHTML = '';
-    accountNames.forEach(name => {
+    particleViewOrder().forEach(name => {
       const selected = spendModalSelected.has(name);
       const total = state.accounts[name].currentTotal || 0;
       const affordable = total - spendModalAmt >= 0;
@@ -2296,7 +2296,7 @@
 
   function renderMoveModalAccounts() {
     moveModalAccountsEl.innerHTML = '';
-    accountNames.forEach(name => {
+    particleViewOrder().forEach(name => {
       const selected = moveModalSelected.has(name);
       const total = state.accounts[name].currentTotal || 0;
       const affordable = total - moveModalAmt >= 0;
@@ -2407,7 +2407,7 @@
 
   function renderGainModalAccounts() {
     gainModalAccountsEl.innerHTML = '';
-    accountNames.forEach(name => {
+    particleViewOrder().forEach(name => {
       const selected = gainModalSelected.has(name);
       const gained = state.accounts[name].particles || 0;
       const total = state.accounts[name].currentTotal || 0;
