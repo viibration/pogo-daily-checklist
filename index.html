@@ -883,6 +883,10 @@
         <button class="modal-quick-btn" id="modal-first4-btn" type="button">First 4 accounts</button>
         <button class="modal-quick-btn" id="modal-last4-btn" type="button">Last 4 accounts</button>
       </div>
+      <div class="modal-quick-row">
+        <button class="modal-quick-btn" id="modal-team1-btn" type="button">Select Team 1</button>
+        <button class="modal-quick-btn" id="modal-team2-btn" type="button">Select Team 2</button>
+      </div>
       <div class="modal-accounts" id="modal-accounts"></div>
     </div>
   </div>
@@ -897,6 +901,10 @@
       <div class="modal-quick-row" id="bulk-first4last4-row">
         <button class="modal-quick-btn" id="bulk-first4-btn" type="button">First 4 accounts</button>
         <button class="modal-quick-btn" id="bulk-last4-btn" type="button">Last 4 accounts</button>
+      </div>
+      <div class="modal-quick-row">
+        <button class="modal-quick-btn" id="bulk-team1-btn" type="button">Select Team 1</button>
+        <button class="modal-quick-btn" id="bulk-team2-btn" type="button">Select Team 2</button>
       </div>
       <div class="modal-quick-row" id="bulk-duo-row-1" hidden>
         <button class="modal-quick-btn" id="bulk-duo1-btn" type="button">1st Duo</button>
@@ -1905,6 +1913,8 @@
   }
   document.getElementById('modal-first4-btn').addEventListener('click', () => toggleModalAccounts(FIRST_FOUR_ACCOUNTS));
   document.getElementById('modal-last4-btn').addEventListener('click', () => toggleModalAccounts(LAST_FOUR_ACCOUNTS));
+  document.getElementById('modal-team1-btn').addEventListener('click', () => toggleModalAccounts(TEAM_1_ACCOUNTS));
+  document.getElementById('modal-team2-btn').addEventListener('click', () => toggleModalAccounts(TEAM_2_ACCOUNTS));
 
   modalCloseBtn.addEventListener('click', closeModal);
   modalBackdrop.addEventListener('click', (e) => {
@@ -2014,6 +2024,8 @@
 
   document.getElementById('bulk-first4-btn').addEventListener('click', () => toggleBulkGroup(FIRST_FOUR_ACCOUNTS));
   document.getElementById('bulk-last4-btn').addEventListener('click', () => toggleBulkGroup(LAST_FOUR_ACCOUNTS));
+  document.getElementById('bulk-team1-btn').addEventListener('click', () => toggleBulkGroup(TEAM_1_ACCOUNTS));
+  document.getElementById('bulk-team2-btn').addEventListener('click', () => toggleBulkGroup(TEAM_2_ACCOUNTS));
   document.getElementById('bulk-duo1-btn').addEventListener('click', () => toggleBulkGroup(DUO_1_ACCOUNTS));
   document.getElementById('bulk-duo2-btn').addEventListener('click', () => toggleBulkGroup(DUO_2_ACCOUNTS));
   document.getElementById('bulk-duo3-btn').addEventListener('click', () => toggleBulkGroup(DUO_3_ACCOUNTS));
