@@ -1023,8 +1023,8 @@
     </div>
     <div class="panel">
       <div class="view-mode-tabs" id="particle-view-mode-tabs">
-        <button class="view-mode-btn active" data-view-mode="normal" type="button">Normal View</button>
         <button class="view-mode-btn" data-view-mode="team" type="button">Team View</button>
+        <button class="view-mode-btn" data-view-mode="normal" type="button">Normal View</button>
       </div>
       <div class="particle-grid" id="particle-list"></div>
     </div>
@@ -2041,7 +2041,7 @@
   // localStorage key since it's a display preference, not day-scoped
   // checklist state - persists across reloads until toggled again.
   const PARTICLE_VIEW_MODE_KEY = 'pogo-daily-checklist-particle-view-mode';
-  let particleViewMode = localStorage.getItem(PARTICLE_VIEW_MODE_KEY) === 'team' ? 'team' : 'normal';
+  let particleViewMode = localStorage.getItem(PARTICLE_VIEW_MODE_KEY) === 'normal' ? 'normal' : 'team';
   const particleViewModeTabs = document.getElementById('particle-view-mode-tabs');
 
   function particleViewOrder() {
