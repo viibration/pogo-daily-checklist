@@ -756,10 +756,9 @@
     color: var(--text);
   }
   .candy-cell-pair { display: flex; background: var(--panel-2); }
-  .candy-cell-input {
+  .candy-cell-value {
     flex: 1;
     min-width: 0;
-    width: 0;
     font: inherit;
     font-size: 14px;
     color: var(--text);
@@ -768,9 +767,23 @@
     padding: 10px 4px;
     font-variant-numeric: tabular-nums;
     text-align: center;
+    cursor: pointer;
   }
-  .candy-cell-input + .candy-cell-input { border-left: 1px solid var(--line); }
-  .candy-cell-input:focus { outline: 2px solid var(--accent); outline-offset: -2px; position: relative; z-index: 3; }
+  .candy-cell-value:hover, .candy-cell-value:focus-visible { background: var(--panel); outline: none; }
+  .candy-cell-value + .candy-cell-value { border-left: 1px solid var(--line); }
+
+  .candy-cell-modal-row { display: flex; align-items: center; gap: 10px; margin-top: 14px; }
+  .candy-cell-modal-current {
+    font-size: 20px;
+    font-weight: 800;
+    color: var(--text);
+    font-variant-numeric: tabular-nums;
+    flex-shrink: 0;
+  }
+  .candy-cell-modal-row .particle-manual-input { flex: 1; min-width: 0; }
+  .candy-cell-modal-btns { display: flex; gap: 8px; margin-top: 12px; }
+  .candy-cell-modal-btns .particle-btn:first-child { flex: 2; }
+  .candy-cell-modal-btns .particle-btn { flex: 1; padding: 8px 10px; }
 
   .tz-tabs { display: flex; gap: 6px; flex-wrap: wrap; }
   .tz-tab {
@@ -1013,6 +1026,24 @@
       </div>
       <button class="sync-action-btn" id="gain-modal-apply" type="button">Apply to selected</button>
       <div class="modal-accounts" id="gain-modal-accounts"></div>
+    </div>
+  </div>
+
+  <div class="modal-backdrop" id="candy-cell-modal-backdrop" hidden>
+    <div class="modal-panel">
+      <div class="modal-header">
+        <span class="modal-title" id="candy-cell-modal-title"></span>
+        <button class="modal-close" id="candy-cell-modal-close" type="button" aria-label="Close">&times;</button>
+      </div>
+      <div class="candy-cell-modal-row">
+        <span class="candy-cell-modal-current" id="candy-cell-modal-current"></span>
+        <input class="particle-manual-input" id="candy-cell-modal-input" type="number" inputmode="numeric" placeholder="amount">
+      </div>
+      <div class="candy-cell-modal-btns">
+        <button class="particle-btn" type="button" id="candy-cell-modal-replace">Replace</button>
+        <button class="particle-btn" type="button" id="candy-cell-modal-plus">+</button>
+        <button class="particle-btn" type="button" id="candy-cell-modal-minus">&minus;</button>
+      </div>
     </div>
   </div>
 
@@ -1352,7 +1383,7 @@
       <div class="candy-table-wrap">
         <div class="candy-grid" id="candy-grid"></div>
       </div>
-      <div class="particle-actions-label" style="margin-top: 10px; margin-bottom: 0; font-weight: 400; color: var(--text-faint); font-size: 12px; line-height: 1.5;">Each column is candy | candy&nbsp;XL, side by side. Tap the candy box, type the number, press Tab, type the XL number &mdash; done.</div>
+      <div class="particle-actions-label" style="margin-top: 10px; margin-bottom: 0; font-weight: 400; color: var(--text-faint); font-size: 12px; line-height: 1.5;">Tap any number to edit it.</div>
     </div>
   </div>
 
@@ -3336,6 +3367,10 @@
       gainModalBackdrop.hidden = true;
       return;
     }
+    if (!candyCellModalBackdrop.hidden) {
+      candyCellModalBackdrop.hidden = true;
+      return;
+    }
     if (!viewParticleDetail.hidden) {
       currentParticleAccount = null;
       viewParticleDetail.hidden = true;
@@ -3680,10 +3715,12 @@
   updatePokedexSummary();
 
   // --- Candy Tracker: pick which Pokemon to farm candy for, tracked per
-  // account as a simple candy/candy-XL pair, edited by directly retyping
-  // the cell (no daily reset, no increment math - just a number you
-  // overwrite). Kept in its own localStorage key, separate from the
-  // day-scoped checklist `state` and never included in Manual Sync -
+  // account as a simple candy/candy-XL pair. The table itself is
+  // display-only; editing happens in the "Manual edit candy" panel below
+  // it (pick a Pokemon + candy/candy XL, then Edit to set an exact value
+  // or Increase to add an amount per account - mirrors Max Particle's
+  // manual-edit pattern). Kept in its own localStorage key, separate from
+  // the day-scoped checklist `state` and never included in Manual Sync -
   // device-local, closer to a personal spreadsheet than real game state.
   const CANDY_TRACKER_KEY = 'pogo-daily-checklist-candy-tracker';
   function loadCandyTracker() {
@@ -3715,24 +3752,14 @@
     return [0, 0];
   }
 
-  // slot 0 = candy, slot 1 = candy XL - each sub-field commits only its
-  // own number, so filling both is just click, type, Tab, type, no
-  // separator to type (mobile numeric keypads don't have "/" anyway).
-  // Updates the input in place rather than re-rendering the whole grid,
-  // so a Tab press isn't fighting a DOM rebuild for where focus lands next.
-  function commitCandySlot(input, account, name, slot) {
-    const value = parseInt(input.value.trim(), 10);
+  // slot 0 = candy, slot 1 = candy XL.
+  function setCandyValue(account, name, slot, value) {
     const pair = getCandyPair(account, name);
-    if (!Number.isNaN(value)) {
-      const newPair = [...pair];
-      newPair[slot] = Math.max(0, value);
-      if (!candyTracker.candy[account]) candyTracker.candy[account] = {};
-      candyTracker.candy[account][name] = newPair;
-      saveCandyTracker();
-      input.value = String(newPair[slot]);
-    } else {
-      input.value = String(pair[slot]);
-    }
+    const newPair = [...pair];
+    newPair[slot] = Math.max(0, value);
+    if (!candyTracker.candy[account]) candyTracker.candy[account] = {};
+    candyTracker.candy[account][name] = newPair;
+    saveCandyTracker();
   }
 
   const candyTrackerCountLabel = document.getElementById('candy-tracker-count-label');
@@ -3768,23 +3795,65 @@
         pairEl.className = 'candy-cell-pair';
 
         [candy, candyXL].forEach((val, slot) => {
-          const input = document.createElement('input');
-          input.className = 'candy-cell-input';
-          input.value = String(val);
-          input.inputMode = 'numeric';
-          input.setAttribute('aria-label', `${name} ${slot === 0 ? 'candy' : 'candy XL'} for ${account}`);
-          const commit = () => commitCandySlot(input, account, name, slot);
-          input.addEventListener('keydown', (e) => {
-            if (e.key === 'Enter') { commit(); input.blur(); }
-          });
-          input.addEventListener('blur', commit);
-          pairEl.appendChild(input);
+          const cell = document.createElement('button');
+          cell.type = 'button';
+          cell.className = 'candy-cell-value';
+          cell.textContent = String(val);
+          cell.setAttribute('aria-label', `Edit ${name} ${slot === 0 ? 'candy' : 'candy XL'} for ${account}`);
+          cell.addEventListener('click', () => openCandyCellModal(account, name, slot));
+          pairEl.appendChild(cell);
         });
 
         candyGridEl.appendChild(pairEl);
       });
     });
   }
+
+  // --- Candy cell edit modal: tapping any table cell opens a small dialog
+  // scoped to that one account+Pokemon+stat, with Replace (set exact),
+  // + (add) and - (subtract) - same one-shot apply-then-close pattern as
+  // the Spend/Move/Gain modals on the Max Particle page.
+  const candyCellModalBackdrop = document.getElementById('candy-cell-modal-backdrop');
+  const candyCellModalTitle = document.getElementById('candy-cell-modal-title');
+  const candyCellModalCurrent = document.getElementById('candy-cell-modal-current');
+  const candyCellModalInput = document.getElementById('candy-cell-modal-input');
+  const candyCellModalClose = document.getElementById('candy-cell-modal-close');
+  let candyCellModalAccount = null;
+  let candyCellModalPokemon = null;
+  let candyCellModalSlot = 0;
+
+  function openCandyCellModal(account, name, slot) {
+    candyCellModalAccount = account;
+    candyCellModalPokemon = name;
+    candyCellModalSlot = slot;
+    candyCellModalTitle.textContent = `${account} - ${name}${slot === 1 ? ' (XL)' : ''}`;
+    candyCellModalCurrent.textContent = getCandyPair(account, name)[slot];
+    candyCellModalInput.value = '';
+    candyCellModalBackdrop.hidden = false;
+    history.pushState({ view: 'candy-cell-modal' }, '');
+    candyCellModalInput.focus();
+  }
+
+  function closeCandyCellModal() {
+    if (!candyCellModalBackdrop.hidden) history.back();
+  }
+
+  function applyCandyCellModal(compute) {
+    const value = parseInt(candyCellModalInput.value, 10);
+    if (Number.isNaN(value)) return;
+    const current = getCandyPair(candyCellModalAccount, candyCellModalPokemon)[candyCellModalSlot];
+    setCandyValue(candyCellModalAccount, candyCellModalPokemon, candyCellModalSlot, compute(current, value));
+    renderCandyTrackerGrid();
+    closeCandyCellModal();
+  }
+
+  document.getElementById('candy-cell-modal-replace').addEventListener('click', () => applyCandyCellModal((current, value) => value));
+  document.getElementById('candy-cell-modal-plus').addEventListener('click', () => applyCandyCellModal((current, value) => current + value));
+  document.getElementById('candy-cell-modal-minus').addEventListener('click', () => applyCandyCellModal((current, value) => current - value));
+  candyCellModalClose.addEventListener('click', closeCandyCellModal);
+  candyCellModalBackdrop.addEventListener('click', (e) => {
+    if (e.target === candyCellModalBackdrop) closeCandyCellModal();
+  });
 
   function openCandyTrackerManage() {
     viewCandyTracker.hidden = true;
