@@ -784,6 +784,8 @@
   .candy-cell-modal-btns { display: flex; gap: 8px; margin-top: 12px; }
   .candy-cell-modal-btns .particle-btn:first-child { flex: 2; }
   .candy-cell-modal-btns .particle-btn { flex: 1; padding: 8px 10px; }
+  .candy-cell-modal-btns .particle-btn.primary { background: var(--accent); border-color: var(--accent); color: #fff; }
+  .candy-cell-modal-btns .particle-btn.primary:hover { border-color: var(--accent); }
 
   .tz-tabs { display: flex; gap: 6px; flex-wrap: wrap; }
   .tz-tab {
@@ -1040,7 +1042,7 @@
         <input class="particle-manual-input" id="candy-cell-modal-input" type="number" inputmode="numeric" placeholder="amount">
       </div>
       <div class="candy-cell-modal-btns">
-        <button class="particle-btn" type="button" id="candy-cell-modal-replace">Replace</button>
+        <button class="particle-btn primary" type="button" id="candy-cell-modal-replace">Replace</button>
         <button class="particle-btn" type="button" id="candy-cell-modal-plus">+</button>
         <button class="particle-btn" type="button" id="candy-cell-modal-minus">&minus;</button>
       </div>
@@ -3850,6 +3852,10 @@
   document.getElementById('candy-cell-modal-replace').addEventListener('click', () => applyCandyCellModal((current, value) => value));
   document.getElementById('candy-cell-modal-plus').addEventListener('click', () => applyCandyCellModal((current, value) => current + value));
   document.getElementById('candy-cell-modal-minus').addEventListener('click', () => applyCandyCellModal((current, value) => current - value));
+  // Replace is the default action, so pressing Enter after typing applies it directly.
+  candyCellModalInput.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') applyCandyCellModal((current, value) => value);
+  });
   candyCellModalClose.addEventListener('click', closeCandyCellModal);
   candyCellModalBackdrop.addEventListener('click', (e) => {
     if (e.target === candyCellModalBackdrop) closeCandyCellModal();
