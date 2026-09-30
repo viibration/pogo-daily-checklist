@@ -721,7 +721,51 @@
   }
   .app-tab:hover, .view-mode-btn:hover { border-color: var(--accent); }
   .app-tab:focus-visible, .view-mode-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+  .app-tabs .app-tab:last-child:nth-child(odd) { grid-column: 1 / -1; }
   .view-mode-tabs { margin-bottom: 12px; }
+
+  .candy-table-wrap { overflow-x: auto; border: 1px solid var(--line); border-radius: 10px; }
+  .candy-grid { display: grid; gap: 1px; background: var(--line); }
+  .candy-cell-corner, .candy-cell-header, .candy-cell-account {
+    background: var(--panel-2);
+    padding: 10px 8px;
+    display: flex;
+    align-items: center;
+  }
+  .candy-cell-corner {
+    position: sticky;
+    left: 0;
+    z-index: 2;
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--text-faint);
+  }
+  .candy-cell-header {
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--text-dim);
+    justify-content: center;
+    text-align: center;
+  }
+  .candy-cell-account {
+    position: sticky;
+    left: 0;
+    z-index: 1;
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--text);
+  }
+  .candy-cell-input {
+    width: 100%;
+    font: inherit;
+    color: var(--text);
+    background: var(--panel-2);
+    border: none;
+    padding: 10px 8px;
+    font-variant-numeric: tabular-nums;
+    text-align: center;
+  }
+  .candy-cell-input:focus { outline: 2px solid var(--accent); outline-offset: -2px; position: relative; z-index: 3; }
 
   .tz-tabs { display: flex; gap: 6px; flex-wrap: wrap; }
   .tz-tab {
@@ -786,6 +830,7 @@
         <button class="app-tab" data-tab="particles" type="button">Max Particle</button>
         <button class="app-tab" data-tab="candy" type="button">Power Up Calculator</button>
         <button class="app-tab" data-tab="pokedex" type="button">Pokedex Search</button>
+        <button class="app-tab" data-tab="candy-tracker" type="button">Candy Tracker</button>
       </div>
       <div class="tz-row">
         <div class="tz-tabs" id="tz-tabs"></div>
@@ -1002,6 +1047,7 @@
         <button class="app-tab active" data-tab="particles" type="button">Max Particle</button>
         <button class="app-tab" data-tab="candy" type="button">Power Up Calculator</button>
         <button class="app-tab" data-tab="pokedex" type="button">Pokedex Search</button>
+        <button class="app-tab" data-tab="candy-tracker" type="button">Candy Tracker</button>
       </div>
       <div class="tz-row">
         <div class="tz-tabs" id="tz-tabs-2"></div>
@@ -1138,6 +1184,7 @@
         <button class="app-tab" data-tab="particles" type="button">Max Particle</button>
         <button class="app-tab active" data-tab="candy" type="button">Power Up Calculator</button>
         <button class="app-tab" data-tab="pokedex" type="button">Pokedex Search</button>
+        <button class="app-tab" data-tab="candy-tracker" type="button">Candy Tracker</button>
       </div>
     </div>
     <div class="panel">
@@ -1253,6 +1300,7 @@
         <button class="app-tab" data-tab="particles" type="button">Max Particle</button>
         <button class="app-tab" data-tab="candy" type="button">Power Up Calculator</button>
         <button class="app-tab active" data-tab="pokedex" type="button">Pokedex Search</button>
+        <button class="app-tab" data-tab="candy-tracker" type="button">Candy Tracker</button>
       </div>
     </div>
     <div class="panel panel-theme-indigo">
@@ -1278,6 +1326,47 @@
     </div>
     <div class="panel">
       <div class="modal-accounts" id="pokedex-list"></div>
+    </div>
+  </div>
+
+  <div id="view-candy-tracker" hidden>
+    <div class="panel">
+      <div class="app-tabs">
+        <button class="app-tab" data-tab="dashboard" type="button">Daily Checklist</button>
+        <button class="app-tab" data-tab="particles" type="button">Max Particle</button>
+        <button class="app-tab" data-tab="candy" type="button">Power Up Calculator</button>
+        <button class="app-tab" data-tab="pokedex" type="button">Pokedex Search</button>
+        <button class="app-tab active" data-tab="candy-tracker" type="button">Candy Tracker</button>
+      </div>
+    </div>
+    <div class="panel panel-theme-indigo">
+      <div class="particle-actions-label" id="candy-tracker-count-label">0 Pok&eacute;mon tracked</div>
+      <button class="check-all-btn" id="candy-tracker-manage-btn" type="button" style="margin-bottom: 0;">Manage tracked Pok&eacute;mon&hellip;</button>
+    </div>
+    <div class="panel">
+      <div class="candy-table-wrap">
+        <div class="candy-grid" id="candy-grid"></div>
+      </div>
+      <div class="particle-actions-label" style="margin-top: 10px; margin-bottom: 0; font-weight: 400; color: var(--text-faint); font-size: 12px; line-height: 1.5;">Each cell is candy/candy&nbsp;XL. Tap a cell and retype both numbers (e.g. 0/72) &mdash; just like a spreadsheet cell.</div>
+    </div>
+  </div>
+
+  <div id="view-candy-tracker-manage" hidden>
+    <div class="panel">
+      <div class="header">
+        <div class="header-with-back">
+          <button class="back-btn" id="candy-tracker-manage-back-btn" type="button" aria-label="Back to Candy Tracker">&larr;</button>
+          <h1>Manage Tracked Pok&eacute;mon</h1>
+        </div>
+      </div>
+      <input class="particle-manual-input" id="candy-tracker-search-input" type="text" placeholder="Search Pok&eacute;mon by name or number&hellip;" style="display: block; width: 100%; margin-top: 10px;">
+    </div>
+    <div class="panel">
+      <div class="items" id="candy-tracker-results"></div>
+    </div>
+    <div class="panel">
+      <div class="particle-actions-label">Currently tracked</div>
+      <div class="items" id="candy-tracker-tracked-list"></div>
     </div>
   </div>
 </div>
@@ -1532,6 +1621,8 @@
   const viewParticleDetail = document.getElementById('view-particle-detail');
   const viewCandy = document.getElementById('view-candy');
   const viewPokedex = document.getElementById('view-pokedex');
+  const viewCandyTracker = document.getElementById('view-candy-tracker');
+  const viewCandyTrackerManage = document.getElementById('view-candy-tracker-manage');
   const viewCustomTasks = document.getElementById('view-custom-tasks');
   const viewSync = document.getElementById('view-sync');
   const accountsEl = document.getElementById('accounts');
@@ -2599,18 +2690,20 @@
   // (equal priority), not a parent/child pair, so switching between them
   // doesn't push a history entry - only genuine sub-views (account
   // checklist, particle detail, custom tasks, sync, modals) do that.
-  const ROOT_TAB_ORDER = ['dashboard', 'particles', 'candy', 'pokedex'];
+  const ROOT_TAB_ORDER = ['dashboard', 'particles', 'candy', 'pokedex', 'candy-tracker'];
   function switchTab(tab) {
     viewDashboard.hidden = tab !== 'dashboard';
     viewParticles.hidden = tab !== 'particles';
     viewCandy.hidden = tab !== 'candy';
     viewPokedex.hidden = tab !== 'pokedex';
+    viewCandyTracker.hidden = tab !== 'candy-tracker';
     document.querySelectorAll('.app-tab').forEach(btn => {
       btn.classList.toggle('active', btn.dataset.tab === tab);
     });
     if (tab === 'dashboard') renderDashboard();
     else if (tab === 'particles') renderParticleList();
     else if (tab === 'candy') renderCandyCalculator();
+    else if (tab === 'candy-tracker') renderCandyTrackerGrid();
   }
 
   document.querySelectorAll('.app-tab').forEach(btn => {
@@ -2622,6 +2715,7 @@
     if (!viewParticles.hidden) return 'particles';
     if (!viewCandy.hidden) return 'candy';
     if (!viewPokedex.hidden) return 'pokedex';
+    if (!viewCandyTracker.hidden) return 'candy-tracker';
     return null;
   }
 
@@ -3250,6 +3344,12 @@
       renderDashboard();
       return;
     }
+    if (!viewCandyTrackerManage.hidden) {
+      viewCandyTrackerManage.hidden = true;
+      viewCandyTracker.hidden = false;
+      renderCandyTrackerGrid();
+      return;
+    }
     if (!viewSync.hidden) {
       viewSync.hidden = true;
       if (syncOpenedFromParticles) {
@@ -3573,6 +3673,180 @@
 
   renderPokedexList();
   updatePokedexSummary();
+
+  // --- Candy Tracker: pick which Pokemon to farm candy for, tracked per
+  // account as a simple candy/candy-XL pair, edited by directly retyping
+  // the cell (no daily reset, no increment math - just a number you
+  // overwrite). Kept in its own localStorage key, separate from the
+  // day-scoped checklist `state` and never included in Manual Sync -
+  // device-local, closer to a personal spreadsheet than real game state.
+  const CANDY_TRACKER_KEY = 'pogo-daily-checklist-candy-tracker';
+  function loadCandyTracker() {
+    try {
+      const raw = JSON.parse(localStorage.getItem(CANDY_TRACKER_KEY) || '{}');
+      return {
+        trackedPokemon: Array.isArray(raw.trackedPokemon) ? raw.trackedPokemon : [],
+        candy: raw.candy && typeof raw.candy === 'object' ? raw.candy : {},
+      };
+    } catch {
+      return { trackedPokemon: [], candy: {} };
+    }
+  }
+  function saveCandyTracker() {
+    localStorage.setItem(CANDY_TRACKER_KEY, JSON.stringify(candyTracker));
+  }
+  let candyTracker = loadCandyTracker();
+
+  const POKEDEX_NUM_BY_NAME = new Map();
+  POKEDEX.forEach(entry => POKEDEX_NUM_BY_NAME.set(entry.name.toLowerCase(), entry.num));
+  function candyDexLabel(name) {
+    const num = POKEDEX_NUM_BY_NAME.get(name.toLowerCase());
+    return num ? '#' + String(num).padStart(4, '0') : '#----';
+  }
+
+  function getCandyPair(account, name) {
+    const perAccount = candyTracker.candy[account];
+    if (perAccount && perAccount[name]) return perAccount[name];
+    return [0, 0];
+  }
+
+  function commitCandyCell(account, name, raw) {
+    const parts = raw.split('/');
+    if (parts.length === 2) {
+      const candy = parseInt(parts[0].trim(), 10);
+      const candyXL = parseInt(parts[1].trim(), 10);
+      if (!Number.isNaN(candy) && !Number.isNaN(candyXL)) {
+        if (!candyTracker.candy[account]) candyTracker.candy[account] = {};
+        candyTracker.candy[account][name] = [Math.max(0, candy), Math.max(0, candyXL)];
+        saveCandyTracker();
+      }
+    }
+    renderCandyTrackerGrid();
+  }
+
+  const candyTrackerCountLabel = document.getElementById('candy-tracker-count-label');
+  const candyGridEl = document.getElementById('candy-grid');
+
+  function renderCandyTrackerGrid() {
+    const tracked = candyTracker.trackedPokemon;
+    candyTrackerCountLabel.textContent = tracked.length === 1 ? '1 Pokémon tracked' : `${tracked.length} Pokémon tracked`;
+    candyGridEl.innerHTML = '';
+    candyGridEl.style.gridTemplateColumns = `128px repeat(${tracked.length}, 90px)`;
+
+    const corner = document.createElement('div');
+    corner.className = 'candy-cell-corner';
+    corner.textContent = 'Account';
+    candyGridEl.appendChild(corner);
+
+    tracked.forEach(name => {
+      const head = document.createElement('div');
+      head.className = 'candy-cell-header';
+      head.textContent = name;
+      candyGridEl.appendChild(head);
+    });
+
+    accountNames.forEach(account => {
+      const acctCell = document.createElement('div');
+      acctCell.className = 'candy-cell-account';
+      acctCell.textContent = account;
+      candyGridEl.appendChild(acctCell);
+
+      tracked.forEach(name => {
+        const [candy, candyXL] = getCandyPair(account, name);
+        const input = document.createElement('input');
+        input.className = 'candy-cell-input';
+        input.value = `${candy}/${candyXL}`;
+        input.inputMode = 'numeric';
+        const commit = () => commitCandyCell(account, name, input.value);
+        input.addEventListener('keydown', (e) => {
+          if (e.key === 'Enter') { commit(); input.blur(); }
+        });
+        input.addEventListener('blur', commit);
+        candyGridEl.appendChild(input);
+      });
+    });
+  }
+
+  function openCandyTrackerManage() {
+    viewCandyTracker.hidden = true;
+    viewCandyTrackerManage.hidden = false;
+    candyTrackerSearchInput.value = '';
+    renderCandyTrackerManage();
+    history.pushState({ view: 'candy-tracker-manage' }, '');
+  }
+
+  function closeCandyTrackerManage() {
+    if (!viewCandyTrackerManage.hidden) history.back();
+  }
+
+  document.getElementById('candy-tracker-manage-btn').addEventListener('click', openCandyTrackerManage);
+  document.getElementById('candy-tracker-manage-back-btn').addEventListener('click', closeCandyTrackerManage);
+
+  const candyTrackerSearchInput = document.getElementById('candy-tracker-search-input');
+  const candyTrackerResultsEl = document.getElementById('candy-tracker-results');
+  const candyTrackerTrackedListEl = document.getElementById('candy-tracker-tracked-list');
+
+  function addTrackedPokemon(name) {
+    if (candyTracker.trackedPokemon.some(p => p.toLowerCase() === name.toLowerCase())) return;
+    candyTracker.trackedPokemon.push(name);
+    saveCandyTracker();
+    candyTrackerSearchInput.value = '';
+    renderCandyTrackerManage();
+  }
+
+  function removeTrackedPokemon(name) {
+    candyTracker.trackedPokemon = candyTracker.trackedPokemon.filter(p => p !== name);
+    accountNames.forEach(account => {
+      if (candyTracker.candy[account]) delete candyTracker.candy[account][name];
+    });
+    saveCandyTracker();
+    renderCandyTrackerManage();
+  }
+
+  function renderCandyTrackerManage() {
+    const query = candyTrackerSearchInput.value.trim().toLowerCase();
+    const trackedLower = new Set(candyTracker.trackedPokemon.map(p => p.toLowerCase()));
+    const results = POKEDEX.filter(entry => {
+      if (trackedLower.has(entry.name.toLowerCase())) return false;
+      if (!query) return true;
+      return entry.name.toLowerCase().includes(query) || String(entry.num).includes(query);
+    }).slice(0, 30);
+
+    candyTrackerResultsEl.innerHTML = '';
+    results.forEach(entry => {
+      const row = document.createElement('div');
+      row.className = 'task-row';
+      row.tabIndex = 0;
+      row.setAttribute('role', 'button');
+      row.innerHTML = `
+        <span class="badge">#${String(entry.num).padStart(4, '0')}</span>
+        <span class="label">${entry.name}</span>
+      `;
+      const add = () => addTrackedPokemon(entry.name);
+      row.addEventListener('click', add);
+      row.addEventListener('keydown', (e) => {
+        if (e.key === ' ' || e.key === 'Enter') { e.preventDefault(); add(); }
+      });
+      candyTrackerResultsEl.appendChild(row);
+    });
+
+    candyTrackerTrackedListEl.innerHTML = '';
+    candyTracker.trackedPokemon.forEach(name => {
+      const row = document.createElement('div');
+      row.className = 'task-row';
+      row.innerHTML = `
+        <span class="badge">${candyDexLabel(name)}</span>
+        <span class="label">${name}</span>
+        <button class="modal-close" type="button" aria-label="Remove">&times;</button>
+      `;
+      row.querySelector('.modal-close').addEventListener('click', () => removeTrackedPokemon(name));
+      candyTrackerTrackedListEl.appendChild(row);
+    });
+  }
+
+  candyTrackerSearchInput.addEventListener('input', renderCandyTrackerManage);
+
+  renderCandyTrackerGrid();
 
   renderDashboard();
 
