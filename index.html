@@ -609,7 +609,8 @@
   #bulk-modal-backdrop .modal-accounts,
   #spend-modal-backdrop .modal-accounts,
   #gain-modal-backdrop .modal-accounts,
-  #move-modal-backdrop .modal-accounts { margin-top: 12px; }
+  #move-modal-backdrop .modal-accounts,
+  #candy-multi-modal-backdrop .modal-accounts { margin-top: 12px; }
 
   .modal-account-row {
     display: flex;
@@ -771,6 +772,32 @@
   }
   .candy-cell-value:hover, .candy-cell-value:focus-visible { background: var(--panel); outline: none; }
   .candy-cell-value + .candy-cell-value { border-left: 1px solid var(--line); }
+  .candy-cell-footer {
+    position: sticky;
+    left: 0;
+    z-index: 1;
+    background: var(--panel-2);
+    padding: 8px;
+    display: flex;
+    align-items: center;
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--text-faint);
+  }
+  .candy-cell-multi-btn {
+    flex: 1;
+    min-width: 0;
+    font: inherit;
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--accent);
+    background: transparent;
+    border: none;
+    padding: 9px 2px;
+    cursor: pointer;
+  }
+  .candy-cell-multi-btn:hover, .candy-cell-multi-btn:focus-visible { background: var(--panel); outline: none; }
+  .candy-cell-multi-btn + .candy-cell-multi-btn { border-left: 1px solid var(--line); }
 
   .candy-cell-modal-row { display: flex; align-items: center; gap: 10px; margin-top: 14px; }
   .candy-cell-modal-current {
@@ -1046,6 +1073,29 @@
         <button class="particle-btn" type="button" id="candy-cell-modal-plus">+</button>
         <button class="particle-btn" type="button" id="candy-cell-modal-minus">&minus;</button>
       </div>
+    </div>
+  </div>
+
+  <div class="modal-backdrop" id="candy-multi-modal-backdrop" hidden>
+    <div class="modal-panel">
+      <div class="modal-header">
+        <span class="modal-title" id="candy-multi-modal-title"></span>
+        <button class="modal-close" id="candy-multi-modal-close" type="button" aria-label="Close">&times;</button>
+      </div>
+      <button class="check-all-btn" id="candy-multi-select-all" type="button">Select all accounts</button>
+      <div class="modal-quick-row">
+        <button class="modal-quick-btn" id="candy-multi-team1-btn" type="button">Select Team 1</button>
+        <button class="modal-quick-btn" id="candy-multi-team2-btn" type="button">Select Team 2</button>
+      </div>
+      <div class="candy-cell-modal-row">
+        <input class="particle-manual-input" id="candy-multi-input" type="number" inputmode="numeric" placeholder="amount for selected accounts">
+      </div>
+      <div class="candy-cell-modal-btns">
+        <button class="particle-btn primary" type="button" id="candy-multi-replace">Replace</button>
+        <button class="particle-btn" type="button" id="candy-multi-plus">+</button>
+        <button class="particle-btn" type="button" id="candy-multi-minus">&minus;</button>
+      </div>
+      <div class="modal-accounts" id="candy-multi-accounts"></div>
     </div>
   </div>
 
@@ -3373,6 +3423,10 @@
       candyCellModalBackdrop.hidden = true;
       return;
     }
+    if (!candyMultiModalBackdrop.hidden) {
+      candyMultiModalBackdrop.hidden = true;
+      return;
+    }
     if (!viewParticleDetail.hidden) {
       currentParticleAccount = null;
       viewParticleDetail.hidden = true;
@@ -3809,6 +3863,26 @@
         candyGridEl.appendChild(pairEl);
       });
     });
+
+    if (tracked.length === 0) return;
+    const footerCell = document.createElement('div');
+    footerCell.className = 'candy-cell-footer';
+    footerCell.textContent = 'Edit multiple';
+    candyGridEl.appendChild(footerCell);
+    tracked.forEach(name => {
+      const pairEl = document.createElement('div');
+      pairEl.className = 'candy-cell-pair';
+      [0, 1].forEach(slot => {
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'candy-cell-multi-btn';
+        btn.textContent = 'Edit all';
+        btn.setAttribute('aria-label', `Edit ${name} ${slot === 0 ? 'candy' : 'candy XL'} for multiple accounts`);
+        btn.addEventListener('click', () => openCandyMultiModal(name, slot));
+        pairEl.appendChild(btn);
+      });
+      candyGridEl.appendChild(pairEl);
+    });
   }
 
   // --- Candy cell edit modal: tapping any table cell opens a small dialog
@@ -3856,6 +3930,102 @@
   candyCellModalInput.addEventListener('keydown', (e) => {
     if (e.key === 'Enter') applyCandyCellModal((current, value) => value);
   });
+  // --- Multi-account version of the cell modal: pick accounts, then apply
+  // Replace/+/- to all of them for one Pokemon+stat.
+  const candyMultiModalBackdrop = document.getElementById('candy-multi-modal-backdrop');
+  const candyMultiTitle = document.getElementById('candy-multi-modal-title');
+  const candyMultiInput = document.getElementById('candy-multi-input');
+  const candyMultiAccountsEl = document.getElementById('candy-multi-accounts');
+  const candyMultiSelectAllBtn = document.getElementById('candy-multi-select-all');
+  let candyMultiPokemon = null;
+  let candyMultiSlot = 0;
+  let candyMultiSelected = new Set();
+
+  function openCandyMultiModal(name, slot) {
+    candyMultiPokemon = name;
+    candyMultiSlot = slot;
+    candyMultiSelected = new Set();
+    candyMultiTitle.textContent = `${name}${slot === 1 ? ' (XL)' : ''} - multiple accounts`;
+    candyMultiInput.value = '';
+    renderCandyMultiAccounts();
+    candyMultiModalBackdrop.hidden = false;
+    history.pushState({ view: 'candy-multi-modal' }, '');
+  }
+
+  function closeCandyMultiModal() {
+    if (!candyMultiModalBackdrop.hidden) history.back();
+  }
+
+  function renderCandyMultiAccounts() {
+    candyMultiAccountsEl.innerHTML = '';
+    accountNames.forEach(account => {
+      const selected = candyMultiSelected.has(account);
+      const row = document.createElement('div');
+      row.className = 'modal-account-row' + (selected ? ' done' : '');
+      row.tabIndex = 0;
+      row.setAttribute('role', 'checkbox');
+      row.setAttribute('aria-checked', String(selected));
+      row.innerHTML = `
+        <span class="box">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#0e1620" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="4 12 10 18 20 6"></polyline>
+          </svg>
+        </span>
+        <span class="modal-account-text">
+          <span class="name">${teamNameHtml(account)}</span>
+          <span class="modal-account-total">${getCandyPair(account, candyMultiPokemon)[candyMultiSlot]}</span>
+        </span>
+      `;
+      const toggle = () => {
+        if (candyMultiSelected.has(account)) candyMultiSelected.delete(account);
+        else candyMultiSelected.add(account);
+        renderCandyMultiAccounts();
+      };
+      row.addEventListener('click', toggle);
+      row.addEventListener('keydown', (e) => {
+        if (e.key === ' ' || e.key === 'Enter') { e.preventDefault(); toggle(); }
+      });
+      candyMultiAccountsEl.appendChild(row);
+    });
+    const allSelected = accountNames.every(a => candyMultiSelected.has(a));
+    candyMultiSelectAllBtn.textContent = allSelected ? 'Deselect all accounts' : 'Select all accounts';
+  }
+
+  function applyCandyMulti(compute) {
+    const value = parseInt(candyMultiInput.value, 10);
+    if (Number.isNaN(value) || candyMultiSelected.size === 0) return;
+    candyMultiSelected.forEach(account => {
+      const current = getCandyPair(account, candyMultiPokemon)[candyMultiSlot];
+      setCandyValue(account, candyMultiPokemon, candyMultiSlot, compute(current, value));
+    });
+    renderCandyTrackerGrid();
+    closeCandyMultiModal();
+  }
+
+  document.getElementById('candy-multi-replace').addEventListener('click', () => applyCandyMulti((current, value) => value));
+  document.getElementById('candy-multi-plus').addEventListener('click', () => applyCandyMulti((current, value) => current + value));
+  document.getElementById('candy-multi-minus').addEventListener('click', () => applyCandyMulti((current, value) => current - value));
+  candyMultiInput.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') applyCandyMulti((current, value) => value);
+  });
+  candyMultiSelectAllBtn.addEventListener('click', () => {
+    if (accountNames.every(a => candyMultiSelected.has(a))) candyMultiSelected.clear();
+    else accountNames.forEach(a => candyMultiSelected.add(a));
+    renderCandyMultiAccounts();
+  });
+  document.getElementById('candy-multi-team1-btn').addEventListener('click', () => {
+    toggleGroupSelection(candyMultiSelected, TEAM_1_ACCOUNTS);
+    renderCandyMultiAccounts();
+  });
+  document.getElementById('candy-multi-team2-btn').addEventListener('click', () => {
+    toggleGroupSelection(candyMultiSelected, TEAM_2_ACCOUNTS);
+    renderCandyMultiAccounts();
+  });
+  document.getElementById('candy-multi-modal-close').addEventListener('click', closeCandyMultiModal);
+  candyMultiModalBackdrop.addEventListener('click', (e) => {
+    if (e.target === candyMultiModalBackdrop) closeCandyMultiModal();
+  });
+
   candyCellModalClose.addEventListener('click', closeCandyCellModal);
   candyCellModalBackdrop.addEventListener('click', (e) => {
     if (e.target === candyCellModalBackdrop) closeCandyCellModal();
