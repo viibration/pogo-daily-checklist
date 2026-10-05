@@ -100,6 +100,7 @@
   .panel-theme-violet [class*="grp-"]:hover { border-color: var(--grp-hover); }
   .panel-theme-violet .task-row[class*="grp-"] .badge { background: var(--grp-badge); }
   .panel-theme-violet .modal-quick-btn[class*="grp-"] { color: var(--grp-hover); }
+  .modal-quick-btn.all-done::after { content: " \2713"; color: var(--good); font-weight: 800; }
   .grp-farm { --grp-bg: #25205f; --grp-badge: #302a78; --grp-line: rgba(140, 130, 255, 0.55); --grp-hover: #8c82ff; }
   .grp-gift { --grp-bg: #4a1a35; --grp-badge: #5e2144; --grp-line: rgba(255, 120, 175, 0.55); --grp-hover: #ff78af; }
   .grp-raid { --grp-bg: #411818; --grp-badge: #542020; --grp-line: rgba(255, 90, 90, 0.55); --grp-hover: #ff5a5a; }
@@ -2071,6 +2072,24 @@
     });
 
     renderMasterTasks();
+    renderMultiCheckMarks();
+  }
+
+  // A multi-check button gets a green tick once every one of its tasks is
+  // done for every account.
+  const MULTI_CHECK_BUTTONS = {
+    'farm-open-btn': FARM_TASK_IDS,
+    'gift-open-btn': GIFT_TASK_IDS,
+    'boss-open-btn': DAILY_BOSS_TASK_IDS,
+    'max-open-btn': MAX_TASK_IDS,
+    'route-open-btn': ROUTE_TASK_IDS,
+    'pvp-open-btn': WIN_LEAGUE_TASK_IDS,
+  };
+  function renderMultiCheckMarks() {
+    Object.entries(MULTI_CHECK_BUTTONS).forEach(([btnId, ids]) => {
+      const allDone = accountNames.every(name => ids.every(id => !!state.accounts[name].done[id]));
+      document.getElementById(btnId).classList.toggle('all-done', allDone);
+    });
   }
 
   function accountsDoneFor(taskId) {
