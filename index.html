@@ -79,7 +79,7 @@
   .panel-theme-indigo .particle-btn { background: #181a33; color: #8f9fff; border-color: rgba(143, 159, 255, 0.4); }
   .panel-theme-indigo .particle-btn:hover { border-color: #8f9fff; }
 
-  .panel-theme-violet { background: #2a2140; border-color: rgba(179, 137, 255, 0.5); }
+  .panel-theme-violet { background: #1a2030; border-color: rgba(138, 148, 173, 0.45); }
   .panel-theme-violet .particle-actions-label { color: #b389ff; }
   .panel-theme-violet .particle-btn { background: #221b34; color: #b389ff; border-color: rgba(179, 137, 255, 0.4); }
   .panel-theme-violet .particle-btn:hover { border-color: #b389ff; }
@@ -94,6 +94,20 @@
   .panel-theme-violet .item:hover { border-color: #b389ff; }
   .panel-theme-violet .modal-quick-btn { background: #221b34; color: #b389ff; border-color: rgba(179, 137, 255, 0.4); }
   .panel-theme-violet .modal-quick-btn:hover { border-color: #b389ff; }
+
+  /* Task group button colours (set via task.group -> grp-* class). */
+  .panel-theme-violet [class*="grp-"] { background: var(--grp-bg); border-color: var(--grp-line); }
+  .panel-theme-violet [class*="grp-"]:hover { border-color: var(--grp-hover); }
+  .panel-theme-violet .task-row[class*="grp-"] .badge { background: var(--grp-badge); }
+  .panel-theme-violet .modal-quick-btn[class*="grp-"] { color: var(--grp-hover); }
+  .grp-farm { --grp-bg: #25205f; --grp-badge: #302a78; --grp-line: rgba(140, 130, 255, 0.55); --grp-hover: #8c82ff; }
+  .grp-gift { --grp-bg: #4a1a35; --grp-badge: #5e2144; --grp-line: rgba(255, 120, 175, 0.55); --grp-hover: #ff78af; }
+  .grp-raid { --grp-bg: #411818; --grp-badge: #542020; --grp-line: rgba(255, 90, 90, 0.55); --grp-hover: #ff5a5a; }
+  .grp-max { --grp-bg: #44300f; --grp-badge: #583f15; --grp-line: rgba(255, 169, 77, 0.55); --grp-hover: #ffa94d; }
+  .grp-league { --grp-bg: #12315a; --grp-badge: #1a4175; --grp-line: rgba(79, 168, 255, 0.55); --grp-hover: #4fa8ff; }
+  .grp-trade { --grp-bg: #0f3a36; --grp-badge: #164b46; --grp-line: rgba(79, 216, 216, 0.55); --grp-hover: #4fd8d8; }
+  .grp-rocket { --grp-bg: #0c0c10; --grp-badge: #1a1a22; --grp-line: rgba(200, 200, 215, 0.45); --grp-hover: #c8c8d8; }
+  .grp-route { --grp-bg: #2c3446; --grp-badge: #394359; --grp-line: rgba(210, 220, 240, 0.55); --grp-hover: #d6dff2; }
 
   .panel-theme-gold { background: #232a3a; border-color: rgba(138, 148, 173, 0.5); }
   .panel-theme-gold .particle-actions-label { color: #8a94ad; }
@@ -291,6 +305,17 @@
   .task-row:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
 
   .task-row .label { flex: 1; min-width: 0; font-size: 17px; }
+  .gender-f, .gender-m { font-weight: 800; margin-right: 4px; }
+  .gender-f { color: #ff6fb0; }
+  .gender-m { color: #4fa8ff; }
+  .type-fire { color: #ff9a4d; }
+  .type-fighting { color: #ff6459; }
+  .type-ground { color: #e6c36a; }
+  .type-rock { color: #c2ad4f; }
+  .type-dragon { color: #9b7dff; }
+  .type-steel { color: #b8c0d8; }
+  /* Black text would vanish on the dark panels, so it gets a light outline. */
+  .type-rocket { color: #000; -webkit-text-stroke: 3px #e8e8f0; paint-order: stroke fill; font-weight: 700; }
 
   .task-row .badge {
     flex-shrink: 0;
@@ -911,12 +936,16 @@
     <div class="panel panel-theme-violet">
       <button class="check-all-btn" id="bulk-open-btn" type="button">Check all tasks for account(s)&hellip;</button>
       <div class="modal-quick-row">
-        <button class="modal-quick-btn" id="farm-open-btn" type="button">Check farm task</button>
-        <button class="modal-quick-btn" id="boss-open-btn" type="button">Check daily boss</button>
+        <button class="modal-quick-btn grp-farm" id="farm-open-btn" type="button">Check farm task</button>
+        <button class="modal-quick-btn grp-gift" id="gift-open-btn" type="button">Check gift</button>
       </div>
       <div class="modal-quick-row">
-        <button class="modal-quick-btn" id="route-open-btn" type="button">Check route task</button>
-        <button class="modal-quick-btn" id="pvp-open-btn" type="button">Check win pvp all leagues</button>
+        <button class="modal-quick-btn grp-raid" id="boss-open-btn" type="button">Check daily boss</button>
+        <button class="modal-quick-btn grp-max" id="max-open-btn" type="button">Check Max</button>
+      </div>
+      <div class="modal-quick-row">
+        <button class="modal-quick-btn grp-route" id="route-open-btn" type="button">Check route task</button>
+        <button class="modal-quick-btn grp-league" id="pvp-open-btn" type="button">Check win pvp all leagues</button>
       </div>
       <button class="check-all-btn" id="custom-tasks-open-btn" type="button">Manage Tasks&hellip;</button>
       <div class="items" id="master-tasks"></div>
@@ -1116,12 +1145,16 @@
     <div class="panel panel-theme-violet">
       <button class="check-all-btn" id="checklist-check-all-btn" type="button">Check all</button>
       <div class="modal-quick-row">
-        <button class="modal-quick-btn" id="checklist-farm-btn" type="button">Check farm task</button>
-        <button class="modal-quick-btn" id="checklist-boss-btn" type="button">Check daily boss</button>
+        <button class="modal-quick-btn grp-farm" id="checklist-farm-btn" type="button">Check farm task</button>
+        <button class="modal-quick-btn grp-gift" id="checklist-gift-btn" type="button">Check gift</button>
       </div>
       <div class="modal-quick-row">
-        <button class="modal-quick-btn" id="checklist-route-btn" type="button">Check route task</button>
-        <button class="modal-quick-btn" id="checklist-pvp-btn" type="button">Check win pvp all leagues</button>
+        <button class="modal-quick-btn grp-raid" id="checklist-boss-btn" type="button">Check daily boss</button>
+        <button class="modal-quick-btn grp-max" id="checklist-max-btn" type="button">Check Max</button>
+      </div>
+      <div class="modal-quick-row">
+        <button class="modal-quick-btn grp-route" id="checklist-route-btn" type="button">Check route task</button>
+        <button class="modal-quick-btn grp-league" id="checklist-pvp-btn" type="button">Check win pvp all leagues</button>
       </div>
       <div class="items" id="items"></div>
       <button class="reset-btn" id="reset-btn" type="button">Reset today's checklist</button>
@@ -1471,22 +1504,62 @@
     { id: 'raid-boss', label: 'Raid Boss' },
     { id: 'max-particle', label: 'Max Particle' },
     { id: 'max-raid', label: 'Max Battle' },
+    { id: 'route-1', label: 'Route 1', detail: 'Route 1 - Zygarde' },
+    { id: 'route-2', label: 'Route 2', detail: 'Route 2 - Bryant Park small loop' },
+    { id: 'route-3', label: 'Route 3', detail: 'Route 3 - Bryant park one' },
+    { id: 'route-4', label: 'Route 4', detail: 'Route 4 - Around Bryant Park' },
+    { id: 'route-5', label: 'Route 5', detail: 'Route 5 - Yep pokemongo' },
+    { id: 'route-6', label: 'Route 6', detail: 'Route 6 - BP Inside Lap' },
     { id: 'league-master', label: 'Win Master League' },
     { id: 'league-ultra', label: 'Win Ultra League' },
     { id: 'league-great', label: 'Win Great League' },
+    { id: 'rocket-balloon', label: 'Rocket Balloon', type: 'rocket' },
+    { id: 'grunt-f-fire', label: 'F-Fire Grunt', detail: 'F-Fire Grunt: Torchic', type: 'fire' },
+    { id: 'grunt-f-fighting', label: 'F-Fighting Grunt', detail: 'F-Fighting Grunt: Timburr', type: 'fighting' },
+    { id: 'grunt-m-ground', label: 'M-Ground Grunt', detail: 'M-Ground Grunt: Rhyhorn', type: 'ground' },
+    { id: 'grunt-m-rock', label: 'M-Rock Grunt', detail: 'M-Rock Grunt: Cranidos', type: 'rock' },
+    { id: 'grunt-f-dragon-deino', label: 'F-Dragon Grunt', detail: 'F-Dragon Grunt: Deino', type: 'dragon' },
+    { id: 'grunt-f-dragon-axew', label: 'F-Dragon Grunt', detail: 'F-Dragon Grunt: Axew', type: 'dragon' },
+    { id: 'grunt-m-steel', label: 'M-Steel Grunt', detail: 'M-Steel Grunt: Beldum', type: 'steel' },
     { id: 'special-trade', label: 'Daily Trade' },
-    { id: 'route-1', label: 'R1: Zygarde' },
-    { id: 'route-2', label: 'R2: Bryant Park small loop' },
-    { id: 'route-3', label: 'R3: Bryant park one' },
-    { id: 'route-4', label: 'R4: Around Bryant Park' },
-    { id: 'route-5', label: 'R5: Yep pokemongo' },
-    { id: 'route-6', label: 'R6: BP Inside Lap' },
   ];
+
+  // A leading "F-"/"M-" in a task name renders as a pink female / blue male
+  // symbol. The U+FE0E selector forces text presentation so the CSS colour
+  // applies instead of the platform's emoji glyph.
+  // An optional task `type` also tints the rest of the text in that type's colour.
+  function taskTextHtml(text, type) {
+    let html = String(text).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    let prefix = '';
+    html = html.replace(/^([FM])-/, (_, g) => {
+      prefix = g === 'F'
+        ? '<span class="gender-f">&#9792;&#xFE0E;</span>'
+        : '<span class="gender-m">&#9794;&#xFE0E;</span>';
+      return '';
+    });
+    return prefix + (type ? `<span class="type-${type}">${html}</span>` : html);
+  }
 
   const FARM_TASK_IDS = ['first-catch', 'first-spin', 'first-research', 'daily-incense'];
   const ROUTE_TASK_IDS = ['route-1', 'route-2', 'route-3', 'route-4', 'route-5', 'route-6'];
   const WIN_LEAGUE_TASK_IDS = ['league-master', 'league-ultra', 'league-great'];
   const DAILY_BOSS_TASK_IDS = ['daily-raid-pass', 'raid-boss'];
+  const GIFT_TASK_IDS = ['send-gifts', 'open-gift'];
+  const MAX_TASK_IDS = ['max-particle', 'max-raid'];
+
+  // Tasks in the same group share one button colour (grp-* classes below).
+  [
+    ['farm', FARM_TASK_IDS],
+    ['gift', GIFT_TASK_IDS],
+    ['raid', DAILY_BOSS_TASK_IDS],
+    ['max', MAX_TASK_IDS],
+    ['league', WIN_LEAGUE_TASK_IDS],
+    ['trade', ['special-trade']],
+    ['rocket', tasks.filter(t => t.id === 'rocket-balloon' || t.id.startsWith('grunt-')).map(t => t.id)],
+    ['route', ROUTE_TASK_IDS],
+  ].forEach(([group, ids]) => {
+    tasks.forEach(t => { if (ids.includes(t.id)) t.group = group; });
+  });
 
   // Custom tasks are user-added extras layered on top of the fixed list
   // above; they live in state.customTasks and persist across the daily
@@ -1536,6 +1609,12 @@
       seen.add(t.id);
     });
     state.customTasks.forEach(t => { if (!seen.has(t.id)) { ordered.push(t); seen.add(t.id); } });
+    // Fixed tasks can't be dragged, so they always follow the order in the
+    // `tasks` array - even on a device whose saved taskOrder predates a
+    // reorder. Custom tasks keep the slots they were dragged into.
+    const fixedIds = new Set(tasks.map(t => t.id));
+    let nextFixed = 0;
+    ordered.forEach((t, i) => { if (fixedIds.has(t.id)) ordered[i] = tasks[nextFixed++]; });
     return ordered;
   }
 
@@ -2007,11 +2086,11 @@
       const partial = doneAccounts.length > 0 && !complete;
 
       const row = document.createElement('div');
-      row.className = 'task-row';
+      row.className = 'task-row' + (task.group ? ' grp-' + task.group : '');
       row.tabIndex = 0;
       row.setAttribute('role', 'button');
       row.innerHTML = `
-        <span class="label">${task.label}</span>
+        <span class="label">${taskTextHtml(task.label, task.type)}</span>
         <span class="badge${complete ? ' complete' : ''}${partial ? ' partial' : ''}">${doneAccounts.length} / ${total}</span>
       `;
       row.addEventListener('click', () => openModal(task.id));
@@ -2028,7 +2107,7 @@
   function openModal(taskId) {
     const task = allTasks().find(t => t.id === taskId);
     modalTaskId = taskId;
-    modalTitleEl.textContent = task.label;
+    modalTitleEl.innerHTML = taskTextHtml(task.detail || task.label, task.type);
     renderModalAccounts();
     modalBackdrop.hidden = false;
     history.pushState({ view: 'modal' }, '');
@@ -2120,9 +2199,9 @@
     return bulkTaskIds || countableTasks().map(t => t.id);
   }
 
-  function openBulkModal(taskIds, scopeLabel, quickSelect) {
+  function openBulkModal(taskIds, title, quickSelect) {
     bulkTaskIds = taskIds;
-    bulkModalTitleEl.textContent = `Check ${scopeLabel}`;
+    bulkModalTitleEl.textContent = title;
     const isDuo = quickSelect === 'duo';
     bulkFirst4Last4Row.hidden = isDuo;
     bulkDuoRow1.hidden = !isDuo;
@@ -2186,11 +2265,13 @@
     renderDashboard();
   }
 
-  bulkOpenBtn.addEventListener('click', () => openBulkModal(null, 'all tasks'));
-  document.getElementById('farm-open-btn').addEventListener('click', () => openBulkModal(FARM_TASK_IDS, 'farm task'));
-  document.getElementById('route-open-btn').addEventListener('click', () => openBulkModal(ROUTE_TASK_IDS, 'route task'));
-  document.getElementById('pvp-open-btn').addEventListener('click', () => openBulkModal(WIN_LEAGUE_TASK_IDS, 'win PvP league task', 'duo'));
-  document.getElementById('boss-open-btn').addEventListener('click', () => openBulkModal(DAILY_BOSS_TASK_IDS, 'daily boss task'));
+  bulkOpenBtn.addEventListener('click', () => openBulkModal(null, 'Check all tasks'));
+  document.getElementById('farm-open-btn').addEventListener('click', () => openBulkModal(FARM_TASK_IDS, 'Check farm task - Catch + Spin + Research + Daily Incense'));
+  document.getElementById('route-open-btn').addEventListener('click', () => openBulkModal(ROUTE_TASK_IDS, 'Check route task: Route 1 (Zygarde) - Route 6 (BP Inside Lap)'));
+  document.getElementById('pvp-open-btn').addEventListener('click', () => openBulkModal(WIN_LEAGUE_TASK_IDS, 'Check win PvP league task', 'duo'));
+  document.getElementById('boss-open-btn').addEventListener('click', () => openBulkModal(DAILY_BOSS_TASK_IDS, 'Check daily boss - Free Pass + Boss battle'));
+  document.getElementById('gift-open-btn').addEventListener('click', () => openBulkModal(GIFT_TASK_IDS, 'Check gift - Send gift + Open gift'));
+  document.getElementById('max-open-btn').addEventListener('click', () => openBulkModal(MAX_TASK_IDS, 'Check Max - Max Particle + Max Battle'));
   bulkModalCloseBtn.addEventListener('click', closeBulkModal);
   bulkModalBackdrop.addEventListener('click', (e) => {
     if (e.target === bulkModalBackdrop) closeBulkModal();
@@ -3084,7 +3165,7 @@
       row.dataset.taskId = task.id;
       row.innerHTML = `
         ${isCustom ? '<span class="drag-handle" aria-label="Drag to reposition">&#8942;&#8942;</span>' : ''}
-        <span class="label">${task.label}</span>
+        <span class="label">${taskTextHtml(task.label, task.type)}</span>
         ${isCustom ? '' : '<span class="badge">Fixed</span>'}
         ${isCustom ? '<button class="modal-close" type="button" aria-label="Remove task">&times;</button>' : ''}
       `;
@@ -3471,7 +3552,7 @@
     allTasks().forEach(task => {
       const isDone = !!done[task.id];
       const row = document.createElement('div');
-      row.className = 'item' + (isDone ? ' done' : '');
+      row.className = 'item' + (isDone ? ' done' : '') + (task.group ? ' grp-' + task.group : '');
       row.tabIndex = 0;
       row.setAttribute('role', 'checkbox');
       row.setAttribute('aria-checked', String(isDone));
@@ -3481,7 +3562,7 @@
             <polyline points="4 12 10 18 20 6"></polyline>
           </svg>
         </span>
-        <span class="label">${task.label}</span>
+        <span class="label">${taskTextHtml(task.label, task.type)}</span>
       `;
       row.addEventListener('click', () => toggle(task.id));
       row.addEventListener('keydown', (e) => {
@@ -3530,6 +3611,8 @@
   document.getElementById('checklist-farm-btn').addEventListener('click', () => toggleChecklistTasks(FARM_TASK_IDS));
   document.getElementById('checklist-route-btn').addEventListener('click', () => toggleChecklistTasks(ROUTE_TASK_IDS));
   document.getElementById('checklist-pvp-btn').addEventListener('click', () => toggleChecklistTasks(WIN_LEAGUE_TASK_IDS));
+  document.getElementById('checklist-gift-btn').addEventListener('click', () => toggleChecklistTasks(GIFT_TASK_IDS));
+  document.getElementById('checklist-max-btn').addEventListener('click', () => toggleChecklistTasks(MAX_TASK_IDS));
   document.getElementById('checklist-boss-btn').addEventListener('click', () => toggleChecklistTasks(DAILY_BOSS_TASK_IDS));
 
   resetBtn.addEventListener('click', () => {
