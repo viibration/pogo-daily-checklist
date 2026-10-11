@@ -798,6 +798,29 @@
   }
   .candy-cell-value:hover, .candy-cell-value:focus-visible { background: var(--panel); outline: none; }
   .candy-cell-value + .candy-cell-value { border-left: 1px solid var(--line); }
+  .pt-cell {
+    background: var(--panel-2);
+    border: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 10px 4px;
+    cursor: pointer;
+  }
+  .pt-cell:hover, .pt-cell:focus-visible { background: var(--panel); outline: none; }
+  .pt-box {
+    width: 24px;
+    height: 24px;
+    border: 2px solid var(--text-faint);
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .pt-box svg { width: 15px; height: 15px; opacity: 0; }
+  .pt-cell.checked .pt-box { background: var(--good); border-color: var(--good); }
+  .pt-cell.checked .pt-box svg { opacity: 1; }
+  .pt-form-radios { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
   .candy-cell-footer {
     position: sticky;
     left: 0;
@@ -904,6 +927,7 @@
         <button class="app-tab" data-tab="candy" type="button">Power Up Calculator</button>
         <button class="app-tab" data-tab="pokedex" type="button">Pokedex Search</button>
         <button class="app-tab" data-tab="candy-tracker" type="button">Candy Tracker</button>
+        <button class="app-tab" data-tab="pokemon-tracker" type="button">Pokemon Tracker</button>
       </div>
       <div class="tz-row">
         <div class="tz-tabs" id="tz-tabs"></div>
@@ -1170,6 +1194,7 @@
         <button class="app-tab" data-tab="candy" type="button">Power Up Calculator</button>
         <button class="app-tab" data-tab="pokedex" type="button">Pokedex Search</button>
         <button class="app-tab" data-tab="candy-tracker" type="button">Candy Tracker</button>
+        <button class="app-tab" data-tab="pokemon-tracker" type="button">Pokemon Tracker</button>
       </div>
       <div class="tz-row">
         <div class="tz-tabs" id="tz-tabs-2"></div>
@@ -1307,6 +1332,7 @@
         <button class="app-tab active" data-tab="candy" type="button">Power Up Calculator</button>
         <button class="app-tab" data-tab="pokedex" type="button">Pokedex Search</button>
         <button class="app-tab" data-tab="candy-tracker" type="button">Candy Tracker</button>
+        <button class="app-tab" data-tab="pokemon-tracker" type="button">Pokemon Tracker</button>
       </div>
     </div>
     <div class="panel">
@@ -1423,6 +1449,7 @@
         <button class="app-tab" data-tab="candy" type="button">Power Up Calculator</button>
         <button class="app-tab active" data-tab="pokedex" type="button">Pokedex Search</button>
         <button class="app-tab" data-tab="candy-tracker" type="button">Candy Tracker</button>
+        <button class="app-tab" data-tab="pokemon-tracker" type="button">Pokemon Tracker</button>
       </div>
     </div>
     <div class="panel panel-theme-indigo">
@@ -1459,6 +1486,7 @@
         <button class="app-tab" data-tab="candy" type="button">Power Up Calculator</button>
         <button class="app-tab" data-tab="pokedex" type="button">Pokedex Search</button>
         <button class="app-tab active" data-tab="candy-tracker" type="button">Candy Tracker</button>
+        <button class="app-tab" data-tab="pokemon-tracker" type="button">Pokemon Tracker</button>
       </div>
     </div>
     <div class="panel panel-theme-indigo">
@@ -1489,6 +1517,55 @@
     <div class="panel">
       <div class="particle-actions-label">Currently tracked</div>
       <div class="items" id="candy-tracker-tracked-list"></div>
+    </div>
+  </div>
+
+  <div id="view-pokemon-tracker" hidden>
+    <div class="panel">
+      <div class="app-tabs">
+        <button class="app-tab" data-tab="dashboard" type="button">Daily Checklist</button>
+        <button class="app-tab" data-tab="particles" type="button">Max Particle</button>
+        <button class="app-tab" data-tab="candy" type="button">Power Up Calculator</button>
+        <button class="app-tab" data-tab="pokedex" type="button">Pokedex Search</button>
+        <button class="app-tab" data-tab="candy-tracker" type="button">Candy Tracker</button>
+        <button class="app-tab active" data-tab="pokemon-tracker" type="button">Pokemon Tracker</button>
+      </div>
+    </div>
+    <div class="panel panel-theme-indigo">
+      <div class="particle-actions-label" id="pokemon-tracker-count-label">0 Pok&eacute;mon tracked</div>
+      <button class="check-all-btn" id="pokemon-tracker-manage-btn" type="button" style="margin-bottom: 0;">Manage tracked Pok&eacute;mon&hellip;</button>
+    </div>
+    <div class="panel">
+      <div class="candy-table-wrap">
+        <div class="candy-grid" id="pokemon-tracker-grid"></div>
+      </div>
+      <div class="particle-actions-label" style="margin-top: 10px; margin-bottom: 0; font-weight: 400; color: var(--text-faint); font-size: 12px; line-height: 1.5;">Tick a box when that account has the Pok&eacute;mon. An empty box means it&rsquo;s still missing.</div>
+    </div>
+  </div>
+
+  <div id="view-pokemon-tracker-manage" hidden>
+    <div class="panel">
+      <div class="header">
+        <div class="header-with-back">
+          <button class="back-btn" id="pokemon-tracker-manage-back-btn" type="button" aria-label="Back to Pokemon Tracker">&larr;</button>
+          <h1>Manage Tracked Pok&eacute;mon</h1>
+        </div>
+      </div>
+      <input class="particle-manual-input" id="pokemon-tracker-search-input" type="text" placeholder="Search Pok&eacute;mon by name or number&hellip;" style="display: block; width: 100%; margin-top: 10px;">
+      <div class="particle-actions-label" style="margin: 14px 0 8px;">Add as</div>
+      <div class="pt-form-radios" id="pokemon-tracker-forms">
+        <label class="maxmove-check maxmove-radio"><input type="radio" name="pt-form" value="dynamax"> Dynamax</label>
+        <label class="maxmove-check maxmove-radio"><input type="radio" name="pt-form" value="gigantamax"> Gigantamax</label>
+        <label class="maxmove-check maxmove-radio"><input type="radio" name="pt-form" value="shadow"> Shadow</label>
+        <label class="maxmove-check maxmove-radio"><input type="radio" name="pt-form" value="" checked> None</label>
+      </div>
+    </div>
+    <div class="panel">
+      <div class="items" id="pokemon-tracker-results"></div>
+    </div>
+    <div class="panel">
+      <div class="particle-actions-label">Currently tracked</div>
+      <div class="items" id="pokemon-tracker-tracked-list"></div>
     </div>
   </div>
 </div>
@@ -1791,6 +1868,8 @@
   const viewPokedex = document.getElementById('view-pokedex');
   const viewCandyTracker = document.getElementById('view-candy-tracker');
   const viewCandyTrackerManage = document.getElementById('view-candy-tracker-manage');
+  const viewPokemonTracker = document.getElementById('view-pokemon-tracker');
+  const viewPokemonTrackerManage = document.getElementById('view-pokemon-tracker-manage');
   const viewCustomTasks = document.getElementById('view-custom-tasks');
   const viewSync = document.getElementById('view-sync');
   const accountsEl = document.getElementById('accounts');
@@ -2878,13 +2957,14 @@
   // (equal priority), not a parent/child pair, so switching between them
   // doesn't push a history entry - only genuine sub-views (account
   // checklist, particle detail, custom tasks, sync, modals) do that.
-  const ROOT_TAB_ORDER = ['dashboard', 'particles', 'candy', 'pokedex', 'candy-tracker'];
+  const ROOT_TAB_ORDER = ['dashboard', 'particles', 'candy', 'pokedex', 'candy-tracker', 'pokemon-tracker'];
   function switchTab(tab) {
     viewDashboard.hidden = tab !== 'dashboard';
     viewParticles.hidden = tab !== 'particles';
     viewCandy.hidden = tab !== 'candy';
     viewPokedex.hidden = tab !== 'pokedex';
     viewCandyTracker.hidden = tab !== 'candy-tracker';
+    viewPokemonTracker.hidden = tab !== 'pokemon-tracker';
     document.querySelectorAll('.app-tab').forEach(btn => {
       btn.classList.toggle('active', btn.dataset.tab === tab);
     });
@@ -2892,6 +2972,7 @@
     else if (tab === 'particles') renderParticleList();
     else if (tab === 'candy') renderCandyCalculator();
     else if (tab === 'candy-tracker') renderCandyTrackerGrid();
+    else if (tab === 'pokemon-tracker') renderPokemonTrackerGrid();
   }
 
   document.querySelectorAll('.app-tab').forEach(btn => {
@@ -2904,6 +2985,7 @@
     if (!viewCandy.hidden) return 'candy';
     if (!viewPokedex.hidden) return 'pokedex';
     if (!viewCandyTracker.hidden) return 'candy-tracker';
+    if (!viewPokemonTracker.hidden) return 'pokemon-tracker';
     return null;
   }
 
@@ -3544,6 +3626,12 @@
       viewCandyTrackerManage.hidden = true;
       viewCandyTracker.hidden = false;
       renderCandyTrackerGrid();
+      return;
+    }
+    if (!viewPokemonTrackerManage.hidden) {
+      viewPokemonTrackerManage.hidden = true;
+      viewPokemonTracker.hidden = false;
+      renderPokemonTrackerGrid();
       return;
     }
     if (!viewSync.hidden) {
@@ -4213,6 +4301,221 @@
   candyTrackerSearchInput.addEventListener('input', renderCandyTrackerManage);
 
   renderCandyTrackerGrid();
+
+  // --- Pokemon Tracker: same layout as Candy Tracker, but one column per
+  // tracked Pokemon and a checkbox per account meaning "this account has
+  // it" (unticked = still missing). A tracked entry is a species plus an
+  // optional Dynamax / Gigantamax / Shadow form, so e.g. Pikachu and
+  // Shadow Pikachu are separate columns. Own localStorage key, device-local
+  // and never part of Manual Sync, like Candy Tracker.
+  const POKEMON_TRACKER_KEY = 'pogo-daily-checklist-pokemon-tracker';
+  const PT_FORM_LABELS = { dynamax: 'Dynamax', gigantamax: 'Gigantamax', shadow: 'Shadow' };
+
+  function loadPokemonTracker() {
+    try {
+      const raw = JSON.parse(localStorage.getItem(POKEMON_TRACKER_KEY) || '{}');
+      return {
+        tracked: Array.isArray(raw.tracked)
+          ? raw.tracked.filter(p => p && typeof p.name === 'string' && (!p.form || PT_FORM_LABELS[p.form]))
+          : [],
+        have: raw.have && typeof raw.have === 'object' ? raw.have : {},
+      };
+    } catch {
+      return { tracked: [], have: {} };
+    }
+  }
+  function savePokemonTracker() {
+    localStorage.setItem(POKEMON_TRACKER_KEY, JSON.stringify(pokemonTracker));
+  }
+  let pokemonTracker = loadPokemonTracker();
+
+  const ptKey = (p) => `${p.form || 'normal'}:${p.name}`;
+  const ptDisplayName = (p) => (p.form ? `${PT_FORM_LABELS[p.form]} ${p.name}` : p.name);
+  const ptHas = (account, p) => !!(pokemonTracker.have[account] && pokemonTracker.have[account][ptKey(p)]);
+
+  const pokemonTrackerCountLabel = document.getElementById('pokemon-tracker-count-label');
+  const pokemonTrackerGridEl = document.getElementById('pokemon-tracker-grid');
+
+  function renderPokemonTrackerGrid() {
+    const tracked = pokemonTracker.tracked;
+    pokemonTrackerCountLabel.textContent = tracked.length === 1 ? '1 Pokémon tracked' : `${tracked.length} Pokémon tracked`;
+    pokemonTrackerGridEl.innerHTML = '';
+    pokemonTrackerGridEl.style.gridTemplateColumns = `128px repeat(${tracked.length}, 104px)`;
+
+    const corner = document.createElement('div');
+    corner.className = 'candy-cell-corner';
+    corner.textContent = 'Account';
+    pokemonTrackerGridEl.appendChild(corner);
+
+    tracked.forEach(p => {
+      const head = document.createElement('div');
+      head.className = 'candy-cell-header';
+      head.textContent = ptDisplayName(p);
+      pokemonTrackerGridEl.appendChild(head);
+    });
+
+    const checkboxHtml = `
+      <span class="pt-box">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#0e1620" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="4 12 10 18 20 6"></polyline>
+        </svg>
+      </span>
+    `;
+    // Repaint callbacks per column, so a single tick can refresh the
+    // column's "all" box and the "all" box can refresh every tick in it.
+    const columnPaints = new Map(tracked.map(p => [ptKey(p), []]));
+    const footerPaints = new Map();
+    const setHas = (account, p, has) => {
+      if (!pokemonTracker.have[account]) pokemonTracker.have[account] = {};
+      if (has) pokemonTracker.have[account][ptKey(p)] = true;
+      else delete pokemonTracker.have[account][ptKey(p)];
+    };
+
+    accountNames.forEach(account => {
+      const acctCell = document.createElement('div');
+      acctCell.className = 'candy-cell-account';
+      acctCell.textContent = account;
+      pokemonTrackerGridEl.appendChild(acctCell);
+
+      tracked.forEach(p => {
+        const cell = document.createElement('button');
+        cell.type = 'button';
+        cell.setAttribute('role', 'checkbox');
+        cell.innerHTML = checkboxHtml;
+        const paint = () => {
+          const has = ptHas(account, p);
+          cell.className = 'pt-cell' + (has ? ' checked' : '');
+          cell.setAttribute('aria-checked', String(has));
+          cell.setAttribute('aria-label', `${account} has ${ptDisplayName(p)}`);
+        };
+        paint();
+        columnPaints.get(ptKey(p)).push(paint);
+        cell.addEventListener('click', () => {
+          setHas(account, p, !ptHas(account, p));
+          savePokemonTracker();
+          paint();
+          footerPaints.get(ptKey(p))();
+        });
+        pokemonTrackerGridEl.appendChild(cell);
+      });
+    });
+
+    if (tracked.length === 0) return;
+    const footerLabel = document.createElement('div');
+    footerLabel.className = 'candy-cell-footer';
+    footerLabel.textContent = 'Check all';
+    pokemonTrackerGridEl.appendChild(footerLabel);
+    tracked.forEach(p => {
+      const cell = document.createElement('button');
+      cell.type = 'button';
+      cell.setAttribute('role', 'checkbox');
+      cell.innerHTML = checkboxHtml;
+      const allHave = () => accountNames.every(account => ptHas(account, p));
+      const paint = () => {
+        const all = allHave();
+        cell.className = 'pt-cell' + (all ? ' checked' : '');
+        cell.setAttribute('aria-checked', String(all));
+        cell.setAttribute('aria-label', `Check or uncheck all accounts for ${ptDisplayName(p)}`);
+      };
+      paint();
+      footerPaints.set(ptKey(p), paint);
+      cell.addEventListener('click', () => {
+        const target = !allHave();
+        accountNames.forEach(account => setHas(account, p, target));
+        savePokemonTracker();
+        columnPaints.get(ptKey(p)).forEach(fn => fn());
+        paint();
+      });
+      pokemonTrackerGridEl.appendChild(cell);
+    });
+  }
+
+  const pokemonTrackerSearchInput = document.getElementById('pokemon-tracker-search-input');
+  const pokemonTrackerResultsEl = document.getElementById('pokemon-tracker-results');
+  const pokemonTrackerTrackedListEl = document.getElementById('pokemon-tracker-tracked-list');
+  const pokemonTrackerFormsEl = document.getElementById('pokemon-tracker-forms');
+
+  function selectedPtForm() {
+    return pokemonTrackerFormsEl.querySelector('input[name="pt-form"]:checked').value;
+  }
+
+  function openPokemonTrackerManage() {
+    viewPokemonTracker.hidden = true;
+    viewPokemonTrackerManage.hidden = false;
+    pokemonTrackerSearchInput.value = '';
+    pokemonTrackerFormsEl.querySelector('input[name="pt-form"][value=""]').checked = true;
+    renderPokemonTrackerManage();
+    history.pushState({ view: 'pokemon-tracker-manage' }, '');
+  }
+  function closePokemonTrackerManage() {
+    if (!viewPokemonTrackerManage.hidden) history.back();
+  }
+  document.getElementById('pokemon-tracker-manage-btn').addEventListener('click', openPokemonTrackerManage);
+  document.getElementById('pokemon-tracker-manage-back-btn').addEventListener('click', closePokemonTrackerManage);
+
+  function addPokemonTrackerEntry(name) {
+    const entry = { name, form: selectedPtForm() };
+    if (pokemonTracker.tracked.some(p => ptKey(p) === ptKey(entry))) return;
+    pokemonTracker.tracked.push(entry);
+    savePokemonTracker();
+    pokemonTrackerSearchInput.value = '';
+    renderPokemonTrackerManage();
+  }
+
+  function removePokemonTrackerEntry(entry) {
+    const key = ptKey(entry);
+    pokemonTracker.tracked = pokemonTracker.tracked.filter(p => ptKey(p) !== key);
+    Object.values(pokemonTracker.have).forEach(perAccount => { delete perAccount[key]; });
+    savePokemonTracker();
+    renderPokemonTrackerManage();
+  }
+
+  function renderPokemonTrackerManage() {
+    const query = pokemonTrackerSearchInput.value.trim().toLowerCase();
+    const form = selectedPtForm();
+    const trackedKeys = new Set(pokemonTracker.tracked.map(ptKey));
+    const results = POKEDEX.filter(entry => {
+      if (trackedKeys.has(ptKey({ name: entry.name, form }))) return false;
+      if (!query) return true;
+      return entry.name.toLowerCase().includes(query) || String(entry.num).includes(query);
+    }).slice(0, 30);
+
+    pokemonTrackerResultsEl.innerHTML = '';
+    results.forEach(entry => {
+      const row = document.createElement('div');
+      row.className = 'task-row';
+      row.tabIndex = 0;
+      row.setAttribute('role', 'button');
+      row.innerHTML = `
+        <span class="badge">#${String(entry.num).padStart(4, '0')}</span>
+        <span class="label">${ptDisplayName({ name: entry.name, form })}</span>
+      `;
+      const add = () => addPokemonTrackerEntry(entry.name);
+      row.addEventListener('click', add);
+      row.addEventListener('keydown', (e) => {
+        if (e.key === ' ' || e.key === 'Enter') { e.preventDefault(); add(); }
+      });
+      pokemonTrackerResultsEl.appendChild(row);
+    });
+
+    pokemonTrackerTrackedListEl.innerHTML = '';
+    pokemonTracker.tracked.forEach(p => {
+      const row = document.createElement('div');
+      row.className = 'task-row';
+      row.innerHTML = `
+        <span class="badge">${candyDexLabel(p.name)}</span>
+        <span class="label">${ptDisplayName(p)}</span>
+        <button class="modal-close" type="button" aria-label="Remove">&times;</button>
+      `;
+      row.querySelector('.modal-close').addEventListener('click', () => removePokemonTrackerEntry(p));
+      pokemonTrackerTrackedListEl.appendChild(row);
+    });
+  }
+
+  pokemonTrackerSearchInput.addEventListener('input', renderPokemonTrackerManage);
+  pokemonTrackerFormsEl.addEventListener('change', renderPokemonTrackerManage);
+
+  renderPokemonTrackerGrid();
 
   renderDashboard();
 
