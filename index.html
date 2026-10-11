@@ -820,6 +820,30 @@
   .pt-box svg { width: 15px; height: 15px; opacity: 0; }
   .pt-cell.checked .pt-box { background: var(--good); border-color: var(--good); }
   .pt-cell.checked .pt-box svg { opacity: 1; }
+  /* "Check all" row: deliberately unlike the account rows (thick white top
+     edge, lighter fill, white text) so it isn't tapped by mistake. */
+  .pt-footer { background: #3a4a6e; border-top: 4px solid #fff; padding-top: 16px; padding-bottom: 16px; }
+  .pt-footer:hover, .pt-footer:focus-visible { background: #46587f; }
+  .candy-cell-footer.pt-footer { color: #fff; font-size: 13px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.04em; }
+  .pt-footer .pt-box { border-color: #fff; }
+  .pt-footer.checked .pt-box { border-color: var(--good); }
+  .clear-tracked-btn {
+    display: block;
+    width: 100%;
+    margin-top: 12px;
+    font: inherit;
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--bad);
+    background: var(--panel-2);
+    border: 1px dashed rgba(255, 122, 104, 0.5);
+    border-radius: 8px;
+    padding: 9px;
+    cursor: pointer;
+  }
+  .clear-tracked-btn:hover { border-color: var(--bad); }
+  .clear-tracked-btn:focus-visible { outline: 2px solid var(--bad); outline-offset: 1px; }
+  .clear-tracked-btn:disabled { opacity: 0.35; cursor: not-allowed; pointer-events: none; }
   .pt-form-radios { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
   .candy-cell-footer {
     position: sticky;
@@ -1510,6 +1534,7 @@
         </div>
       </div>
       <input class="particle-manual-input" id="candy-tracker-search-input" type="text" placeholder="Search Pok&eacute;mon by name or number&hellip;" style="display: block; width: 100%; margin-top: 10px;">
+      <button class="clear-tracked-btn" id="candy-tracker-clear-btn" type="button">Clear all tracked Pok&eacute;mon</button>
     </div>
     <div class="panel">
       <div class="items" id="candy-tracker-results"></div>
@@ -1559,6 +1584,7 @@
         <label class="maxmove-check maxmove-radio"><input type="radio" name="pt-form" value="shadow"> Shadow</label>
         <label class="maxmove-check maxmove-radio"><input type="radio" name="pt-form" value="" checked> None</label>
       </div>
+      <button class="clear-tracked-btn" id="pokemon-tracker-clear-btn" type="button">Clear all tracked Pok&eacute;mon</button>
     </div>
     <div class="panel">
       <div class="items" id="pokemon-tracker-results"></div>
@@ -4284,6 +4310,7 @@
       candyTrackerResultsEl.appendChild(row);
     });
 
+    candyTrackerClearBtn.disabled = candyTracker.trackedPokemon.length === 0;
     candyTrackerTrackedListEl.innerHTML = '';
     candyTracker.trackedPokemon.forEach(name => {
       const row = document.createElement('div');
@@ -4299,6 +4326,16 @@
   }
 
   candyTrackerSearchInput.addEventListener('input', renderCandyTrackerManage);
+
+  const candyTrackerClearBtn = document.getElementById('candy-tracker-clear-btn');
+  candyTrackerClearBtn.addEventListener('click', () => {
+    const count = candyTracker.trackedPokemon.length;
+    if (!count || !confirm(`Remove all ${count} tracked Pokémon and their candy numbers?`)) return;
+    candyTracker.trackedPokemon = [];
+    candyTracker.candy = {};
+    saveCandyTracker();
+    renderCandyTrackerManage();
+  });
 
   renderCandyTrackerGrid();
 
@@ -4402,7 +4439,7 @@
 
     if (tracked.length === 0) return;
     const footerLabel = document.createElement('div');
-    footerLabel.className = 'candy-cell-footer';
+    footerLabel.className = 'candy-cell-footer pt-footer';
     footerLabel.textContent = 'Check all';
     pokemonTrackerGridEl.appendChild(footerLabel);
     tracked.forEach(p => {
@@ -4413,7 +4450,7 @@
       const allHave = () => accountNames.every(account => ptHas(account, p));
       const paint = () => {
         const all = allHave();
-        cell.className = 'pt-cell' + (all ? ' checked' : '');
+        cell.className = 'pt-cell pt-footer' + (all ? ' checked' : '');
         cell.setAttribute('aria-checked', String(all));
         cell.setAttribute('aria-label', `Check or uncheck all accounts for ${ptDisplayName(p)}`);
       };
@@ -4498,6 +4535,7 @@
       pokemonTrackerResultsEl.appendChild(row);
     });
 
+    pokemonTrackerClearBtn.disabled = pokemonTracker.tracked.length === 0;
     pokemonTrackerTrackedListEl.innerHTML = '';
     pokemonTracker.tracked.forEach(p => {
       const row = document.createElement('div');
@@ -4513,6 +4551,16 @@
   }
 
   pokemonTrackerSearchInput.addEventListener('input', renderPokemonTrackerManage);
+
+  const pokemonTrackerClearBtn = document.getElementById('pokemon-tracker-clear-btn');
+  pokemonTrackerClearBtn.addEventListener('click', () => {
+    const count = pokemonTracker.tracked.length;
+    if (!count || !confirm(`Remove all ${count} tracked Pokémon and their ticks?`)) return;
+    pokemonTracker.tracked = [];
+    pokemonTracker.have = {};
+    savePokemonTracker();
+    renderPokemonTrackerManage();
+  });
   pokemonTrackerFormsEl.addEventListener('change', renderPokemonTrackerManage);
 
   renderPokemonTrackerGrid();
