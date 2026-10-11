@@ -827,6 +827,10 @@
   .candy-cell-footer.pt-footer { color: #fff; font-size: 13px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.04em; }
   .pt-footer .pt-box { border-color: #fff; }
   .pt-footer.checked .pt-box { border-color: var(--good); }
+  .pt-account { justify-content: space-between; gap: 6px; }
+  .pt-disable { width: 18px; height: 18px; flex-shrink: 0; accent-color: var(--bad); cursor: pointer; margin: 0; }
+  .pt-account-off span { opacity: 0.45; text-decoration: line-through; }
+  .pt-cell:disabled { opacity: 0.3; cursor: not-allowed; pointer-events: none; }
   .clear-tracked-btn {
     display: block;
     width: 100%;
@@ -1561,10 +1565,14 @@
       <button class="check-all-btn" id="pokemon-tracker-manage-btn" type="button" style="margin-bottom: 0;">Manage tracked Pok&eacute;mon&hellip;</button>
     </div>
     <div class="panel">
+      <div class="view-mode-tabs" id="pokemon-tracker-view-mode-tabs">
+        <button class="view-mode-btn" data-view-mode="team" type="button">Team View</button>
+        <button class="view-mode-btn" data-view-mode="normal" type="button">Normal View</button>
+      </div>
       <div class="candy-table-wrap">
         <div class="candy-grid" id="pokemon-tracker-grid"></div>
       </div>
-      <div class="particle-actions-label" style="margin-top: 10px; margin-bottom: 0; font-weight: 400; color: var(--text-faint); font-size: 12px; line-height: 1.5;">Tick a box when that account has the Pok&eacute;mon. An empty box means it&rsquo;s still missing.</div>
+      <div class="particle-actions-label" style="margin-top: 10px; margin-bottom: 0; font-weight: 400; color: var(--text-faint); font-size: 12px; line-height: 1.5;">Tick a box when that account has the Pok&eacute;mon. An empty box means it&rsquo;s still missing. Tick the small box beside an account&rsquo;s name to disable it: its row locks and Check all skips it.</div>
     </div>
   </div>
 
@@ -4356,9 +4364,11 @@
           ? raw.tracked.filter(p => p && typeof p.name === 'string' && (!p.form || PT_FORM_LABELS[p.form]))
           : [],
         have: raw.have && typeof raw.have === 'object' ? raw.have : {},
+        // Accounts whose row is locked (can't be ticked, skipped by Check all).
+        disabled: raw.disabled && typeof raw.disabled === 'object' ? raw.disabled : {},
       };
     } catch {
-      return { tracked: [], have: {} };
+      return { tracked: [], have: {}, disabled: {} };
     }
   }
   function savePokemonTracker() {
@@ -4373,11 +4383,34 @@
   const pokemonTrackerCountLabel = document.getElementById('pokemon-tracker-count-label');
   const pokemonTrackerGridEl = document.getElementById('pokemon-tracker-grid');
 
+  // Account order + team colouring, same Team/Normal toggle idea as the
+  // Max Particle page but with its own saved preference (Team by default).
+  const PT_VIEW_MODE_KEY = 'pogo-daily-checklist-pokemon-tracker-view-mode';
+  let ptViewMode = localStorage.getItem(PT_VIEW_MODE_KEY) === 'normal' ? 'normal' : 'team';
+  const ptViewModeTabs = document.getElementById('pokemon-tracker-view-mode-tabs');
+  const ptOrder = () => (ptViewMode === 'team' ? TEAM_MODE_ORDER : accountNames);
+  const ptIsEnabled = (account) => !pokemonTracker.disabled[account];
+
+  function setPtViewMode(mode) {
+    ptViewMode = mode;
+    localStorage.setItem(PT_VIEW_MODE_KEY, mode);
+    ptViewModeTabs.querySelectorAll('.view-mode-btn').forEach(btn => {
+      btn.classList.toggle('active', btn.dataset.viewMode === mode);
+    });
+    renderPokemonTrackerGrid();
+  }
+  ptViewModeTabs.querySelectorAll('.view-mode-btn').forEach(btn => {
+    btn.addEventListener('click', () => setPtViewMode(btn.dataset.viewMode));
+  });
+
   function renderPokemonTrackerGrid() {
     const tracked = pokemonTracker.tracked;
     pokemonTrackerCountLabel.textContent = tracked.length === 1 ? '1 Pokémon tracked' : `${tracked.length} Pokémon tracked`;
+    // Rebuilding the grid would otherwise snap a sideways-scrolled table back to the left.
+    const wrapEl = pokemonTrackerGridEl.parentElement;
+    const scrollLeft = wrapEl.scrollLeft;
     pokemonTrackerGridEl.innerHTML = '';
-    pokemonTrackerGridEl.style.gridTemplateColumns = `128px repeat(${tracked.length}, 104px)`;
+    pokemonTrackerGridEl.style.gridTemplateColumns = `150px repeat(${tracked.length}, 104px)`;
 
     const corner = document.createElement('div');
     corner.className = 'candy-cell-corner';
@@ -4408,10 +4441,21 @@
       else delete pokemonTracker.have[account][ptKey(p)];
     };
 
-    accountNames.forEach(account => {
+    ptOrder().forEach(account => {
+      const enabled = ptIsEnabled(account);
+      const teamCls = TEAM_1_ACCOUNTS.includes(account) ? 'team1-name' : 'team2-name';
       const acctCell = document.createElement('div');
-      acctCell.className = 'candy-cell-account';
-      acctCell.textContent = account;
+      acctCell.className = 'candy-cell-account pt-account' + (enabled ? '' : ' pt-account-off');
+      acctCell.innerHTML = `
+        <span class="${teamCls}">${account}</span>
+        <input type="checkbox" class="pt-disable" ${enabled ? '' : 'checked'} aria-label="Disable ${account}" title="Disable ${account}">
+      `;
+      acctCell.querySelector('.pt-disable').addEventListener('change', (e) => {
+        if (e.target.checked) pokemonTracker.disabled[account] = true;
+        else delete pokemonTracker.disabled[account];
+        savePokemonTracker();
+        renderPokemonTrackerGrid();
+      });
       pokemonTrackerGridEl.appendChild(acctCell);
 
       tracked.forEach(p => {
@@ -4419,6 +4463,7 @@
         cell.type = 'button';
         cell.setAttribute('role', 'checkbox');
         cell.innerHTML = checkboxHtml;
+        cell.disabled = !enabled;
         const paint = () => {
           const has = ptHas(account, p);
           cell.className = 'pt-cell' + (has ? ' checked' : '');
@@ -4437,6 +4482,7 @@
       });
     });
 
+    wrapEl.scrollLeft = scrollLeft;
     if (tracked.length === 0) return;
     const footerLabel = document.createElement('div');
     footerLabel.className = 'candy-cell-footer pt-footer';
@@ -4447,7 +4493,10 @@
       cell.type = 'button';
       cell.setAttribute('role', 'checkbox');
       cell.innerHTML = checkboxHtml;
-      const allHave = () => accountNames.every(account => ptHas(account, p));
+      // Disabled accounts are skipped entirely, both when deciding whether
+      // the column is "all ticked" and when Check all applies.
+      const enabledAccounts = () => accountNames.filter(ptIsEnabled);
+      const allHave = () => enabledAccounts().length > 0 && enabledAccounts().every(account => ptHas(account, p));
       const paint = () => {
         const all = allHave();
         cell.className = 'pt-cell pt-footer' + (all ? ' checked' : '');
@@ -4457,8 +4506,9 @@
       paint();
       footerPaints.set(ptKey(p), paint);
       cell.addEventListener('click', () => {
+        if (enabledAccounts().length === 0) return;
         const target = !allHave();
-        accountNames.forEach(account => setHas(account, p, target));
+        enabledAccounts().forEach(account => setHas(account, p, target));
         savePokemonTracker();
         columnPaints.get(ptKey(p)).forEach(fn => fn());
         paint();
@@ -4563,7 +4613,7 @@
   });
   pokemonTrackerFormsEl.addEventListener('change', renderPokemonTrackerManage);
 
-  renderPokemonTrackerGrid();
+  setPtViewMode(ptViewMode);
 
   renderDashboard();
 
