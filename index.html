@@ -107,7 +107,6 @@
   .grp-max { --grp-bg: #44300f; --grp-badge: #583f15; --grp-line: rgba(255, 169, 77, 0.55); --grp-hover: #ffa94d; }
   .grp-league { --grp-bg: #12315a; --grp-badge: #1a4175; --grp-line: rgba(79, 168, 255, 0.55); --grp-hover: #4fa8ff; }
   .grp-trade { --grp-bg: #0f3a36; --grp-badge: #164b46; --grp-line: rgba(79, 216, 216, 0.55); --grp-hover: #4fd8d8; }
-  .grp-rocket { --grp-bg: #0c0c10; --grp-badge: #1a1a22; --grp-line: rgba(200, 200, 215, 0.45); --grp-hover: #c8c8d8; }
   .grp-route { --grp-bg: #2c3446; --grp-badge: #394359; --grp-line: rgba(210, 220, 240, 0.55); --grp-hover: #d6dff2; }
 
   .panel-theme-gold { background: #232a3a; border-color: rgba(138, 148, 173, 0.5); }
@@ -315,8 +314,6 @@
   .type-rock { color: #c2ad4f; }
   .type-dragon { color: #9b7dff; }
   .type-steel { color: #b8c0d8; }
-  /* Black text would vanish on the dark panels, so it gets a light outline. */
-  .type-rocket { color: #000; -webkit-text-stroke: 3px #e8e8f0; paint-order: stroke fill; font-weight: 700; }
 
   .task-row .badge {
     flex-shrink: 0;
@@ -827,6 +824,8 @@
   .candy-cell-footer.pt-footer { color: #fff; font-size: 13px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.04em; }
   .pt-footer .pt-box { border-color: #fff; }
   .pt-footer.checked .pt-box { border-color: var(--good); }
+  .st-head { flex-direction: column; gap: 3px; }
+  .st-pokemon { font-size: 11px; font-weight: 600; color: var(--text-faint); }
   .pt-corner { justify-content: space-between; gap: 6px; }
   .pt-eye {
     display: flex;
@@ -973,6 +972,7 @@
         <button class="app-tab" data-tab="pokedex" type="button">Pokedex Search</button>
         <button class="app-tab" data-tab="candy-tracker" type="button">Candy Tracker</button>
         <button class="app-tab" data-tab="pokemon-tracker" type="button">Pokemon Tracker</button>
+        <button class="app-tab" data-tab="shadow-tracker" type="button">Shadow Tracker</button>
       </div>
       <div class="tz-row">
         <div class="tz-tabs" id="tz-tabs"></div>
@@ -1240,6 +1240,7 @@
         <button class="app-tab" data-tab="pokedex" type="button">Pokedex Search</button>
         <button class="app-tab" data-tab="candy-tracker" type="button">Candy Tracker</button>
         <button class="app-tab" data-tab="pokemon-tracker" type="button">Pokemon Tracker</button>
+        <button class="app-tab" data-tab="shadow-tracker" type="button">Shadow Tracker</button>
       </div>
       <div class="tz-row">
         <div class="tz-tabs" id="tz-tabs-2"></div>
@@ -1378,6 +1379,7 @@
         <button class="app-tab" data-tab="pokedex" type="button">Pokedex Search</button>
         <button class="app-tab" data-tab="candy-tracker" type="button">Candy Tracker</button>
         <button class="app-tab" data-tab="pokemon-tracker" type="button">Pokemon Tracker</button>
+        <button class="app-tab" data-tab="shadow-tracker" type="button">Shadow Tracker</button>
       </div>
     </div>
     <div class="panel">
@@ -1495,6 +1497,7 @@
         <button class="app-tab active" data-tab="pokedex" type="button">Pokedex Search</button>
         <button class="app-tab" data-tab="candy-tracker" type="button">Candy Tracker</button>
         <button class="app-tab" data-tab="pokemon-tracker" type="button">Pokemon Tracker</button>
+        <button class="app-tab" data-tab="shadow-tracker" type="button">Shadow Tracker</button>
       </div>
     </div>
     <div class="panel panel-theme-indigo">
@@ -1532,6 +1535,7 @@
         <button class="app-tab" data-tab="pokedex" type="button">Pokedex Search</button>
         <button class="app-tab active" data-tab="candy-tracker" type="button">Candy Tracker</button>
         <button class="app-tab" data-tab="pokemon-tracker" type="button">Pokemon Tracker</button>
+        <button class="app-tab" data-tab="shadow-tracker" type="button">Shadow Tracker</button>
       </div>
     </div>
     <div class="panel panel-theme-indigo">
@@ -1575,6 +1579,7 @@
         <button class="app-tab" data-tab="pokedex" type="button">Pokedex Search</button>
         <button class="app-tab" data-tab="candy-tracker" type="button">Candy Tracker</button>
         <button class="app-tab active" data-tab="pokemon-tracker" type="button">Pokemon Tracker</button>
+        <button class="app-tab" data-tab="shadow-tracker" type="button">Shadow Tracker</button>
       </div>
     </div>
     <div class="panel panel-theme-indigo">
@@ -1619,6 +1624,26 @@
       <div class="items" id="pokemon-tracker-tracked-list"></div>
     </div>
   </div>
+
+  <div id="view-shadow-tracker" hidden>
+    <div class="panel">
+      <div class="app-tabs">
+        <button class="app-tab" data-tab="dashboard" type="button">Daily Checklist</button>
+        <button class="app-tab" data-tab="particles" type="button">Max Particle</button>
+        <button class="app-tab" data-tab="candy" type="button">Power Up Calculator</button>
+        <button class="app-tab" data-tab="pokedex" type="button">Pokedex Search</button>
+        <button class="app-tab" data-tab="candy-tracker" type="button">Candy Tracker</button>
+        <button class="app-tab" data-tab="pokemon-tracker" type="button">Pokemon Tracker</button>
+        <button class="app-tab active" data-tab="shadow-tracker" type="button">Shadow Tracker</button>
+      </div>
+    </div>
+    <div class="panel">
+      <div class="candy-table-wrap">
+        <div class="candy-grid" id="shadow-tracker-grid"></div>
+      </div>
+      <div class="particle-actions-label" style="margin-top: 10px; margin-bottom: 0; font-weight: 400; color: var(--text-faint); font-size: 12px; line-height: 1.5;">Each column is a Team Rocket grunt (gender and type) with the Shadow Pok&eacute;mon it gives. Tick a box when that account has the Shadow Pok&eacute;mon.</div>
+    </div>
+  </div>
 </div>
 
 <script>
@@ -1643,14 +1668,6 @@
     { id: 'league-master', label: 'Win Master League' },
     { id: 'league-ultra', label: 'Win Ultra League' },
     { id: 'league-great', label: 'Win Great League' },
-    { id: 'rocket-balloon', label: 'Rocket Balloon', type: 'rocket' },
-    { id: 'grunt-f-fire', label: 'F-Fire Grunt', detail: 'F-Fire Grunt: Torchic', type: 'fire' },
-    { id: 'grunt-f-fighting', label: 'F-Fighting Grunt', detail: 'F-Fighting Grunt: Timburr', type: 'fighting' },
-    { id: 'grunt-m-ground', label: 'M-Ground Grunt', detail: 'M-Ground Grunt: Rhyhorn', type: 'ground' },
-    { id: 'grunt-m-rock', label: 'M-Rock Grunt', detail: 'M-Rock Grunt: Cranidos', type: 'rock' },
-    { id: 'grunt-f-dragon-deino', label: 'F-Dragon Grunt', detail: 'F-Dragon Grunt: Deino', type: 'dragon' },
-    { id: 'grunt-f-dragon-axew', label: 'F-Dragon Grunt', detail: 'F-Dragon Grunt: Axew', type: 'dragon' },
-    { id: 'grunt-m-steel', label: 'M-Steel Grunt', detail: 'M-Steel Grunt: Beldum', type: 'steel' },
   ];
 
   // A leading "F-"/"M-" in a task name renders as a pink female / blue male
@@ -1684,7 +1701,6 @@
     ['max', MAX_TASK_IDS],
     ['league', WIN_LEAGUE_TASK_IDS],
     ['trade', ['special-trade']],
-    ['rocket', tasks.filter(t => t.id === 'rocket-balloon' || t.id.startsWith('grunt-')).map(t => t.id)],
     ['route', ROUTE_TASK_IDS],
   ].forEach(([group, ids]) => {
     tasks.forEach(t => { if (ids.includes(t.id)) t.group = group; });
@@ -1921,6 +1937,7 @@
   const viewCandyTrackerManage = document.getElementById('view-candy-tracker-manage');
   const viewPokemonTracker = document.getElementById('view-pokemon-tracker');
   const viewPokemonTrackerManage = document.getElementById('view-pokemon-tracker-manage');
+  const viewShadowTracker = document.getElementById('view-shadow-tracker');
   const viewCustomTasks = document.getElementById('view-custom-tasks');
   const viewSync = document.getElementById('view-sync');
   const accountsEl = document.getElementById('accounts');
@@ -3008,7 +3025,7 @@
   // (equal priority), not a parent/child pair, so switching between them
   // doesn't push a history entry - only genuine sub-views (account
   // checklist, particle detail, custom tasks, sync, modals) do that.
-  const ROOT_TAB_ORDER = ['dashboard', 'particles', 'candy', 'pokedex', 'candy-tracker', 'pokemon-tracker'];
+  const ROOT_TAB_ORDER = ['dashboard', 'particles', 'candy', 'pokedex', 'candy-tracker', 'pokemon-tracker', 'shadow-tracker'];
   function switchTab(tab) {
     viewDashboard.hidden = tab !== 'dashboard';
     viewParticles.hidden = tab !== 'particles';
@@ -3016,6 +3033,7 @@
     viewPokedex.hidden = tab !== 'pokedex';
     viewCandyTracker.hidden = tab !== 'candy-tracker';
     viewPokemonTracker.hidden = tab !== 'pokemon-tracker';
+    viewShadowTracker.hidden = tab !== 'shadow-tracker';
     document.querySelectorAll('.app-tab').forEach(btn => {
       btn.classList.toggle('active', btn.dataset.tab === tab);
     });
@@ -3024,6 +3042,7 @@
     else if (tab === 'candy') renderCandyCalculator();
     else if (tab === 'candy-tracker') renderCandyTrackerGrid();
     else if (tab === 'pokemon-tracker') renderPokemonTrackerGrid();
+    else if (tab === 'shadow-tracker') renderShadowTrackerGrid();
   }
 
   document.querySelectorAll('.app-tab').forEach(btn => {
@@ -3037,6 +3056,7 @@
     if (!viewPokedex.hidden) return 'pokedex';
     if (!viewCandyTracker.hidden) return 'candy-tracker';
     if (!viewPokemonTracker.hidden) return 'pokemon-tracker';
+    if (!viewShadowTracker.hidden) return 'shadow-tracker';
     return null;
   }
 
@@ -4653,6 +4673,88 @@
   pokemonTrackerFormsEl.addEventListener('change', renderPokemonTrackerManage);
 
   setPtViewMode(ptViewMode);
+
+  // --- Shadow Tracker: rows are accounts, columns are Team Rocket grunts
+  // (gender + type, with the Shadow Pokemon each one gives), and a box
+  // means "this account has that Shadow Pokemon". Own localStorage key, so
+  // like the other trackers it never resets daily and isn't synced.
+  const SHADOW_GRUNTS = [
+    { id: 'f-fire', label: 'F-Fire Grunt', type: 'fire', pokemon: 'Torchic' },
+    { id: 'f-fighting', label: 'F-Fighting Grunt', type: 'fighting', pokemon: 'Timburr' },
+    { id: 'm-ground', label: 'M-Ground Grunt', type: 'ground', pokemon: 'Rhyhorn' },
+    { id: 'm-rock', label: 'M-Rock Grunt', type: 'rock', pokemon: 'Cranidos' },
+    { id: 'f-dragon-deino', label: 'F-Dragon Grunt', type: 'dragon', pokemon: 'Deino' },
+    { id: 'f-dragon-axew', label: 'F-Dragon Grunt', type: 'dragon', pokemon: 'Axew' },
+    { id: 'm-steel', label: 'M-Steel Grunt', type: 'steel', pokemon: 'Beldum' },
+  ];
+  const SHADOW_TRACKER_KEY = 'pogo-daily-checklist-shadow-tracker';
+  function loadShadowTracker() {
+    try {
+      const raw = JSON.parse(localStorage.getItem(SHADOW_TRACKER_KEY) || '{}');
+      return { have: raw.have && typeof raw.have === 'object' ? raw.have : {} };
+    } catch {
+      return { have: {} };
+    }
+  }
+  const shadowTracker = loadShadowTracker();
+  const shadowTrackerGridEl = document.getElementById('shadow-tracker-grid');
+
+  function renderShadowTrackerGrid() {
+    shadowTrackerGridEl.innerHTML = '';
+    shadowTrackerGridEl.style.gridTemplateColumns = `130px repeat(${SHADOW_GRUNTS.length}, 108px)`;
+
+    const corner = document.createElement('div');
+    corner.className = 'candy-cell-corner';
+    corner.textContent = 'Account';
+    shadowTrackerGridEl.appendChild(corner);
+
+    SHADOW_GRUNTS.forEach(g => {
+      const head = document.createElement('div');
+      head.className = 'candy-cell-header st-head';
+      head.innerHTML = `
+        <span>${taskTextHtml(g.label, g.type)}</span>
+        <span class="st-pokemon">Shadow ${g.pokemon}</span>
+      `;
+      shadowTrackerGridEl.appendChild(head);
+    });
+
+    const checkboxHtml = `
+      <span class="pt-box">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#0e1620" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="4 12 10 18 20 6"></polyline>
+        </svg>
+      </span>
+    `;
+    TEAM_MODE_ORDER.forEach(account => {
+      const acctCell = document.createElement('div');
+      acctCell.className = 'candy-cell-account';
+      acctCell.innerHTML = `<span class="${TEAM_1_ACCOUNTS.includes(account) ? 'team1-name' : 'team2-name'}">${account}</span>`;
+      shadowTrackerGridEl.appendChild(acctCell);
+
+      SHADOW_GRUNTS.forEach(g => {
+        const cell = document.createElement('button');
+        cell.type = 'button';
+        cell.setAttribute('role', 'checkbox');
+        cell.innerHTML = checkboxHtml;
+        const has = () => !!(shadowTracker.have[account] && shadowTracker.have[account][g.id]);
+        const paint = () => {
+          cell.className = 'pt-cell' + (has() ? ' checked' : '');
+          cell.setAttribute('aria-checked', String(has()));
+          cell.setAttribute('aria-label', `${account} has Shadow ${g.pokemon}`);
+        };
+        paint();
+        cell.addEventListener('click', () => {
+          if (!shadowTracker.have[account]) shadowTracker.have[account] = {};
+          if (has()) delete shadowTracker.have[account][g.id];
+          else shadowTracker.have[account][g.id] = true;
+          localStorage.setItem(SHADOW_TRACKER_KEY, JSON.stringify(shadowTracker));
+          paint();
+        });
+        shadowTrackerGridEl.appendChild(cell);
+      });
+    });
+  }
+  renderShadowTrackerGrid();
 
   renderDashboard();
 
