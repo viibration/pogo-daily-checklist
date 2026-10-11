@@ -1572,7 +1572,7 @@
       <div class="candy-table-wrap">
         <div class="candy-grid" id="pokemon-tracker-grid"></div>
       </div>
-      <div class="particle-actions-label" style="margin-top: 10px; margin-bottom: 0; font-weight: 400; color: var(--text-faint); font-size: 12px; line-height: 1.5;">Tick a box when that account has the Pok&eacute;mon. An empty box means it&rsquo;s still missing. Tick the small box beside an account&rsquo;s name to disable it: its row locks and Check all skips it.</div>
+      <div class="particle-actions-label" style="margin-top: 10px; margin-bottom: 0; font-weight: 400; color: var(--text-faint); font-size: 12px; line-height: 1.5;">Tick a box when that account has the Pok&eacute;mon. An empty box means it&rsquo;s still missing. Tick the small box beside an account&rsquo;s name to disable it: its row locks and Check all skips it. Accounts under 250 Max particles are disabled automatically.</div>
     </div>
   </div>
 
@@ -4389,7 +4389,11 @@
   let ptViewMode = localStorage.getItem(PT_VIEW_MODE_KEY) === 'normal' ? 'normal' : 'team';
   const ptViewModeTabs = document.getElementById('pokemon-tracker-view-mode-tabs');
   const ptOrder = () => (ptViewMode === 'team' ? TEAM_MODE_ORDER : accountNames);
-  const ptIsEnabled = (account) => !pokemonTracker.disabled[account];
+  // An account is also treated as disabled while its current Max particle
+  // total (Max Particle page) is below the cheapest raid spend, 250.
+  const PT_MIN_PARTICLES = 250;
+  const ptLowParticles = (account) => (state.accounts[account].currentTotal || 0) < PT_MIN_PARTICLES;
+  const ptIsEnabled = (account) => !pokemonTracker.disabled[account] && !ptLowParticles(account);
 
   function setPtViewMode(mode) {
     ptViewMode = mode;
@@ -4443,12 +4447,13 @@
 
     ptOrder().forEach(account => {
       const enabled = ptIsEnabled(account);
+      const lowParticles = ptLowParticles(account);
       const teamCls = TEAM_1_ACCOUNTS.includes(account) ? 'team1-name' : 'team2-name';
       const acctCell = document.createElement('div');
       acctCell.className = 'candy-cell-account pt-account' + (enabled ? '' : ' pt-account-off');
       acctCell.innerHTML = `
         <span class="${teamCls}">${account}</span>
-        <input type="checkbox" class="pt-disable" ${enabled ? '' : 'checked'} aria-label="Disable ${account}" title="Disable ${account}">
+        <input type="checkbox" class="pt-disable" ${enabled ? '' : 'checked'} ${lowParticles ? 'disabled' : ''} aria-label="Disable ${account}" title="${lowParticles ? `Disabled automatically: under ${PT_MIN_PARTICLES} Max particles` : `Disable ${account}`}">
       `;
       acctCell.querySelector('.pt-disable').addEventListener('change', (e) => {
         if (e.target.checked) pokemonTracker.disabled[account] = true;
