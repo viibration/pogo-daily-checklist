@@ -749,7 +749,9 @@
   .view-mode-tabs { margin-bottom: 12px; }
 
   .candy-table-wrap { overflow-x: auto; border: 1px solid var(--line); border-radius: 10px; width: fit-content; max-width: 100%; }
-  .candy-grid { display: grid; gap: 1px; background: var(--line); }
+  /* max-content so the grid (and its 1px-gap background) spans every column
+     when the table scrolls sideways, not just the visible width. */
+  .candy-grid { display: grid; gap: 1px; background: var(--line); width: max-content; min-width: 100%; }
   .candy-cell-corner, .candy-cell-header, .candy-cell-account {
     background: var(--panel-2);
     padding: 10px 8px;
