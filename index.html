@@ -826,6 +826,15 @@
   .candy-cell-footer.pt-footer { color: #fff; font-size: 13px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.04em; }
   .pt-footer .pt-box { border-color: #fff; }
   .pt-footer.checked .pt-box { border-color: var(--good); }
+  .tb-inputs { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .tb-field { display: block; }
+  .tb-field .particle-manual-input { display: block; width: 100%; }
+  .tb-balanced { font-size: 30px; font-weight: 800; font-variant-numeric: tabular-nums; letter-spacing: 0.06em; color: var(--text); }
+  .tb-steps { margin: 0; padding-left: 20px; display: flex; flex-direction: column; gap: 6px; font-size: 15px; line-height: 1.4; }
+  .tb-steps b { color: var(--accent); }
+  .tb-note { font-size: 13px; color: var(--text-faint); line-height: 1.5; }
+  .tb-odd { margin-top: 6px; font-size: 16px; font-weight: 700; color: var(--text-dim); }
+  .tb-odd b { color: var(--bad); font-variant-numeric: tabular-nums; }
   .st-head { flex-direction: column; gap: 3px; }
   .st-pokemon { font-size: 11px; font-weight: 600; color: var(--text-faint); }
   .pt-corner { justify-content: space-between; gap: 6px; }
@@ -975,6 +984,7 @@
         <button class="app-tab" data-tab="candy-tracker" type="button">Candy Tracker</button>
         <button class="app-tab" data-tab="pokemon-tracker" type="button">Pokemon Tracker</button>
         <button class="app-tab" data-tab="shadow-tracker" type="button">Shadow Tracker</button>
+        <button class="app-tab" data-tab="trade-balancer" type="button">Trade Balancer</button>
       </div>
       <div class="tz-row">
         <div class="tz-tabs" id="tz-tabs"></div>
@@ -1243,6 +1253,7 @@
         <button class="app-tab" data-tab="candy-tracker" type="button">Candy Tracker</button>
         <button class="app-tab" data-tab="pokemon-tracker" type="button">Pokemon Tracker</button>
         <button class="app-tab" data-tab="shadow-tracker" type="button">Shadow Tracker</button>
+        <button class="app-tab" data-tab="trade-balancer" type="button">Trade Balancer</button>
       </div>
       <div class="tz-row">
         <div class="tz-tabs" id="tz-tabs-2"></div>
@@ -1382,6 +1393,7 @@
         <button class="app-tab" data-tab="candy-tracker" type="button">Candy Tracker</button>
         <button class="app-tab" data-tab="pokemon-tracker" type="button">Pokemon Tracker</button>
         <button class="app-tab" data-tab="shadow-tracker" type="button">Shadow Tracker</button>
+        <button class="app-tab" data-tab="trade-balancer" type="button">Trade Balancer</button>
       </div>
     </div>
     <div class="panel">
@@ -1500,6 +1512,7 @@
         <button class="app-tab" data-tab="candy-tracker" type="button">Candy Tracker</button>
         <button class="app-tab" data-tab="pokemon-tracker" type="button">Pokemon Tracker</button>
         <button class="app-tab" data-tab="shadow-tracker" type="button">Shadow Tracker</button>
+        <button class="app-tab" data-tab="trade-balancer" type="button">Trade Balancer</button>
       </div>
     </div>
     <div class="panel panel-theme-indigo">
@@ -1538,6 +1551,7 @@
         <button class="app-tab active" data-tab="candy-tracker" type="button">Candy Tracker</button>
         <button class="app-tab" data-tab="pokemon-tracker" type="button">Pokemon Tracker</button>
         <button class="app-tab" data-tab="shadow-tracker" type="button">Shadow Tracker</button>
+        <button class="app-tab" data-tab="trade-balancer" type="button">Trade Balancer</button>
       </div>
     </div>
     <div class="panel panel-theme-indigo">
@@ -1582,6 +1596,7 @@
         <button class="app-tab" data-tab="candy-tracker" type="button">Candy Tracker</button>
         <button class="app-tab active" data-tab="pokemon-tracker" type="button">Pokemon Tracker</button>
         <button class="app-tab" data-tab="shadow-tracker" type="button">Shadow Tracker</button>
+        <button class="app-tab" data-tab="trade-balancer" type="button">Trade Balancer</button>
       </div>
     </div>
     <div class="panel panel-theme-indigo">
@@ -1637,6 +1652,7 @@
         <button class="app-tab" data-tab="candy-tracker" type="button">Candy Tracker</button>
         <button class="app-tab" data-tab="pokemon-tracker" type="button">Pokemon Tracker</button>
         <button class="app-tab active" data-tab="shadow-tracker" type="button">Shadow Tracker</button>
+        <button class="app-tab" data-tab="trade-balancer" type="button">Trade Balancer</button>
       </div>
     </div>
     <div class="panel">
@@ -1644,6 +1660,41 @@
         <div class="candy-grid" id="shadow-tracker-grid"></div>
       </div>
       <div class="particle-actions-label" style="margin-top: 10px; margin-bottom: 0; font-weight: 400; color: var(--text-faint); font-size: 12px; line-height: 1.5;">Each column is a Team Rocket grunt (gender and type) with the Shadow Pok&eacute;mon it gives. Tick a box when that account has the Shadow Pok&eacute;mon.</div>
+    </div>
+  </div>
+
+  <div id="view-trade-balancer" hidden>
+    <div class="panel">
+      <div class="app-tabs">
+        <button class="app-tab" data-tab="dashboard" type="button">Daily Checklist</button>
+        <button class="app-tab" data-tab="particles" type="button">Max Particle</button>
+        <button class="app-tab" data-tab="candy" type="button">Power Up Calculator</button>
+        <button class="app-tab" data-tab="pokedex" type="button">Pokedex Search</button>
+        <button class="app-tab" data-tab="candy-tracker" type="button">Candy Tracker</button>
+        <button class="app-tab" data-tab="pokemon-tracker" type="button">Pokemon Tracker</button>
+        <button class="app-tab" data-tab="shadow-tracker" type="button">Shadow Tracker</button>
+        <button class="app-tab active" data-tab="trade-balancer" type="button">Trade Balancer</button>
+      </div>
+    </div>
+    <div class="panel panel-theme-teal">
+      <div class="particle-actions-label">Pok&eacute;mon to trade per account</div>
+      <div class="tb-inputs">
+        <label class="tb-field"><span class="candy-level-label">Account 1</span><input class="particle-manual-input" id="tb-input-0" type="number" inputmode="numeric" min="0" placeholder="0"></label>
+        <label class="tb-field"><span class="candy-level-label">Account 2</span><input class="particle-manual-input" id="tb-input-1" type="number" inputmode="numeric" min="0" placeholder="0"></label>
+        <label class="tb-field"><span class="candy-level-label">Account 3</span><input class="particle-manual-input" id="tb-input-2" type="number" inputmode="numeric" min="0" placeholder="0"></label>
+        <label class="tb-field"><span class="candy-level-label">Account 4</span><input class="particle-manual-input" id="tb-input-3" type="number" inputmode="numeric" min="0" placeholder="0"></label>
+      </div>
+      <label class="tb-field" style="margin-top: 12px;">
+        <span class="candy-level-label">Trade in pairs</span>
+        <select class="particle-manual-input" id="tb-pairing">
+          <option value="0">Account 1 &amp; 2, Account 3 &amp; 4</option>
+          <option value="1">Account 1 &amp; 3, Account 2 &amp; 4</option>
+          <option value="2">Account 1 &amp; 4, Account 2 &amp; 3</option>
+        </select>
+      </label>
+    </div>
+    <div class="panel" id="tb-result-panel">
+      <div id="tb-result"></div>
     </div>
   </div>
 </div>
@@ -1940,6 +1991,7 @@
   const viewPokemonTracker = document.getElementById('view-pokemon-tracker');
   const viewPokemonTrackerManage = document.getElementById('view-pokemon-tracker-manage');
   const viewShadowTracker = document.getElementById('view-shadow-tracker');
+  const viewTradeBalancer = document.getElementById('view-trade-balancer');
   const viewCustomTasks = document.getElementById('view-custom-tasks');
   const viewSync = document.getElementById('view-sync');
   const accountsEl = document.getElementById('accounts');
@@ -3027,7 +3079,7 @@
   // (equal priority), not a parent/child pair, so switching between them
   // doesn't push a history entry - only genuine sub-views (account
   // checklist, particle detail, custom tasks, sync, modals) do that.
-  const ROOT_TAB_ORDER = ['dashboard', 'particles', 'candy', 'pokedex', 'candy-tracker', 'pokemon-tracker', 'shadow-tracker'];
+  const ROOT_TAB_ORDER = ['dashboard', 'particles', 'candy', 'pokedex', 'candy-tracker', 'pokemon-tracker', 'shadow-tracker', 'trade-balancer'];
   function switchTab(tab) {
     viewDashboard.hidden = tab !== 'dashboard';
     viewParticles.hidden = tab !== 'particles';
@@ -3036,6 +3088,7 @@
     viewCandyTracker.hidden = tab !== 'candy-tracker';
     viewPokemonTracker.hidden = tab !== 'pokemon-tracker';
     viewShadowTracker.hidden = tab !== 'shadow-tracker';
+    viewTradeBalancer.hidden = tab !== 'trade-balancer';
     document.querySelectorAll('.app-tab').forEach(btn => {
       btn.classList.toggle('active', btn.dataset.tab === tab);
     });
@@ -3059,6 +3112,7 @@
     if (!viewCandyTracker.hidden) return 'candy-tracker';
     if (!viewPokemonTracker.hidden) return 'pokemon-tracker';
     if (!viewShadowTracker.hidden) return 'shadow-tracker';
+    if (!viewTradeBalancer.hidden) return 'trade-balancer';
     return null;
   }
 
@@ -4757,6 +4811,84 @@
     });
   }
   renderShadowTrackerGrid();
+
+  // --- Trade Balancer: each account has some number of Pokemon to trade.
+  // A trade swaps one Pokemon each, so two accounts always trade equal
+  // amounts. Accounts are trade partners in two fixed pairs; whatever one
+  // side of a pair has more of is traded to the other pair's accounts
+  // first ("cross trades"), which leaves each pair with matching amounts
+  // to trade between themselves. The fewest cross trades are used.
+  const TB_PAIRINGS = [[[0, 1], [2, 3]], [[0, 2], [1, 3]], [[0, 3], [1, 2]]];
+  const tbInputs = [0, 1, 2, 3].map(i => document.getElementById(`tb-input-${i}`));
+  const tbPairingEl = document.getElementById('tb-pairing');
+  const tbResultEl = document.getElementById('tb-result');
+  const tbName = (i) => `Account ${i + 1}`;
+
+  function balanceTrades(counts, pairing) {
+    const a = counts.slice();
+    // Everything must be matched 1:1, so no account can hold more than all
+    // the others combined, and the total must be even. Trim the excess.
+    const leftover = [0, 0, 0, 0];
+    const maxIdx = a.indexOf(Math.max(...a));
+    const othersSum = a.reduce((s, v) => s + v, 0) - a[maxIdx];
+    if (a[maxIdx] > othersSum) {
+      leftover[maxIdx] = a[maxIdx] - othersSum;
+      a[maxIdx] = othersSum;
+    } else if (a.reduce((s, v) => s + v, 0) % 2 === 1) {
+      leftover[maxIdx] = 1;
+      a[maxIdx] -= 1;
+    }
+
+    const [[p1, p2], [q1, q2]] = pairing;
+    const d1 = a[p1] - a[p2];
+    const d2 = a[q1] - a[q2];
+    const x = Math.max(Math.abs(d1), Math.abs(d2));         // total cross trades
+    const pairTradesA = (a[p1] + a[p2] - x) / 2;
+    const pairTradesB = (a[q1] + a[q2] - x) / 2;
+    const out1 = (d1 + x) / 2;                              // cross trades p1 / p2 have to make
+    const out2 = (x - d1) / 2;
+    const in1 = (d2 + x) / 2;                               // cross trades q1 / q2 take
+    const in2 = (x - d2) / 2;
+    const c11 = Math.min(out1, in1);
+    const cross = [
+      [p1, q1, c11],
+      [p1, q2, out1 - c11],
+      [p2, q1, in1 - c11],
+      [p2, q2, in2 - (out1 - c11)],
+    ].filter(c => c[2] > 0);
+
+    const balanced = [0, 0, 0, 0];
+    balanced[p1] = balanced[p2] = pairTradesA;
+    balanced[q1] = balanced[q2] = pairTradesB;
+    return { balanced, cross, pairs: [[p1, p2, pairTradesA], [q1, q2, pairTradesB]], leftover };
+  }
+
+  function renderTradeBalancer() {
+    const counts = tbInputs.map(input => Math.max(0, Math.floor(Number(input.value) || 0)));
+    if (counts.every(c => c === 0)) {
+      tbResultEl.innerHTML = '<div class="particle-actions-label" style="margin: 0; font-weight: 400; color: var(--text-faint);">Enter how many Pok&eacute;mon each account will trade.</div>';
+      return;
+    }
+    const { balanced, cross, pairs, leftover } = balanceTrades(counts, TB_PAIRINGS[Number(tbPairingEl.value)]);
+    let html = `
+      <div class="particle-actions-label">Balanced</div>
+      <div class="tb-balanced">${balanced.join(' ')}</div>
+      <div class="tb-odd">Odd <b>${leftover.reduce((s, v) => s + v, 0) || '-'}</b></div>
+    `;
+    html += '<div class="particle-actions-label" style="margin-top: 16px;">To balance them</div>';
+    html += cross.length
+      ? `<ul class="tb-steps">${cross.map(([from, to, n]) => `<li>${tbName(from)} trades <b>${n} Pokémon</b> with ${tbName(to)}</li>`).join('')}</ul>`
+      : '<div class="tb-note">Nothing extra needed &mdash; the pairs already match.</div>';
+    const pairLines = pairs.filter(([, , n]) => n > 0);
+    if (pairLines.length) {
+      html += '<div class="particle-actions-label" style="margin-top: 16px;">Then trade in pairs</div>';
+      html += `<ul class="tb-steps">${pairLines.map(([x, y, n]) => `<li>${tbName(x)} trades <b>${n} Pokémon</b> with ${tbName(y)}</li>`).join('')}</ul>`;
+    }
+    tbResultEl.innerHTML = html;
+  }
+  tbInputs.forEach(input => input.addEventListener('input', renderTradeBalancer));
+  tbPairingEl.addEventListener('change', renderTradeBalancer);
+  renderTradeBalancer();
 
   renderDashboard();
 
