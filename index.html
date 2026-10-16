@@ -826,6 +826,8 @@
   .candy-cell-footer.pt-footer { color: #fff; font-size: 13px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.04em; }
   .pt-footer .pt-box { border-color: #fff; }
   .pt-footer.checked .pt-box { border-color: var(--good); }
+  .pt-floor { display: flex; align-items: center; gap: 8px; margin-bottom: 12px; font-size: 13px; font-weight: 700; color: var(--text-dim); }
+  .pt-floor .particle-manual-input { flex: 0 0 90px; width: 90px; padding: 6px 10px; font-size: 15px; }
   .tb-inputs { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
   .tb-field { display: block; }
   .tb-field .particle-manual-input { display: block; width: 100%; }
@@ -1608,10 +1610,15 @@
         <button class="view-mode-btn" data-view-mode="team" type="button">Team View</button>
         <button class="view-mode-btn" data-view-mode="normal" type="button">Normal View</button>
       </div>
+      <label class="pt-floor">
+        <span>Disable under</span>
+        <input class="particle-manual-input" id="pokemon-tracker-min-particles" type="number" inputmode="numeric" min="0" placeholder="250">
+        <span>Max particles</span>
+      </label>
       <div class="candy-table-wrap">
         <div class="candy-grid" id="pokemon-tracker-grid"></div>
       </div>
-      <div class="particle-actions-label" style="margin-top: 10px; margin-bottom: 0; font-weight: 400; color: var(--text-faint); font-size: 12px; line-height: 1.5;">Tick a box when that account has the Pok&eacute;mon. An empty box means it&rsquo;s still missing. Tick the small box beside an account&rsquo;s name to disable it: its row locks and Check all skips it. Accounts under 250 Max particles are disabled automatically.</div>
+      <div class="particle-actions-label" style="margin-top: 10px; margin-bottom: 0; font-weight: 400; color: var(--text-faint); font-size: 12px; line-height: 1.5;">Tick a box when that account has the Pok&eacute;mon. An empty box means it&rsquo;s still missing. Tick the small box beside an account&rsquo;s name to disable it: its row locks and Check all skips it. Accounts under the Max particle floor above are disabled automatically.</div>
     </div>
   </div>
 
@@ -4488,9 +4495,22 @@
   const PT_ICON_EYE = 'M12,9A3,3 0 0,0 9,12A3,3 0 0,0 12,15A3,3 0 0,0 15,12A3,3 0 0,0 12,9M12,17A5,5 0 0,1 7,12A5,5 0 0,1 12,7A5,5 0 0,1 17,12A5,5 0 0,1 12,17M12,4.5C7,4.5 2.73,7.61 1,12C2.73,16.39 7,19.5 12,19.5C17,19.5 21.27,16.39 23,12C21.27,7.61 17,4.5 12,4.5Z';
   const PT_ICON_EYE_OFF = 'M11.83,9L15,12.16C15,12.11 15,12.05 15,12A3,3 0 0,0 12,9C11.94,9 11.89,9 11.83,9M7.53,9.8L9.08,11.35C9.03,11.56 9,11.77 9,12A3,3 0 0,0 12,15C12.22,15 12.44,14.97 12.65,14.92L14.2,16.47C13.53,16.8 12.79,17 12,17A5,5 0 0,1 7,12C7,11.21 7.2,10.47 7.53,9.8M2,4.27L4.28,6.55L4.73,7C3.08,8.3 1.78,10 1,12C2.73,16.39 7,19.5 12,19.5C13.55,19.5 15.03,19.2 16.38,18.66L16.81,19.08L19.73,22L21,20.73L3.27,3M12,7A5,5 0 0,1 17,12C17,12.64 16.87,13.26 16.64,13.82L19.57,16.75C21.21,15.5 22.5,13.88 23,12C21.27,7.61 17,4.5 12,4.5C10.73,4.5 9.5,4.7 8.36,5.07L10.69,7.4C11.12,7.14 11.54,7 12,7Z';
   // An account is also treated as disabled while its current Max particle
-  // total (Max Particle page) is below the cheapest raid spend, 250.
-  const PT_MIN_PARTICLES = 250;
-  const ptLowParticles = (account) => (state.accounts[account].currentTotal || 0) < PT_MIN_PARTICLES;
+  // total (Max Particle page) is below this floor. Defaults to 250 (the
+  // cheapest raid spend) but can be edited on the page; 0 turns it off.
+  const PT_MIN_PARTICLES_KEY = 'pogo-daily-checklist-pokemon-tracker-min-particles';
+  const PT_DEFAULT_MIN_PARTICLES = 250;
+  const storedMinParticles = parseInt(localStorage.getItem(PT_MIN_PARTICLES_KEY), 10);
+  let ptMinParticles = Number.isNaN(storedMinParticles) || storedMinParticles < 0 ? PT_DEFAULT_MIN_PARTICLES : storedMinParticles;
+  const ptMinParticlesInput = document.getElementById('pokemon-tracker-min-particles');
+  ptMinParticlesInput.value = ptMinParticles;
+  ptMinParticlesInput.addEventListener('input', () => {
+    // A blank or invalid box counts as 0 (no automatic disabling) while typing.
+    const value = parseInt(ptMinParticlesInput.value, 10);
+    ptMinParticles = Number.isNaN(value) || value < 0 ? 0 : value;
+    localStorage.setItem(PT_MIN_PARTICLES_KEY, String(ptMinParticles));
+    renderPokemonTrackerGrid();
+  });
+  const ptLowParticles = (account) => (state.accounts[account].currentTotal || 0) < ptMinParticles;
   const ptIsEnabled = (account) => !pokemonTracker.disabled[account] && !ptLowParticles(account);
 
   function setPtViewMode(mode) {
@@ -4563,7 +4583,7 @@
       acctCell.className = 'candy-cell-account pt-account' + (enabled ? '' : ' pt-account-off');
       acctCell.innerHTML = `
         <span class="${teamCls}">${account}</span>
-        <input type="checkbox" class="pt-disable" ${enabled ? '' : 'checked'} ${lowParticles ? 'disabled' : ''} aria-label="Disable ${account}" title="${lowParticles ? `Disabled automatically: under ${PT_MIN_PARTICLES} Max particles` : `Disable ${account}`}">
+        <input type="checkbox" class="pt-disable" ${enabled ? '' : 'checked'} ${lowParticles ? 'disabled' : ''} aria-label="Disable ${account}" title="${lowParticles ? `Disabled automatically: under ${ptMinParticles} Max particles` : `Disable ${account}`}">
       `;
       acctCell.querySelector('.pt-disable').addEventListener('change', (e) => {
         if (e.target.checked) pokemonTracker.disabled[account] = true;
