@@ -831,6 +831,37 @@
   .pt-footer.checked .pt-box { border-color: var(--good); }
   .pt-floor { display: flex; align-items: center; gap: 8px; margin-bottom: 12px; font-size: 13px; font-weight: 700; color: var(--text-dim); }
   .pt-floor .particle-manual-input { flex: 0 0 90px; width: 90px; padding: 6px 10px; font-size: 15px; }
+  .sx-result {
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    font-size: 17px;
+    line-height: 1.5;
+    word-break: break-all;
+    color: var(--text);
+    background: var(--panel-2);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 12px;
+    min-height: 50px;
+    user-select: all;
+  }
+  .sx-result.empty { color: var(--text-faint); font-family: inherit; font-size: 14px; user-select: none; }
+  .sx-family { margin-top: 10px; }
+  .sx-range-label { margin: 14px 0 6px; font-size: 13px; font-weight: 700; color: var(--text-dim); }
+  .sx-hint { margin-top: 8px; font-size: 12px; color: var(--text-faint); }
+  .sx-chips { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 4px; }
+  .sx-chip {
+    font: inherit;
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--text-dim);
+    background: var(--panel-2);
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    padding: 7px 12px;
+    cursor: pointer;
+  }
+  .sx-chip.on { background: var(--accent); border-color: var(--accent); color: #fff; }
+  .sx-chip.not { background: rgba(255, 122, 104, 0.15); border-color: var(--bad); color: var(--bad); }
   .tb-inputs { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
   .tb-field { display: block; }
   .tb-field .particle-manual-input { display: block; width: 100%; }
@@ -990,6 +1021,7 @@
         <button class="app-tab" data-tab="pokedex" type="button">Pokedex Search</button>
         <button class="app-tab" data-tab="candy-tracker" type="button">Candy Tracker</button>
         <button class="app-tab" data-tab="shadow-tracker" type="button">Shadow Tracker</button>
+        <button class="app-tab" data-tab="search-term" type="button">Search Term</button>
       </div>
     </div>
     <div class="panel tz-card">
@@ -1261,6 +1293,7 @@
         <button class="app-tab" data-tab="pokedex" type="button">Pokedex Search</button>
         <button class="app-tab" data-tab="candy-tracker" type="button">Candy Tracker</button>
         <button class="app-tab" data-tab="shadow-tracker" type="button">Shadow Tracker</button>
+        <button class="app-tab" data-tab="search-term" type="button">Search Term</button>
       </div>
     </div>
     <div class="panel tz-card">
@@ -1403,6 +1436,7 @@
         <button class="app-tab" data-tab="pokedex" type="button">Pokedex Search</button>
         <button class="app-tab" data-tab="candy-tracker" type="button">Candy Tracker</button>
         <button class="app-tab" data-tab="shadow-tracker" type="button">Shadow Tracker</button>
+        <button class="app-tab" data-tab="search-term" type="button">Search Term</button>
       </div>
     </div>
     <div class="panel">
@@ -1522,6 +1556,7 @@
         <button class="app-tab active" data-tab="pokedex" type="button">Pokedex Search</button>
         <button class="app-tab" data-tab="candy-tracker" type="button">Candy Tracker</button>
         <button class="app-tab" data-tab="shadow-tracker" type="button">Shadow Tracker</button>
+        <button class="app-tab" data-tab="search-term" type="button">Search Term</button>
       </div>
     </div>
     <div class="panel panel-theme-indigo">
@@ -1561,6 +1596,7 @@
         <button class="app-tab" data-tab="pokedex" type="button">Pokedex Search</button>
         <button class="app-tab active" data-tab="candy-tracker" type="button">Candy Tracker</button>
         <button class="app-tab" data-tab="shadow-tracker" type="button">Shadow Tracker</button>
+        <button class="app-tab" data-tab="search-term" type="button">Search Term</button>
       </div>
     </div>
     <div class="panel panel-theme-indigo">
@@ -1606,6 +1642,7 @@
         <button class="app-tab" data-tab="pokedex" type="button">Pokedex Search</button>
         <button class="app-tab" data-tab="candy-tracker" type="button">Candy Tracker</button>
         <button class="app-tab" data-tab="shadow-tracker" type="button">Shadow Tracker</button>
+        <button class="app-tab" data-tab="search-term" type="button">Search Term</button>
       </div>
     </div>
     <div class="panel panel-theme-indigo">
@@ -1667,6 +1704,7 @@
         <button class="app-tab" data-tab="pokedex" type="button">Pokedex Search</button>
         <button class="app-tab" data-tab="candy-tracker" type="button">Candy Tracker</button>
         <button class="app-tab active" data-tab="shadow-tracker" type="button">Shadow Tracker</button>
+        <button class="app-tab" data-tab="search-term" type="button">Search Term</button>
       </div>
     </div>
     <div class="panel">
@@ -1688,6 +1726,7 @@
         <button class="app-tab" data-tab="pokedex" type="button">Pokedex Search</button>
         <button class="app-tab" data-tab="candy-tracker" type="button">Candy Tracker</button>
         <button class="app-tab" data-tab="shadow-tracker" type="button">Shadow Tracker</button>
+        <button class="app-tab" data-tab="search-term" type="button">Search Term</button>
       </div>
     </div>
     <div class="panel panel-theme-teal">
@@ -1709,6 +1748,87 @@
     </div>
     <div class="panel" id="tb-result-panel">
       <div id="tb-result"></div>
+    </div>
+  </div>
+
+  <div id="view-search-term" hidden>
+    <div class="panel">
+      <div class="app-tabs">
+        <button class="app-tab" data-tab="dashboard" type="button">Daily Checklist</button>
+        <button class="app-tab" data-tab="particles" type="button">Max Particle</button>
+        <button class="app-tab" data-tab="pokemon-tracker" type="button">Pokemon Tracker</button>
+        <button class="app-tab" data-tab="trade-balancer" type="button">Trade Balancer</button>
+        <button class="app-tab" data-tab="candy" type="button">Power Up Calculator</button>
+        <button class="app-tab" data-tab="pokedex" type="button">Pokedex Search</button>
+        <button class="app-tab" data-tab="candy-tracker" type="button">Candy Tracker</button>
+        <button class="app-tab" data-tab="shadow-tracker" type="button">Shadow Tracker</button>
+        <button class="app-tab active" data-tab="search-term" type="button">Search Term</button>
+      </div>
+    </div>
+
+    <div class="panel panel-theme-indigo">
+      <div class="particle-actions-label">Search term</div>
+      <div class="sx-result" id="sx-result"></div>
+      <button class="particle-btn" id="sx-copy-btn" type="button" style="width: 100%; margin-top: 10px;">Copy</button>
+      <div class="particle-actions-label" style="margin: 14px 0 8px;">Join with</div>
+      <div class="view-mode-tabs" id="sx-sep-tabs" style="margin-bottom: 0;">
+        <button class="view-mode-btn active" data-sep="&amp;" type="button">&amp; &nbsp;(all match)</button>
+        <button class="view-mode-btn" data-sep="," type="button">, &nbsp;(any match)</button>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="particle-actions-label">Pok&eacute;mon name</div>
+      <input class="particle-manual-input" id="sx-name" type="text" placeholder="e.g. zac" autocomplete="off" autocapitalize="off" spellcheck="false" style="display: block; width: 100%;">
+      <label class="maxmove-check sx-family"><input type="checkbox" id="sx-family"> Include evolutions (+)</label>
+    </div>
+
+    <div class="panel">
+      <div class="particle-actions-label">Move type</div>
+      <div class="tb-inputs">
+        <label class="tb-field"><span class="candy-level-label">Fast move</span><select class="particle-manual-input" id="sx-fast"></select></label>
+        <label class="tb-field"><span class="candy-level-label">Charge move</span><select class="particle-manual-input" id="sx-charge"></select></label>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="particle-actions-label">Candy count</div>
+      <div class="sx-range-label">Candy</div>
+      <div class="tb-inputs">
+        <input class="particle-manual-input" id="sx-candy-min" type="number" inputmode="numeric" min="0" placeholder="min">
+        <input class="particle-manual-input" id="sx-candy-max" type="number" inputmode="numeric" min="0" placeholder="max">
+      </div>
+      <div class="sx-range-label">Candy XL</div>
+      <div class="tb-inputs">
+        <input class="particle-manual-input" id="sx-candyxl-min" type="number" inputmode="numeric" min="0" placeholder="min">
+        <input class="particle-manual-input" id="sx-candyxl-max" type="number" inputmode="numeric" min="0" placeholder="max">
+      </div>
+      <div class="sx-hint">Min only = that many or more. Max only = that many or fewer.</div>
+    </div>
+
+    <div class="panel">
+      <div class="particle-actions-label">More filters</div>
+      <div class="tb-inputs">
+        <label class="tb-field"><span class="candy-level-label">Pok&eacute;mon type</span><select class="particle-manual-input" id="sx-type"></select></label>
+        <label class="tb-field"><span class="candy-level-label">IV rating</span>
+          <select class="particle-manual-input" id="sx-stars">
+            <option value="">Any</option>
+            <option value="4*">4* (hundo)</option>
+            <option value="3*">3*</option>
+            <option value="2*">2*</option>
+            <option value="1*">1*</option>
+            <option value="0*">0* (nundo)</option>
+          </select>
+        </label>
+      </div>
+      <div class="sx-range-label">CP</div>
+      <div class="tb-inputs">
+        <input class="particle-manual-input" id="sx-cp-min" type="number" inputmode="numeric" min="0" placeholder="min">
+        <input class="particle-manual-input" id="sx-cp-max" type="number" inputmode="numeric" min="0" placeholder="max">
+      </div>
+      <div class="sx-range-label">Tap a tag once to include it, twice to exclude it (!)</div>
+      <div class="sx-chips" id="sx-chips"></div>
+      <button class="clear-tracked-btn" id="sx-reset-btn" type="button">Reset everything</button>
     </div>
   </div>
 </div>
@@ -2006,6 +2126,7 @@
   const viewPokemonTrackerManage = document.getElementById('view-pokemon-tracker-manage');
   const viewShadowTracker = document.getElementById('view-shadow-tracker');
   const viewTradeBalancer = document.getElementById('view-trade-balancer');
+  const viewSearchTerm = document.getElementById('view-search-term');
   const viewCustomTasks = document.getElementById('view-custom-tasks');
   const viewSync = document.getElementById('view-sync');
   const accountsEl = document.getElementById('accounts');
@@ -3093,7 +3214,7 @@
   // (equal priority), not a parent/child pair, so switching between them
   // doesn't push a history entry - only genuine sub-views (account
   // checklist, particle detail, custom tasks, sync, modals) do that.
-  const ROOT_TAB_ORDER = ['dashboard', 'particles', 'pokemon-tracker', 'trade-balancer', 'candy', 'pokedex', 'candy-tracker', 'shadow-tracker'];
+  const ROOT_TAB_ORDER = ['dashboard', 'particles', 'pokemon-tracker', 'trade-balancer', 'candy', 'pokedex', 'candy-tracker', 'shadow-tracker', 'search-term'];
   function switchTab(tab) {
     viewDashboard.hidden = tab !== 'dashboard';
     viewParticles.hidden = tab !== 'particles';
@@ -3103,6 +3224,7 @@
     viewPokemonTracker.hidden = tab !== 'pokemon-tracker';
     viewShadowTracker.hidden = tab !== 'shadow-tracker';
     viewTradeBalancer.hidden = tab !== 'trade-balancer';
+    viewSearchTerm.hidden = tab !== 'search-term';
     document.querySelectorAll('.app-tab').forEach(btn => {
       btn.classList.toggle('active', btn.dataset.tab === tab);
     });
@@ -3127,6 +3249,7 @@
     if (!viewPokemonTracker.hidden) return 'pokemon-tracker';
     if (!viewShadowTracker.hidden) return 'shadow-tracker';
     if (!viewTradeBalancer.hidden) return 'trade-balancer';
+    if (!viewSearchTerm.hidden) return 'search-term';
     return null;
   }
 
@@ -4916,6 +5039,140 @@
   tbInputs.forEach(input => input.addEventListener('input', renderTradeBalancer));
   tbPairingEl.addEventListener('change', renderTradeBalancer);
   renderTradeBalancer();
+
+  // --- Search Term: builds a Pokemon GO search-bar string from a few
+  // pickers. Every filled-in piece becomes one term, and the terms are
+  // joined with the chosen separator (& = all must match, , = any).
+  const SX_TYPES = ['normal', 'fire', 'water', 'electric', 'grass', 'ice', 'fighting', 'poison', 'ground', 'flying', 'psychic', 'bug', 'rock', 'ghost', 'dragon', 'dark', 'steel', 'fairy'];
+  // Tags tap through off -> include -> exclude (!term).
+  const SX_CHIPS = [
+    { id: 'shiny', term: 'shiny', label: 'Shiny' },
+    { id: 'shadow', term: 'shadow', label: 'Shadow' },
+    { id: 'purified', term: 'purified', label: 'Purified' },
+    { id: 'lucky', term: 'lucky', label: 'Lucky' },
+    { id: 'legendary', term: 'legendary', label: 'Legendary' },
+    { id: 'mythical', term: 'mythical', label: 'Mythical' },
+    { id: 'ultra', term: 'ultra beasts', label: 'Ultra Beast' },
+    { id: 'dynamax', term: 'dynamax', label: 'Dynamax' },
+    { id: 'gigantamax', term: 'gigantamax', label: 'Gigantamax' },
+    { id: 'megaevolve', term: 'megaevolve', label: 'Can Mega evolve' },
+    { id: 'evolve', term: 'evolve', label: 'Can evolve' },
+    { id: 'tradeevolve', term: 'tradeevolve', label: 'Trade evolve' },
+    { id: 'traded', term: 'traded', label: 'Traded' },
+    { id: 'defender', term: 'defender', label: 'At a gym' },
+    { id: 'special', term: '@special', label: 'Special move' },
+    { id: 'xxl', term: 'xxl', label: 'XXL' },
+    { id: 'xxs', term: 'xxs', label: 'XXS' },
+  ];
+  const sxId = (id) => document.getElementById(id);
+  const sxChipState = {};
+  let sxSeparator = '&';
+
+  function sxFillTypeSelect(select, anyLabel) {
+    select.innerHTML = `<option value="">${anyLabel}</option>` +
+      SX_TYPES.map(t => `<option value="${t}">${t[0].toUpperCase()}${t.slice(1)}</option>`).join('');
+  }
+  sxFillTypeSelect(sxId('sx-fast'), 'Any');
+  sxFillTypeSelect(sxId('sx-charge'), 'Any');
+  sxFillTypeSelect(sxId('sx-type'), 'Any');
+
+  // min only -> "prefix10-", max only -> "prefix-10", both -> "prefix10-20",
+  // same number -> exact "prefix10".
+  function sxRange(prefix, minId, maxId) {
+    const lo = parseInt(sxId(minId).value, 10);
+    const hi = parseInt(sxId(maxId).value, 10);
+    const hasLo = !Number.isNaN(lo) && lo >= 0;
+    const hasHi = !Number.isNaN(hi) && hi >= 0;
+    if (hasLo && hasHi) return lo === hi ? `${prefix}${lo}` : `${prefix}${Math.min(lo, hi)}-${Math.max(lo, hi)}`;
+    if (hasLo) return `${prefix}${lo}-`;
+    if (hasHi) return `${prefix}-${hi}`;
+    return '';
+  }
+
+  function sxBuildTerm() {
+    const parts = [];
+    const name = sxId('sx-name').value.trim().replace(/^\+/, '');
+    if (name) parts.push((sxId('sx-family').checked ? '+' : '') + name);
+    const type = sxId('sx-type').value;
+    if (type) parts.push(type);
+    if (sxId('sx-fast').value) parts.push(`@1${sxId('sx-fast').value}`);
+    if (sxId('sx-charge').value) parts.push(`@2${sxId('sx-charge').value}`);
+    parts.push(sxRange('countcandy', 'sx-candy-min', 'sx-candy-max'));
+    parts.push(sxRange('countcandyxl', 'sx-candyxl-min', 'sx-candyxl-max'));
+    parts.push(sxRange('cp', 'sx-cp-min', 'sx-cp-max'));
+    if (sxId('sx-stars').value) parts.push(sxId('sx-stars').value);
+    SX_CHIPS.forEach(chip => {
+      if (sxChipState[chip.id] === 1) parts.push(chip.term);
+      else if (sxChipState[chip.id] === 2) parts.push('!' + chip.term);
+    });
+    return parts.filter(Boolean).join(sxSeparator);
+  }
+
+  const sxResultEl = sxId('sx-result');
+  const sxCopyBtn = sxId('sx-copy-btn');
+  function renderSearchTerm() {
+    const term = sxBuildTerm();
+    sxResultEl.textContent = term;
+    sxResultEl.classList.toggle('empty', !term);
+    if (!term) sxResultEl.textContent = 'Pick something below…';
+    sxCopyBtn.disabled = !term;
+  }
+
+  const sxChipsEl = sxId('sx-chips');
+  function renderSxChips() {
+    sxChipsEl.innerHTML = '';
+    SX_CHIPS.forEach(chip => {
+      const state = sxChipState[chip.id] || 0;
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'sx-chip' + (state === 1 ? ' on' : '') + (state === 2 ? ' not' : '');
+      btn.textContent = (state === 2 ? '! ' : '') + chip.label;
+      btn.addEventListener('click', () => {
+        sxChipState[chip.id] = ((sxChipState[chip.id] || 0) + 1) % 3;
+        renderSxChips();
+        renderSearchTerm();
+      });
+      sxChipsEl.appendChild(btn);
+    });
+  }
+
+  ['sx-name', 'sx-family', 'sx-fast', 'sx-charge', 'sx-type', 'sx-stars',
+    'sx-candy-min', 'sx-candy-max', 'sx-candyxl-min', 'sx-candyxl-max', 'sx-cp-min', 'sx-cp-max'].forEach(id => {
+    sxId(id).addEventListener('input', renderSearchTerm);
+    sxId(id).addEventListener('change', renderSearchTerm);
+  });
+  sxId('sx-sep-tabs').querySelectorAll('.view-mode-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      sxSeparator = btn.dataset.sep;
+      sxId('sx-sep-tabs').querySelectorAll('.view-mode-btn').forEach(b => b.classList.toggle('active', b === btn));
+      renderSearchTerm();
+    });
+  });
+  sxCopyBtn.addEventListener('click', async () => {
+    const term = sxBuildTerm();
+    if (!term) return;
+    try {
+      await navigator.clipboard.writeText(term);
+    } catch {
+      const ta = document.createElement('textarea');
+      ta.value = term;
+      document.body.appendChild(ta);
+      ta.select();
+      document.execCommand('copy');
+      ta.remove();
+    }
+    flashButton(sxCopyBtn, 'Copied!');
+  });
+  sxId('sx-reset-btn').addEventListener('click', () => {
+    ['sx-name', 'sx-candy-min', 'sx-candy-max', 'sx-candyxl-min', 'sx-candyxl-max', 'sx-cp-min', 'sx-cp-max'].forEach(id => { sxId(id).value = ''; });
+    ['sx-fast', 'sx-charge', 'sx-type', 'sx-stars'].forEach(id => { sxId(id).value = ''; });
+    sxId('sx-family').checked = false;
+    SX_CHIPS.forEach(chip => { sxChipState[chip.id] = 0; });
+    renderSxChips();
+    renderSearchTerm();
+  });
+  renderSxChips();
+  renderSearchTerm();
 
   renderDashboard();
 
