@@ -1750,6 +1750,7 @@
           <option value="2">Account 1 &amp; 4, Account 2 &amp; 3</option>
         </select>
       </label>
+      <button class="clear-tracked-btn" id="tb-reset-btn" type="button">Reset numbers</button>
     </div>
     <div class="panel" id="tb-result-panel">
       <div id="tb-result"></div>
@@ -5060,6 +5061,11 @@
   }
   tbInputs.forEach(input => input.addEventListener('input', renderTradeBalancer));
   tbPairingEl.addEventListener('change', renderTradeBalancer);
+  document.getElementById('tb-reset-btn').addEventListener('click', () => {
+    tbInputs.forEach(input => { input.value = ''; });
+    renderTradeBalancer();
+    tbInputs[0].focus();
+  });
   renderTradeBalancer();
 
   // --- Search Term: builds a Pokemon GO search-bar string from a few
@@ -5171,10 +5177,10 @@
     });
   });
   sxCopyBtn.addEventListener('click', async () => {
-    // Copied wrapped in double backticks (``term``) so it pastes as inline code.
+    // Copied wrapped in single backticks (`term`) so it pastes as inline code.
     const built = sxBuildTerm();
     if (!built) return;
-    const term = '``' + built + '``';
+    const term = '`' + built + '`';
     try {
       await navigator.clipboard.writeText(term);
     } catch {
