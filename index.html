@@ -453,8 +453,6 @@
   }
   .particle-grid-item:hover { border-color: var(--accent); }
   .particle-grid-item:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
-  .team1-name { color: #ffd166; }
-  .team2-name { color: #ff6fb0; }
   .particle-grid-item .name {
     font-size: 15px;
     font-weight: 700;
@@ -1126,10 +1124,6 @@
         <button class="modal-quick-btn" id="modal-first4-btn" type="button">First 4 accounts</button>
         <button class="modal-quick-btn" id="modal-last4-btn" type="button">Last 4 accounts</button>
       </div>
-      <div class="modal-quick-row">
-        <button class="modal-quick-btn" id="modal-team1-btn" type="button">Select Team 1</button>
-        <button class="modal-quick-btn" id="modal-team2-btn" type="button">Select Team 2</button>
-      </div>
       <div class="modal-accounts" id="modal-accounts"></div>
     </div>
   </div>
@@ -1144,10 +1138,6 @@
       <div class="modal-quick-row" id="bulk-first4last4-row">
         <button class="modal-quick-btn" id="bulk-first4-btn" type="button">First 4 accounts</button>
         <button class="modal-quick-btn" id="bulk-last4-btn" type="button">Last 4 accounts</button>
-      </div>
-      <div class="modal-quick-row">
-        <button class="modal-quick-btn" id="bulk-team1-btn" type="button">Select Team 1</button>
-        <button class="modal-quick-btn" id="bulk-team2-btn" type="button">Select Team 2</button>
       </div>
       <div class="modal-quick-row" id="bulk-duo-row-1" hidden>
         <button class="modal-quick-btn" id="bulk-duo1-btn" type="button">1st Duo</button>
@@ -1169,8 +1159,8 @@
       </div>
       <button class="check-all-btn" id="spend-modal-select-all" type="button">Select all accounts</button>
       <div class="modal-quick-row">
-        <button class="modal-quick-btn" id="spend-team1-btn" type="button">Select Team 1</button>
-        <button class="modal-quick-btn" id="spend-team2-btn" type="button">Select Team 2</button>
+        <button class="modal-quick-btn" id="spend-first4-btn" type="button">First 4 accounts</button>
+        <button class="modal-quick-btn" id="spend-last4-btn" type="button">Last 4 accounts</button>
       </div>
       <button class="sync-action-btn" id="spend-modal-apply" type="button">Apply to selected</button>
       <div class="modal-accounts" id="spend-modal-accounts"></div>
@@ -1185,8 +1175,8 @@
       </div>
       <button class="check-all-btn" id="move-modal-select-all" type="button">Select all accounts</button>
       <div class="modal-quick-row">
-        <button class="modal-quick-btn" id="move-team1-btn" type="button">Select Team 1</button>
-        <button class="modal-quick-btn" id="move-team2-btn" type="button">Select Team 2</button>
+        <button class="modal-quick-btn" id="move-first4-btn" type="button">First 4 accounts</button>
+        <button class="modal-quick-btn" id="move-last4-btn" type="button">Last 4 accounts</button>
       </div>
       <button class="sync-action-btn" id="move-modal-apply" type="button">Apply to selected</button>
       <div class="modal-accounts" id="move-modal-accounts"></div>
@@ -1201,8 +1191,8 @@
       </div>
       <button class="check-all-btn" id="gain-modal-select-all" type="button">Select all accounts</button>
       <div class="modal-quick-row">
-        <button class="modal-quick-btn" id="gain-team1-btn" type="button">Select Team 1</button>
-        <button class="modal-quick-btn" id="gain-team2-btn" type="button">Select Team 2</button>
+        <button class="modal-quick-btn" id="gain-first4-btn" type="button">First 4 accounts</button>
+        <button class="modal-quick-btn" id="gain-last4-btn" type="button">Last 4 accounts</button>
       </div>
       <button class="sync-action-btn" id="gain-modal-apply" type="button">Apply to selected</button>
       <div class="modal-accounts" id="gain-modal-accounts"></div>
@@ -1235,8 +1225,8 @@
       </div>
       <button class="check-all-btn" id="candy-multi-select-all" type="button">Select all accounts</button>
       <div class="modal-quick-row">
-        <button class="modal-quick-btn" id="candy-multi-team1-btn" type="button">Select Team 1</button>
-        <button class="modal-quick-btn" id="candy-multi-team2-btn" type="button">Select Team 2</button>
+        <button class="modal-quick-btn" id="candy-multi-first4-btn" type="button">First 4 accounts</button>
+        <button class="modal-quick-btn" id="candy-multi-last4-btn" type="button">Last 4 accounts</button>
       </div>
       <div class="candy-cell-modal-row">
         <input class="particle-manual-input" id="candy-multi-input" type="number" inputmode="numeric" placeholder="amount for selected accounts">
@@ -1325,10 +1315,6 @@
       <button class="check-all-btn particles-open-btn" id="sync-open-btn-2" type="button">Manual Sync&hellip;</button>
     </div>
     <div class="panel">
-      <div class="view-mode-tabs" id="particle-view-mode-tabs">
-        <button class="view-mode-btn" data-view-mode="team" type="button">Team View</button>
-        <button class="view-mode-btn" data-view-mode="normal" type="button">Normal View</button>
-      </div>
       <div class="particle-grid" id="particle-list"></div>
     </div>
     <div class="panel panel-theme-teal">
@@ -1369,8 +1355,8 @@
         <button class="particle-btn" type="button" id="particle-manual-all-btn">Apply to all</button>
       </div>
       <div class="particle-action-row" style="margin-bottom: 12px">
-        <button class="particle-btn" type="button" id="particle-manual-team1-btn">Apply to team 1</button>
-        <button class="particle-btn" type="button" id="particle-manual-team2-btn">Apply to team 2</button>
+        <button class="particle-btn" type="button" id="particle-manual-first4-btn">Apply to first 4</button>
+        <button class="particle-btn" type="button" id="particle-manual-last4-btn">Apply to last 4</button>
       </div>
       <div class="particle-manual-list" id="particle-manual-list"></div>
     </div>
@@ -1655,10 +1641,6 @@
       <button class="check-all-btn" id="pokemon-tracker-manage-btn" type="button" style="margin-bottom: 0;">Manage tracked Pok&eacute;mon&hellip;</button>
     </div>
     <div class="panel">
-      <div class="view-mode-tabs" id="pokemon-tracker-view-mode-tabs">
-        <button class="view-mode-btn" data-view-mode="team" type="button">Team View</button>
-        <button class="view-mode-btn" data-view-mode="normal" type="button">Normal View</button>
-      </div>
       <label class="pt-floor">
         <span>Disable under</span>
         <input class="particle-manual-input" id="pokemon-tracker-min-particles" type="number" inputmode="numeric" min="0" placeholder="250">
@@ -1971,14 +1953,6 @@
   // reused across every account-picker modal below.
   const FIRST_FOUR_ACCOUNTS = accountNames.slice(0, 4);
   const LAST_FOUR_ACCOUNTS = accountNames.slice(-4);
-  const TEAM_1_ACCOUNTS = ['Viibration', 'ViizierSV', 'ViisitorXY', 'ViitaminEV'];
-  const TEAM_2_ACCOUNTS = accountNames.filter(name => !TEAM_1_ACCOUNTS.includes(name));
-
-  // Max Particle page "Team View": groups accounts by team instead of the
-  // normal accountNames order. A specific requested order, not just
-  // TEAM_1_ACCOUNTS.concat(TEAM_2_ACCOUNTS) - the team 2 half isn't in
-  // accountNames order either.
-  const TEAM_MODE_ORDER = ['Viibration', 'ViizierSV', 'ViisitorXY', 'ViitaminEV', 'ViineyardistEX', 'ViictoriaZA', 'ViiperGX', 'ViillainousNX'];
 
   // PvP league bulk-check duos, paired for the "Check win pvp all leagues" modal.
   const DUO_1_ACCOUNTS = ['Viibration', 'ViisitorXY'];
@@ -1986,16 +1960,7 @@
   const DUO_3_ACCOUNTS = ['ViineyardistEX', 'ViiperGX'];
   const DUO_4_ACCOUNTS = ['ViizierSV', 'ViillainousNX'];
 
-  // Max Particle page: tag each account name with its team so the two
-  // groups are easy to tell apart at a glance in the lists and modals.
-  function teamNameHtml(name) {
-    const isTeam1 = TEAM_1_ACCOUNTS.includes(name);
-    const cls = isTeam1 ? 'team1-name' : 'team2-name';
-    const tag = isTeam1 ? 'T1' : 'T2';
-    return `<span class="${cls}">${name} (${tag})</span>`;
-  }
-
-  // First4/Last3/Team1/Team2 quick-select buttons toggle: pressing one
+  // First 4 / Last 4 quick-select buttons toggle: pressing one
   // again while its whole group is already selected deselects that
   // group instead of being a no-op, so a wrong press is one tap to undo.
   function toggleGroupSelection(selectedSet, group) {
@@ -2536,8 +2501,6 @@
   }
   document.getElementById('modal-first4-btn').addEventListener('click', () => toggleModalAccounts(FIRST_FOUR_ACCOUNTS));
   document.getElementById('modal-last4-btn').addEventListener('click', () => toggleModalAccounts(LAST_FOUR_ACCOUNTS));
-  document.getElementById('modal-team1-btn').addEventListener('click', () => toggleModalAccounts(TEAM_1_ACCOUNTS));
-  document.getElementById('modal-team2-btn').addEventListener('click', () => toggleModalAccounts(TEAM_2_ACCOUNTS));
 
   modalCloseBtn.addEventListener('click', closeModal);
   modalBackdrop.addEventListener('click', (e) => {
@@ -2551,7 +2514,6 @@
   const bulkModalCloseBtn = document.getElementById('bulk-modal-close');
   const bulkAccountsEl = document.getElementById('bulk-accounts');
   const bulkSelectAllBtn = document.getElementById('bulk-select-all-btn');
-  const bulkFirst4Last4Row = document.getElementById('bulk-first4last4-row');
   const bulkDuoRow1 = document.getElementById('bulk-duo-row-1');
   const bulkDuoRow2 = document.getElementById('bulk-duo-row-2');
   let bulkTaskIds = null;
@@ -2564,7 +2526,6 @@
     bulkTaskIds = taskIds;
     bulkModalTitleEl.textContent = title;
     const isDuo = quickSelect === 'duo';
-    bulkFirst4Last4Row.hidden = isDuo;
     bulkDuoRow1.hidden = !isDuo;
     bulkDuoRow2.hidden = !isDuo;
     renderBulkAccounts();
@@ -2649,8 +2610,6 @@
 
   document.getElementById('bulk-first4-btn').addEventListener('click', () => toggleBulkGroup(FIRST_FOUR_ACCOUNTS));
   document.getElementById('bulk-last4-btn').addEventListener('click', () => toggleBulkGroup(LAST_FOUR_ACCOUNTS));
-  document.getElementById('bulk-team1-btn').addEventListener('click', () => toggleBulkGroup(TEAM_1_ACCOUNTS));
-  document.getElementById('bulk-team2-btn').addEventListener('click', () => toggleBulkGroup(TEAM_2_ACCOUNTS));
   document.getElementById('bulk-duo1-btn').addEventListener('click', () => toggleBulkGroup(DUO_1_ACCOUNTS));
   document.getElementById('bulk-duo2-btn').addEventListener('click', () => toggleBulkGroup(DUO_2_ACCOUNTS));
   document.getElementById('bulk-duo3-btn').addEventListener('click', () => toggleBulkGroup(DUO_3_ACCOUNTS));
@@ -2674,34 +2633,9 @@
   const PARTICLE_LIMIT = 800;
   const MAX_TOTAL_CAP = 1500;
 
-  // Max Particle page account view mode (Normal/Team), kept in its own
-  // localStorage key since it's a display preference, not day-scoped
-  // checklist state - persists across reloads until toggled again.
-  const PARTICLE_VIEW_MODE_KEY = 'pogo-daily-checklist-particle-view-mode';
-  let particleViewMode = localStorage.getItem(PARTICLE_VIEW_MODE_KEY) === 'normal' ? 'normal' : 'team';
-  const particleViewModeTabs = document.getElementById('particle-view-mode-tabs');
-
-  function particleViewOrder() {
-    return particleViewMode === 'team' ? TEAM_MODE_ORDER : accountNames;
-  }
-
-  function setParticleViewMode(mode) {
-    particleViewMode = mode;
-    localStorage.setItem(PARTICLE_VIEW_MODE_KEY, mode);
-    particleViewModeTabs.querySelectorAll('.view-mode-btn').forEach(btn => {
-      btn.classList.toggle('active', btn.dataset.viewMode === mode);
-    });
-    renderParticleList();
-  }
-
-  particleViewModeTabs.querySelectorAll('.view-mode-btn').forEach(btn => {
-    btn.addEventListener('click', () => setParticleViewMode(btn.dataset.viewMode));
-  });
-  setParticleViewMode(particleViewMode);
-
   function renderParticleGrid() {
     particleListEl.innerHTML = '';
-    particleViewOrder().forEach(name => {
+    accountNames.forEach(name => {
       const total = state.accounts[name].currentTotal || 0;
       const gained = state.accounts[name].particles || 0;
       const card = document.createElement('div');
@@ -2711,7 +2645,7 @@
       const toMax = Math.max(0, MAX_TOTAL_CAP - total);
       const toDailyLimit = Math.max(0, PARTICLE_LIMIT - gained);
       card.innerHTML = `
-        <div class="name">${teamNameHtml(name)}</div>
+        <div class="name">${name}</div>
         <div class="count${total >= MAX_TOTAL_CAP ? ' maxed' : ''}">${total}/${MAX_TOTAL_CAP} (${toMax})</div>
         <div class="gained-sub${gained >= PARTICLE_LIMIT ? ' over-limit' : ''}">${gained}/${PARTICLE_LIMIT} (${toDailyLimit})</div>
       `;
@@ -2746,20 +2680,20 @@
     particleManualAllInput.value = '';
   }
   particleManualAllBtn.addEventListener('click', () => applyParticleManualTo(accountNames));
-  document.getElementById('particle-manual-team1-btn').addEventListener('click', () => applyParticleManualTo(TEAM_1_ACCOUNTS));
-  document.getElementById('particle-manual-team2-btn').addEventListener('click', () => applyParticleManualTo(TEAM_2_ACCOUNTS));
+  document.getElementById('particle-manual-first4-btn').addEventListener('click', () => applyParticleManualTo(FIRST_FOUR_ACCOUNTS));
+  document.getElementById('particle-manual-last4-btn').addEventListener('click', () => applyParticleManualTo(LAST_FOUR_ACCOUNTS));
   particleManualAllInput.addEventListener('keydown', (e) => {
     if (e.key === 'Enter') applyParticleManualTo(accountNames);
   });
 
   function renderParticleManualList() {
     particleManualListEl.innerHTML = '';
-    particleViewOrder().forEach(name => {
+    accountNames.forEach(name => {
       const total = state.accounts[name].currentTotal || 0;
       const row = document.createElement('div');
       row.className = 'particle-manual-row';
       row.innerHTML = `
-        <div class="particle-manual-name">${teamNameHtml(name)}</div>
+        <div class="particle-manual-name">${name}</div>
         <input class="particle-manual-input" type="number" inputmode="numeric" min="0" value="${total}">
       `;
       const input = row.querySelector('.particle-manual-input');
@@ -2803,7 +2737,7 @@
 
   function renderSpendModalAccounts() {
     spendModalAccountsEl.innerHTML = '';
-    particleViewOrder().forEach(name => {
+    accountNames.forEach(name => {
       const selected = spendModalSelected.has(name);
       const total = state.accounts[name].currentTotal || 0;
       const affordable = total - spendModalAmt >= 0;
@@ -2820,7 +2754,7 @@
           </svg>
         </span>
         <span class="modal-account-text">
-          <span class="name">${teamNameHtml(name)}</span>
+          <span class="name">${name}</span>
           <span class="modal-account-total${selected ? ' preview-spend' : ''}">${previewTotal}</span>
         </span>
       `;
@@ -2868,12 +2802,12 @@
 
   // Disabled (unaffordable) accounts get filtered back out by
   // renderSpendModalAccounts itself, so these can select blindly.
-  document.getElementById('spend-team1-btn').addEventListener('click', () => {
-    toggleGroupSelection(spendModalSelected, TEAM_1_ACCOUNTS);
+  document.getElementById('spend-first4-btn').addEventListener('click', () => {
+    toggleGroupSelection(spendModalSelected, FIRST_FOUR_ACCOUNTS);
     renderSpendModalAccounts();
   });
-  document.getElementById('spend-team2-btn').addEventListener('click', () => {
-    toggleGroupSelection(spendModalSelected, TEAM_2_ACCOUNTS);
+  document.getElementById('spend-last4-btn').addEventListener('click', () => {
+    toggleGroupSelection(spendModalSelected, LAST_FOUR_ACCOUNTS);
     renderSpendModalAccounts();
   });
 
@@ -2917,7 +2851,7 @@
 
   function renderMoveModalAccounts() {
     moveModalAccountsEl.innerHTML = '';
-    particleViewOrder().forEach(name => {
+    accountNames.forEach(name => {
       const selected = moveModalSelected.has(name);
       const total = state.accounts[name].currentTotal || 0;
       const affordable = total - moveModalAmt >= 0;
@@ -2934,7 +2868,7 @@
           </svg>
         </span>
         <span class="modal-account-text">
-          <span class="name">${teamNameHtml(name)}</span>
+          <span class="name">${name}</span>
           <span class="modal-account-total${selected ? ' preview-spend' : ''}">${previewTotal}</span>
         </span>
       `;
@@ -2980,12 +2914,12 @@
     renderMoveModalAccounts();
   });
 
-  document.getElementById('move-team1-btn').addEventListener('click', () => {
-    toggleGroupSelection(moveModalSelected, TEAM_1_ACCOUNTS);
+  document.getElementById('move-first4-btn').addEventListener('click', () => {
+    toggleGroupSelection(moveModalSelected, FIRST_FOUR_ACCOUNTS);
     renderMoveModalAccounts();
   });
-  document.getElementById('move-team2-btn').addEventListener('click', () => {
-    toggleGroupSelection(moveModalSelected, TEAM_2_ACCOUNTS);
+  document.getElementById('move-last4-btn').addEventListener('click', () => {
+    toggleGroupSelection(moveModalSelected, LAST_FOUR_ACCOUNTS);
     renderMoveModalAccounts();
   });
 
@@ -3028,7 +2962,7 @@
 
   function renderGainModalAccounts() {
     gainModalAccountsEl.innerHTML = '';
-    particleViewOrder().forEach(name => {
+    accountNames.forEach(name => {
       const selected = gainModalSelected.has(name);
       const gained = state.accounts[name].particles || 0;
       const total = state.accounts[name].currentTotal || 0;
@@ -3054,7 +2988,7 @@
           </svg>
         </span>
         <span class="modal-account-text">
-          <span class="name">${teamNameHtml(name)}</span>
+          <span class="name">${name}</span>
           <span class="modal-account-total${selected ? ' preview' : ''}">${previewTotal}</span>
           <span class="modal-account-sub${selected ? ' preview' : ''}">${previewGained}/${PARTICLE_LIMIT}</span>
         </span>
@@ -3103,12 +3037,12 @@
 
   // Disabled (over-quota) accounts get filtered back out by
   // renderGainModalAccounts itself, so these can select blindly.
-  document.getElementById('gain-team1-btn').addEventListener('click', () => {
-    toggleGroupSelection(gainModalSelected, TEAM_1_ACCOUNTS);
+  document.getElementById('gain-first4-btn').addEventListener('click', () => {
+    toggleGroupSelection(gainModalSelected, FIRST_FOUR_ACCOUNTS);
     renderGainModalAccounts();
   });
-  document.getElementById('gain-team2-btn').addEventListener('click', () => {
-    toggleGroupSelection(gainModalSelected, TEAM_2_ACCOUNTS);
+  document.getElementById('gain-last4-btn').addEventListener('click', () => {
+    toggleGroupSelection(gainModalSelected, LAST_FOUR_ACCOUNTS);
     renderGainModalAccounts();
   });
 
@@ -3131,7 +3065,7 @@
     const name = currentParticleAccount;
     const total = state.accounts[name].currentTotal || 0;
     const gained = state.accounts[name].particles || 0;
-    particleDetailNameEl.innerHTML = teamNameHtml(name);
+    particleDetailNameEl.innerHTML = name;
     particleDetailTotalEl.textContent = total;
     particleDetailGainedEl.textContent = `(+${gained}/${PARTICLE_LIMIT})`;
     particleDetailGainedEl.classList.toggle('over-limit', gained >= PARTICLE_LIMIT);
@@ -4449,7 +4383,7 @@
           </svg>
         </span>
         <span class="modal-account-text">
-          <span class="name">${teamNameHtml(account)}</span>
+          <span class="name">${account}</span>
           <span class="modal-account-total">${getCandyPair(account, candyMultiPokemon)[candyMultiSlot]}</span>
         </span>
       `;
@@ -4490,12 +4424,12 @@
     else accountNames.forEach(a => candyMultiSelected.add(a));
     renderCandyMultiAccounts();
   });
-  document.getElementById('candy-multi-team1-btn').addEventListener('click', () => {
-    toggleGroupSelection(candyMultiSelected, TEAM_1_ACCOUNTS);
+  document.getElementById('candy-multi-first4-btn').addEventListener('click', () => {
+    toggleGroupSelection(candyMultiSelected, FIRST_FOUR_ACCOUNTS);
     renderCandyMultiAccounts();
   });
-  document.getElementById('candy-multi-team2-btn').addEventListener('click', () => {
-    toggleGroupSelection(candyMultiSelected, TEAM_2_ACCOUNTS);
+  document.getElementById('candy-multi-last4-btn').addEventListener('click', () => {
+    toggleGroupSelection(candyMultiSelected, LAST_FOUR_ACCOUNTS);
     renderCandyMultiAccounts();
   });
   document.getElementById('candy-multi-modal-close').addEventListener('click', closeCandyMultiModal);
@@ -4636,13 +4570,6 @@
   const pokemonTrackerCountLabel = document.getElementById('pokemon-tracker-count-label');
   const pokemonTrackerGridEl = document.getElementById('pokemon-tracker-grid');
 
-  // Account order + team colouring, same Team/Normal toggle idea as the
-  // Max Particle page but with its own saved preference (Team by default).
-  const PT_VIEW_MODE_KEY = 'pogo-daily-checklist-pokemon-tracker-view-mode';
-  let ptViewMode = localStorage.getItem(PT_VIEW_MODE_KEY) === 'normal' ? 'normal' : 'team';
-  const ptViewModeTabs = document.getElementById('pokemon-tracker-view-mode-tabs');
-  const ptOrder = () => (ptViewMode === 'team' ? TEAM_MODE_ORDER : accountNames);
-
   const PT_HIDE_DISABLED_KEY = 'pogo-daily-checklist-pokemon-tracker-hide-disabled';
   let ptHideDisabled = localStorage.getItem(PT_HIDE_DISABLED_KEY) === '1';
   const PT_ICON_EYE = 'M12,9A3,3 0 0,0 9,12A3,3 0 0,0 12,15A3,3 0 0,0 15,12A3,3 0 0,0 12,9M12,17A5,5 0 0,1 7,12A5,5 0 0,1 12,7A5,5 0 0,1 17,12A5,5 0 0,1 12,17M12,4.5C7,4.5 2.73,7.61 1,12C2.73,16.39 7,19.5 12,19.5C17,19.5 21.27,16.39 23,12C21.27,7.61 17,4.5 12,4.5Z';
@@ -4665,18 +4592,6 @@
   });
   const ptLowParticles = (account) => (state.accounts[account].currentTotal || 0) < ptMinParticles;
   const ptIsEnabled = (account) => !pokemonTracker.disabled[account] && !ptLowParticles(account);
-
-  function setPtViewMode(mode) {
-    ptViewMode = mode;
-    localStorage.setItem(PT_VIEW_MODE_KEY, mode);
-    ptViewModeTabs.querySelectorAll('.view-mode-btn').forEach(btn => {
-      btn.classList.toggle('active', btn.dataset.viewMode === mode);
-    });
-    renderPokemonTrackerGrid();
-  }
-  ptViewModeTabs.querySelectorAll('.view-mode-btn').forEach(btn => {
-    btn.addEventListener('click', () => setPtViewMode(btn.dataset.viewMode));
-  });
 
   function renderPokemonTrackerGrid() {
     const tracked = pokemonTracker.tracked;
@@ -4728,14 +4643,13 @@
       else delete pokemonTracker.have[account][ptKey(p)];
     };
 
-    ptOrder().filter(account => !ptHideDisabled || ptIsEnabled(account)).forEach(account => {
+    accountNames.filter(account => !ptHideDisabled || ptIsEnabled(account)).forEach(account => {
       const enabled = ptIsEnabled(account);
       const lowParticles = ptLowParticles(account);
-      const teamCls = TEAM_1_ACCOUNTS.includes(account) ? 'team1-name' : 'team2-name';
       const acctCell = document.createElement('div');
       acctCell.className = 'candy-cell-account pt-account' + (enabled ? '' : ' pt-account-off');
       acctCell.innerHTML = `
-        <span class="${teamCls}">${account}</span>
+        <span>${account}</span>
         <input type="checkbox" class="pt-disable" ${enabled ? '' : 'checked'} ${lowParticles ? 'disabled' : ''} aria-label="Disable ${account}" title="${lowParticles ? `Disabled automatically: under ${ptMinParticles} Max particles` : `Disable ${account}`}">
       `;
       acctCell.querySelector('.pt-disable').addEventListener('change', (e) => {
@@ -4901,7 +4815,7 @@
   });
   pokemonTrackerFormsEl.addEventListener('change', renderPokemonTrackerManage);
 
-  setPtViewMode(ptViewMode);
+  renderPokemonTrackerGrid();
 
   // --- Shadow Tracker: rows are accounts, columns are Team Rocket grunts
   // (gender + type, with the Shadow Pokemon each one gives), and a box
@@ -4954,10 +4868,10 @@
         </svg>
       </span>
     `;
-    TEAM_MODE_ORDER.forEach(account => {
+    accountNames.forEach(account => {
       const acctCell = document.createElement('div');
       acctCell.className = 'candy-cell-account';
-      acctCell.innerHTML = `<span class="${TEAM_1_ACCOUNTS.includes(account) ? 'team1-name' : 'team2-name'}">${account}</span>`;
+      acctCell.textContent = account;
       shadowTrackerGridEl.appendChild(acctCell);
 
       SHADOW_GRUNTS.forEach(g => {
