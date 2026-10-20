@@ -1773,10 +1773,10 @@
 
     <div class="panel">
       <div class="particle-actions-label">Move type</div>
-      <div class="tb-inputs">
-        <label class="tb-field"><span class="candy-level-label">Fast move</span><select class="particle-manual-input" id="sx-fast"></select></label>
-        <label class="tb-field"><span class="candy-level-label">Charge move</span><select class="particle-manual-input" id="sx-charge"></select></label>
-      </div>
+      <div class="sx-range-label" style="margin-top: 0;">Fast move (pick one or more)</div>
+      <div class="sx-chips" id="sx-fast-chips"></div>
+      <div class="sx-range-label">Charge move (pick one or more)</div>
+      <div class="sx-chips" id="sx-charge-chips"></div>
     </div>
 
     <div class="panel">
@@ -5008,14 +5008,14 @@
   ];
   const sxId = (id) => document.getElementById(id);
   const sxChipState = {};
+  const sxFastTypes = new Set();
+  const sxChargeTypes = new Set();
   let sxSeparator = '&';
 
   function sxFillTypeSelect(select, anyLabel) {
     select.innerHTML = `<option value="">${anyLabel}</option>` +
       SX_TYPES.map(t => `<option value="${t}">${t[0].toUpperCase()}${t.slice(1)}</option>`).join('');
   }
-  sxFillTypeSelect(sxId('sx-fast'), 'Any');
-  sxFillTypeSelect(sxId('sx-charge'), 'Any');
   sxFillTypeSelect(sxId('sx-type'), 'Any');
 
   // min only -> "prefix10-", max only -> "prefix-10", both -> "prefix10-20",
@@ -5037,8 +5037,10 @@
     if (name) parts.push((sxId('sx-family').checked ? '+' : '') + name);
     const type = sxId('sx-type').value;
     if (type) parts.push(type);
-    if (sxId('sx-fast').value) parts.push(`@1${sxId('sx-fast').value}`);
-    if (sxId('sx-charge').value) parts.push(`@2${sxId('sx-charge').value}`);
+    // Several types in one move group are OR'd with commas (@1rock,@1ground);
+    // the groups themselves join with the chosen separator like everything else.
+    if (sxFastTypes.size) parts.push([...sxFastTypes].map(t => `@1${t}`).join(','));
+    if (sxChargeTypes.size) parts.push([...sxChargeTypes].map(t => `@2${t}`).join(','));
     parts.push(sxRange('countcandy', 'sx-candy-min', 'sx-candy-max'));
     parts.push(sxRange('countcandyxl', 'sx-candyxl-min', 'sx-candyxl-max'));
     parts.push(sxRange('cp', 'sx-cp-min', 'sx-cp-max'));
@@ -5060,6 +5062,26 @@
     sxCopyBtn.disabled = !term;
   }
 
+  // Move-type picker: tap types on/off; the selection keeps tap order.
+  function renderSxTypeChips() {
+    [[sxId('sx-fast-chips'), sxFastTypes], [sxId('sx-charge-chips'), sxChargeTypes]].forEach(([container, selected]) => {
+      container.innerHTML = '';
+      SX_TYPES.forEach(type => {
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'sx-chip' + (selected.has(type) ? ' on' : '');
+        btn.textContent = type[0].toUpperCase() + type.slice(1);
+        btn.addEventListener('click', () => {
+          if (selected.has(type)) selected.delete(type);
+          else selected.add(type);
+          renderSxTypeChips();
+          renderSearchTerm();
+        });
+        container.appendChild(btn);
+      });
+    });
+  }
+
   const sxChipsEl = sxId('sx-chips');
   function renderSxChips() {
     sxChipsEl.innerHTML = '';
@@ -5078,7 +5100,7 @@
     });
   }
 
-  ['sx-name', 'sx-family', 'sx-fast', 'sx-charge', 'sx-type', 'sx-stars',
+  ['sx-name', 'sx-family', 'sx-type', 'sx-stars',
     'sx-candy-min', 'sx-candy-max', 'sx-candyxl-min', 'sx-candyxl-max', 'sx-cp-min', 'sx-cp-max'].forEach(id => {
     sxId(id).addEventListener('input', renderSearchTerm);
     sxId(id).addEventListener('change', renderSearchTerm);
@@ -5109,13 +5131,17 @@
   });
   sxId('sx-reset-btn').addEventListener('click', () => {
     ['sx-name', 'sx-candy-min', 'sx-candy-max', 'sx-candyxl-min', 'sx-candyxl-max', 'sx-cp-min', 'sx-cp-max'].forEach(id => { sxId(id).value = ''; });
-    ['sx-fast', 'sx-charge', 'sx-type', 'sx-stars'].forEach(id => { sxId(id).value = ''; });
+    ['sx-type', 'sx-stars'].forEach(id => { sxId(id).value = ''; });
+    sxFastTypes.clear();
+    sxChargeTypes.clear();
+    renderSxTypeChips();
     sxId('sx-family').checked = false;
     SX_CHIPS.forEach(chip => { sxChipState[chip.id] = 0; });
     renderSxChips();
     renderSearchTerm();
   });
   renderSxChips();
+  renderSxTypeChips();
   renderSearchTerm();
 
   renderDashboard();
