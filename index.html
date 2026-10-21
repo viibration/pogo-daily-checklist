@@ -1757,7 +1757,10 @@
     <div class="panel panel-theme-indigo">
       <div class="particle-actions-label">Search term</div>
       <div class="sx-result" id="sx-result"></div>
-      <button class="particle-btn" id="sx-copy-btn" type="button" style="width: 100%; margin-top: 10px;">Copy</button>
+      <div class="particle-action-row" style="margin-top: 10px;">
+        <button class="particle-btn" id="sx-copy-btn" type="button">Copy text</button>
+        <button class="particle-btn" id="sx-copy-code-btn" type="button">Copy `text`</button>
+      </div>
       <div class="particle-actions-label" style="margin: 14px 0 8px;">Join with</div>
       <div class="view-mode-tabs" id="sx-sep-tabs" style="margin-bottom: 0;">
         <button class="view-mode-btn active" data-sep="&amp;" type="button">&amp; &nbsp;(all match)</button>
@@ -5054,12 +5057,14 @@
 
   const sxResultEl = sxId('sx-result');
   const sxCopyBtn = sxId('sx-copy-btn');
+  const sxCopyCodeBtn = sxId('sx-copy-code-btn');
   function renderSearchTerm() {
     const term = sxBuildTerm();
     sxResultEl.textContent = term;
     sxResultEl.classList.toggle('empty', !term);
     if (!term) sxResultEl.textContent = 'Pick something below…';
     sxCopyBtn.disabled = !term;
+    sxCopyCodeBtn.disabled = !term;
   }
 
   // Move-type picker: tap types on/off; the selection keeps tap order.
@@ -5112,11 +5117,12 @@
       renderSearchTerm();
     });
   });
-  sxCopyBtn.addEventListener('click', async () => {
-    // Copied wrapped in single backticks (`term`) so it pastes as inline code.
+  // "Copy text" copies the term as-is; "Copy `text`" wraps it in single
+  // backticks so it pastes as inline code.
+  async function sxCopy(btn, wrapInBackticks) {
     const built = sxBuildTerm();
     if (!built) return;
-    const term = '`' + built + '`';
+    const term = wrapInBackticks ? '`' + built + '`' : built;
     try {
       await navigator.clipboard.writeText(term);
     } catch {
@@ -5127,8 +5133,10 @@
       document.execCommand('copy');
       ta.remove();
     }
-    flashButton(sxCopyBtn, 'Copied!');
-  });
+    flashButton(btn, 'Copied!');
+  }
+  sxCopyBtn.addEventListener('click', () => sxCopy(sxCopyBtn, false));
+  sxCopyCodeBtn.addEventListener('click', () => sxCopy(sxCopyCodeBtn, true));
   sxId('sx-reset-btn').addEventListener('click', () => {
     ['sx-name', 'sx-candy-min', 'sx-candy-max', 'sx-candyxl-min', 'sx-candyxl-max', 'sx-cp-min', 'sx-cp-max'].forEach(id => { sxId(id).value = ''; });
     ['sx-type', 'sx-stars'].forEach(id => { sxId(id).value = ''; });
