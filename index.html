@@ -1315,6 +1315,11 @@
       <button class="check-all-btn particles-open-btn" id="sync-open-btn-2" type="button">Manual Sync&hellip;</button>
     </div>
     <div class="panel">
+      <label class="pt-floor">
+        <span>Disable spending under</span>
+        <input class="particle-manual-input" id="particle-spend-floor" type="number" inputmode="numeric" min="0" placeholder="250">
+        <span>particles</span>
+      </label>
       <div class="particle-grid" id="particle-list"></div>
     </div>
     <div class="panel panel-theme-teal">
@@ -2636,6 +2641,25 @@
   const PARTICLE_LIMIT = 800;
   const MAX_TOTAL_CAP = 1500;
 
+  // Spend on raid and Max Move upgrades are switched off for any account whose
+  // current total is under this limit (on top of not being able to afford the
+  // cost). Editable on the page, saved on this device; 0 turns it off.
+  const PARTICLE_SPEND_FLOOR_KEY = 'pogo-daily-checklist-particle-spend-floor';
+  const PARTICLE_DEFAULT_SPEND_FLOOR = 250;
+  const storedSpendFloor = parseInt(localStorage.getItem(PARTICLE_SPEND_FLOOR_KEY), 10);
+  let particleSpendFloor = Number.isNaN(storedSpendFloor) || storedSpendFloor < 0 ? PARTICLE_DEFAULT_SPEND_FLOOR : storedSpendFloor;
+  const particleSpendFloorInput = document.getElementById('particle-spend-floor');
+  particleSpendFloorInput.value = particleSpendFloor;
+  particleSpendFloorInput.addEventListener('input', () => {
+    const value = parseInt(particleSpendFloorInput.value, 10);
+    particleSpendFloor = Number.isNaN(value) || value < 0 ? 0 : value;
+    localStorage.setItem(PARTICLE_SPEND_FLOOR_KEY, String(particleSpendFloor));
+  });
+  function canSpendParticles(name, amount) {
+    const total = state.accounts[name].currentTotal || 0;
+    return total >= particleSpendFloor && total - amount >= 0;
+  }
+
   function renderParticleGrid() {
     particleListEl.innerHTML = '';
     accountNames.forEach(name => {
@@ -2741,9 +2765,11 @@
   function renderSpendModalAccounts() {
     spendModalAccountsEl.innerHTML = '';
     accountNames.forEach(name => {
-      const selected = spendModalSelected.has(name);
       const total = state.accounts[name].currentTotal || 0;
-      const affordable = total - spendModalAmt >= 0;
+      const affordable = canSpendParticles(name, spendModalAmt);
+      // An account that can't be spent from never shows as ticked, even if a
+      // quick-select button just tried to pick it.
+      const selected = affordable && spendModalSelected.has(name);
       const row = document.createElement('div');
       row.className = 'modal-account-row' + (selected ? ' done' : '') + (affordable ? '' : ' disabled');
       row.tabIndex = 0;
@@ -2775,7 +2801,7 @@
       spendModalAccountsEl.appendChild(row);
     });
 
-    const affordableNames = accountNames.filter(name => (state.accounts[name].currentTotal || 0) - spendModalAmt >= 0);
+    const affordableNames = accountNames.filter(name => canSpendParticles(name, spendModalAmt));
     const allSelected = affordableNames.length > 0 && affordableNames.every(name => spendModalSelected.has(name));
     spendModalSelectAllBtn.textContent = allSelected ? 'Deselect all accounts' : 'Select all accounts';
   }
@@ -2796,7 +2822,7 @@
   });
 
   spendModalSelectAllBtn.addEventListener('click', () => {
-    const affordableNames = accountNames.filter(name => (state.accounts[name].currentTotal || 0) - spendModalAmt >= 0);
+    const affordableNames = accountNames.filter(name => canSpendParticles(name, spendModalAmt));
     const allSelected = affordableNames.length > 0 && affordableNames.every(name => spendModalSelected.has(name));
     if (allSelected) spendModalSelected.clear();
     else affordableNames.forEach(name => spendModalSelected.add(name));
@@ -2855,9 +2881,11 @@
   function renderMoveModalAccounts() {
     moveModalAccountsEl.innerHTML = '';
     accountNames.forEach(name => {
-      const selected = moveModalSelected.has(name);
       const total = state.accounts[name].currentTotal || 0;
-      const affordable = total - moveModalAmt >= 0;
+      const affordable = canSpendParticles(name, moveModalAmt);
+      // An account that can't be spent from never shows as ticked, even if a
+      // quick-select button just tried to pick it.
+      const selected = affordable && moveModalSelected.has(name);
       const row = document.createElement('div');
       row.className = 'modal-account-row' + (selected ? ' done' : '') + (affordable ? '' : ' disabled');
       row.tabIndex = 0;
@@ -2889,7 +2917,7 @@
       moveModalAccountsEl.appendChild(row);
     });
 
-    const affordableNames = accountNames.filter(name => (state.accounts[name].currentTotal || 0) - moveModalAmt >= 0);
+    const affordableNames = accountNames.filter(name => canSpendParticles(name, moveModalAmt));
     const allSelected = affordableNames.length > 0 && affordableNames.every(name => moveModalSelected.has(name));
     moveModalSelectAllBtn.textContent = allSelected ? 'Deselect all accounts' : 'Select all accounts';
   }
@@ -2910,7 +2938,7 @@
   });
 
   moveModalSelectAllBtn.addEventListener('click', () => {
-    const affordableNames = accountNames.filter(name => (state.accounts[name].currentTotal || 0) - moveModalAmt >= 0);
+    const affordableNames = accountNames.filter(name => canSpendParticles(name, moveModalAmt));
     const allSelected = affordableNames.length > 0 && affordableNames.every(name => moveModalSelected.has(name));
     if (allSelected) moveModalSelected.clear();
     else affordableNames.forEach(name => moveModalSelected.add(name));
@@ -3074,10 +3102,10 @@
     particleDetailGainedEl.classList.toggle('over-limit', gained >= PARTICLE_LIMIT);
 
     document.querySelectorAll('#view-particle-detail .particle-btn[data-spend]').forEach(btn => {
-      btn.disabled = total - Number(btn.dataset.spend) < 0;
+      btn.disabled = !canSpendParticles(name, Number(btn.dataset.spend));
     });
     document.querySelectorAll('#view-particle-detail .particle-btn[data-move]').forEach(btn => {
-      btn.disabled = total - Number(btn.dataset.move) < 0;
+      btn.disabled = !canSpendParticles(name, Number(btn.dataset.move));
     });
     document.querySelectorAll('#view-particle-detail .particle-btn[data-amt]').forEach(btn => {
       btn.disabled = gained >= PARTICLE_LIMIT;
