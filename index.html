@@ -1316,7 +1316,7 @@
     </div>
     <div class="panel">
       <label class="pt-floor">
-        <span>Disable spending under</span>
+        <span>Disable spending at or under</span>
         <input class="particle-manual-input" id="particle-spend-floor" type="number" inputmode="numeric" min="0" placeholder="250">
         <span>particles</span>
       </label>
@@ -2642,8 +2642,9 @@
   const MAX_TOTAL_CAP = 1500;
 
   // Spend on raid and Max Move upgrades are switched off for any account whose
-  // current total is under this limit (on top of not being able to afford the
-  // cost). Editable on the page, saved on this device; 0 turns it off.
+  // current total is at or under this limit (<=), no matter how much the spend
+  // would take (a spend bigger than the balance just leaves 0). Editable on
+  // the page and saved on this device.
   const PARTICLE_SPEND_FLOOR_KEY = 'pogo-daily-checklist-particle-spend-floor';
   const PARTICLE_DEFAULT_SPEND_FLOOR = 250;
   const storedSpendFloor = parseInt(localStorage.getItem(PARTICLE_SPEND_FLOOR_KEY), 10);
@@ -2654,10 +2655,18 @@
     const value = parseInt(particleSpendFloorInput.value, 10);
     particleSpendFloor = Number.isNaN(value) || value < 0 ? 0 : value;
     localStorage.setItem(PARTICLE_SPEND_FLOOR_KEY, String(particleSpendFloor));
+    updateParticleSpendButtons();
   });
-  function canSpendParticles(name, amount) {
-    const total = state.accounts[name].currentTotal || 0;
-    return total >= particleSpendFloor && total - amount >= 0;
+  function canSpendParticles(name) {
+    return (state.accounts[name].currentTotal || 0) > particleSpendFloor;
+  }
+  // The spend / Max Move buttons themselves switch off when no account is
+  // over the limit, since there'd be nobody to pick in the dialog.
+  function updateParticleSpendButtons() {
+    const anyoneEligible = accountNames.some(canSpendParticles);
+    document.querySelectorAll('#view-particles .particle-btn[data-pick-spend], #view-particles .particle-btn[data-pick-move]').forEach(btn => {
+      btn.disabled = !anyoneEligible;
+    });
   }
 
   function renderParticleGrid() {
@@ -2685,6 +2694,7 @@
       });
       particleListEl.appendChild(card);
     });
+    updateParticleSpendButtons();
   }
 
   function renderParticleList() {
@@ -2766,7 +2776,7 @@
     spendModalAccountsEl.innerHTML = '';
     accountNames.forEach(name => {
       const total = state.accounts[name].currentTotal || 0;
-      const affordable = canSpendParticles(name, spendModalAmt);
+      const affordable = canSpendParticles(name);
       // An account that can't be spent from never shows as ticked, even if a
       // quick-select button just tried to pick it.
       const selected = affordable && spendModalSelected.has(name);
@@ -2775,7 +2785,7 @@
       row.tabIndex = 0;
       row.setAttribute('role', 'checkbox');
       row.setAttribute('aria-checked', String(selected));
-      const previewTotal = selected ? total - spendModalAmt : total;
+      const previewTotal = selected ? Math.max(0, total - spendModalAmt) : total;
       row.innerHTML = `
         <span class="box">
           <svg viewBox="0 0 24 24" fill="none" stroke="#0e1620" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
@@ -2801,7 +2811,7 @@
       spendModalAccountsEl.appendChild(row);
     });
 
-    const affordableNames = accountNames.filter(name => canSpendParticles(name, spendModalAmt));
+    const affordableNames = accountNames.filter(name => canSpendParticles(name));
     const allSelected = affordableNames.length > 0 && affordableNames.every(name => spendModalSelected.has(name));
     spendModalSelectAllBtn.textContent = allSelected ? 'Deselect all accounts' : 'Select all accounts';
   }
@@ -2822,7 +2832,7 @@
   });
 
   spendModalSelectAllBtn.addEventListener('click', () => {
-    const affordableNames = accountNames.filter(name => canSpendParticles(name, spendModalAmt));
+    const affordableNames = accountNames.filter(name => canSpendParticles(name));
     const allSelected = affordableNames.length > 0 && affordableNames.every(name => spendModalSelected.has(name));
     if (allSelected) spendModalSelected.clear();
     else affordableNames.forEach(name => spendModalSelected.add(name));
@@ -2843,7 +2853,7 @@
   spendModalApplyBtn.addEventListener('click', () => {
     if (spendModalSelected.size === 0) return;
     spendModalSelected.forEach(name => {
-      state.accounts[name].currentTotal = (state.accounts[name].currentTotal || 0) - spendModalAmt;
+      state.accounts[name].currentTotal = Math.max(0, (state.accounts[name].currentTotal || 0) - spendModalAmt);
     });
     saveState(state);
     renderParticleList();
@@ -2882,7 +2892,7 @@
     moveModalAccountsEl.innerHTML = '';
     accountNames.forEach(name => {
       const total = state.accounts[name].currentTotal || 0;
-      const affordable = canSpendParticles(name, moveModalAmt);
+      const affordable = canSpendParticles(name);
       // An account that can't be spent from never shows as ticked, even if a
       // quick-select button just tried to pick it.
       const selected = affordable && moveModalSelected.has(name);
@@ -2891,7 +2901,7 @@
       row.tabIndex = 0;
       row.setAttribute('role', 'checkbox');
       row.setAttribute('aria-checked', String(selected));
-      const previewTotal = selected ? total - moveModalAmt : total;
+      const previewTotal = selected ? Math.max(0, total - moveModalAmt) : total;
       row.innerHTML = `
         <span class="box">
           <svg viewBox="0 0 24 24" fill="none" stroke="#0e1620" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
@@ -2917,7 +2927,7 @@
       moveModalAccountsEl.appendChild(row);
     });
 
-    const affordableNames = accountNames.filter(name => canSpendParticles(name, moveModalAmt));
+    const affordableNames = accountNames.filter(name => canSpendParticles(name));
     const allSelected = affordableNames.length > 0 && affordableNames.every(name => moveModalSelected.has(name));
     moveModalSelectAllBtn.textContent = allSelected ? 'Deselect all accounts' : 'Select all accounts';
   }
@@ -2938,7 +2948,7 @@
   });
 
   moveModalSelectAllBtn.addEventListener('click', () => {
-    const affordableNames = accountNames.filter(name => canSpendParticles(name, moveModalAmt));
+    const affordableNames = accountNames.filter(name => canSpendParticles(name));
     const allSelected = affordableNames.length > 0 && affordableNames.every(name => moveModalSelected.has(name));
     if (allSelected) moveModalSelected.clear();
     else affordableNames.forEach(name => moveModalSelected.add(name));
@@ -2957,7 +2967,7 @@
   moveModalApplyBtn.addEventListener('click', () => {
     if (moveModalSelected.size === 0) return;
     moveModalSelected.forEach(name => {
-      state.accounts[name].currentTotal = (state.accounts[name].currentTotal || 0) - moveModalAmt;
+      state.accounts[name].currentTotal = Math.max(0, (state.accounts[name].currentTotal || 0) - moveModalAmt);
     });
     saveState(state);
     renderParticleList();
@@ -3102,10 +3112,10 @@
     particleDetailGainedEl.classList.toggle('over-limit', gained >= PARTICLE_LIMIT);
 
     document.querySelectorAll('#view-particle-detail .particle-btn[data-spend]').forEach(btn => {
-      btn.disabled = !canSpendParticles(name, Number(btn.dataset.spend));
+      btn.disabled = !canSpendParticles(name);
     });
     document.querySelectorAll('#view-particle-detail .particle-btn[data-move]').forEach(btn => {
-      btn.disabled = !canSpendParticles(name, Number(btn.dataset.move));
+      btn.disabled = !canSpendParticles(name);
     });
     document.querySelectorAll('#view-particle-detail .particle-btn[data-amt]').forEach(btn => {
       btn.disabled = gained >= PARTICLE_LIMIT;
@@ -3133,7 +3143,7 @@
 
   function spendParticles(amt) {
     const name = currentParticleAccount;
-    state.accounts[name].currentTotal = (state.accounts[name].currentTotal || 0) - amt;
+    state.accounts[name].currentTotal = Math.max(0, (state.accounts[name].currentTotal || 0) - amt);
     saveState(state);
     renderParticleDetail();
   }
