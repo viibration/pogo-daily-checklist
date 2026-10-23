@@ -865,6 +865,13 @@
   .tb-field { display: block; }
   .tb-field .particle-manual-input { display: block; width: 100%; }
   .tb-balanced { font-size: 30px; font-weight: 800; font-variant-numeric: tabular-nums; letter-spacing: 0.06em; color: var(--text); }
+  .tb-split { display: grid; grid-template-columns: 1fr 1fr; gap: 0; }
+  .tb-col { min-width: 0; padding: 0 12px; }
+  .tb-col:first-child { padding-left: 0; border-right: 1px solid var(--line); }
+  .tb-col:last-child { padding-right: 0; }
+  .tb-col .tb-balanced { font-size: 20px; letter-spacing: 0.02em; white-space: nowrap; }
+  .tb-col .tb-steps { padding-left: 16px; font-size: 13px; gap: 4px; }
+  .tb-sub { margin: 14px 0 6px; font-size: 12px; font-weight: 700; color: var(--text-faint); }
   .tb-steps { margin: 0; padding-left: 20px; display: flex; flex-direction: column; gap: 6px; font-size: 15px; line-height: 1.4; }
   .tb-steps b { color: var(--accent); }
   .tb-note { font-size: 13px; color: var(--text-faint); line-height: 1.5; }
@@ -1722,40 +1729,20 @@
       </div>
     </div>
     <div class="panel panel-theme-teal">
-      <div class="particle-actions-label">Balance in pairs &mdash; Pok&eacute;mon to trade per account</div>
+      <div class="particle-actions-label">Pok&eacute;mon to trade per account</div>
       <div class="tb-inputs">
         <label class="tb-field"><span class="candy-level-label">Account 1</span><input class="particle-manual-input" id="tb-input-0" type="number" inputmode="numeric" min="0" max="100" placeholder="0"></label>
         <label class="tb-field"><span class="candy-level-label">Account 2</span><input class="particle-manual-input" id="tb-input-1" type="number" inputmode="numeric" min="0" max="100" placeholder="0"></label>
         <label class="tb-field"><span class="candy-level-label">Account 3</span><input class="particle-manual-input" id="tb-input-2" type="number" inputmode="numeric" min="0" max="100" placeholder="0"></label>
         <label class="tb-field"><span class="candy-level-label">Account 4</span><input class="particle-manual-input" id="tb-input-3" type="number" inputmode="numeric" min="0" max="100" placeholder="0"></label>
       </div>
-      <label class="tb-field" style="margin-top: 12px;">
-        <span class="candy-level-label">Trade in pairs</span>
-        <select class="particle-manual-input" id="tb-pairing">
-          <option value="0">Account 1 &amp; 2, Account 3 &amp; 4</option>
-          <option value="1">Account 1 &amp; 3, Account 2 &amp; 4</option>
-          <option value="2">Account 1 &amp; 4, Account 2 &amp; 3</option>
-        </select>
-      </label>
       <button class="clear-tracked-btn" id="tb-reset-btn" type="button">Reset numbers</button>
     </div>
     <div class="panel" id="tb-result-panel">
       <div id="tb-result"></div>
     </div>
 
-    <div class="panel panel-theme-indigo">
-      <div class="particle-actions-label">Balance all 4 &mdash; every account ends on the same number</div>
-      <div class="tb-inputs">
-        <label class="tb-field"><span class="candy-level-label">Account 1</span><input class="particle-manual-input" id="tb2-input-0" type="number" inputmode="numeric" min="0" max="100" placeholder="0"></label>
-        <label class="tb-field"><span class="candy-level-label">Account 2</span><input class="particle-manual-input" id="tb2-input-1" type="number" inputmode="numeric" min="0" max="100" placeholder="0"></label>
-        <label class="tb-field"><span class="candy-level-label">Account 3</span><input class="particle-manual-input" id="tb2-input-2" type="number" inputmode="numeric" min="0" max="100" placeholder="0"></label>
-        <label class="tb-field"><span class="candy-level-label">Account 4</span><input class="particle-manual-input" id="tb2-input-3" type="number" inputmode="numeric" min="0" max="100" placeholder="0"></label>
-      </div>
-      <button class="clear-tracked-btn" id="tb2-reset-btn" type="button">Reset numbers</button>
-    </div>
-    <div class="panel">
-      <div id="tb2-result"></div>
-    </div>
+
   </div>
 
   <div id="view-search-term" hidden>
@@ -4960,11 +4947,10 @@
   // side of a pair has more of is traded to the other pair's accounts
   // first ("cross trades"), which leaves each pair with matching amounts
   // to trade between themselves. The fewest cross trades are used.
-  const TB_PAIRINGS = [[[0, 1], [2, 3]], [[0, 2], [1, 3]], [[0, 3], [1, 2]]];
+  const TB_PAIRING = [[0, 1], [2, 3]];   // Account 1 always pairs with 2, and 3 with 4
   const tbInputs = [0, 1, 2, 3].map(i => document.getElementById(`tb-input-${i}`));
-  const tbPairingEl = document.getElementById('tb-pairing');
   const tbResultEl = document.getElementById('tb-result');
-  const tbName = (i) => `Account ${i + 1}`;
+  const tbShort = (i) => `Acc ${i + 1}`;
   const TB_MAX = 100;
   // Reads a count from a box: whole number, 0 to TB_MAX. A bigger number is
   // capped and the box is corrected to match.
@@ -5018,45 +5004,54 @@
     return { balanced, cross, pairs: [[p1, p2, pairTradesA], [q1, q2, pairTradesB]], leftover };
   }
 
+  function tbStepsHtml(lines, emptyText) {
+    if (!lines.length) return `<div class="tb-note">${emptyText}</div>`;
+    return `<ul class="tb-steps">${lines.map(([from, to, n]) => `<li>${tbShort(from)} &harr; ${tbShort(to)}: <b>${n}</b></li>`).join('')}</ul>`;
+  }
+
   function renderTradeBalancer() {
     const counts = tbInputs.map(tbReadCount);
     if (counts.every(c => c === 0)) {
       tbResultEl.innerHTML = '<div class="particle-actions-label" style="margin: 0; font-weight: 400; color: var(--text-faint);">Enter how many Pok&eacute;mon each account will trade.</div>';
       return;
     }
-    const { balanced, cross, pairs, leftover } = balanceTrades(counts, TB_PAIRINGS[Number(tbPairingEl.value)]);
-    let html = `
-      <div class="particle-actions-label">Balanced</div>
-      <div class="tb-balanced">${balanced.join(' ')}</div>
-      <div class="tb-odd">Odd <b>${leftover.reduce((s, v) => s + v, 0) || '-'}</b></div>
+    const pairs = balanceTrades(counts, TB_PAIRING);
+    const all4 = balanceAll(counts);
+    const odd = pairs.leftover.reduce((s, v) => s + v, 0);
+    const pairLines = pairs.pairs.filter(([, , n]) => n > 0);
+    tbResultEl.innerHTML = `
+      <div class="tb-odd" style="margin: 0 0 12px;">Odd <b>${odd || '-'}</b></div>
+      <div class="tb-split">
+        <div class="tb-col">
+          <div class="particle-actions-label">Pairs</div>
+          <div class="tb-balanced">${pairs.balanced.join(' ')}</div>
+          <div class="tb-sub">To balance</div>
+          ${tbStepsHtml(pairs.cross, 'Nothing extra needed.')}
+          <div class="tb-sub">Then in pairs</div>
+          ${tbStepsHtml(pairLines, 'None.')}
+        </div>
+        <div class="tb-col">
+          <div class="particle-actions-label">All 4</div>
+          <div class="tb-balanced">${[all4.target, all4.target, all4.target, all4.target].join(' ')}</div>
+          <div class="tb-sub">To balance</div>
+          ${tbStepsHtml(all4.trades, 'Nothing extra needed.')}
+          <div class="tb-sub">Then in pairs</div>
+          ${all4.target > 0 ? tbStepsHtml([[0, 1, all4.target], [2, 3, all4.target]], '') : '<div class="tb-note">None.</div>'}
+        </div>
+      </div>
     `;
-    html += '<div class="particle-actions-label" style="margin-top: 16px;">To balance them</div>';
-    html += cross.length
-      ? `<ul class="tb-steps">${cross.map(([from, to, n]) => `<li>${tbName(from)} trades <b>${n} Pokémon</b> with ${tbName(to)}</li>`).join('')}</ul>`
-      : '<div class="tb-note">Nothing extra needed &mdash; the pairs already match.</div>';
-    const pairLines = pairs.filter(([, , n]) => n > 0);
-    if (pairLines.length) {
-      html += '<div class="particle-actions-label" style="margin-top: 16px;">Then trade in pairs</div>';
-      html += `<ul class="tb-steps">${pairLines.map(([x, y, n]) => `<li>${tbName(x)} trades <b>${n} Pokémon</b> with ${tbName(y)}</li>`).join('')}</ul>`;
-    }
-    tbResultEl.innerHTML = html;
   }
   tbInputs.forEach(input => input.addEventListener('input', renderTradeBalancer));
-  tbPairingEl.addEventListener('change', renderTradeBalancer);
   document.getElementById('tb-reset-btn').addEventListener('click', () => {
     tbInputs.forEach(input => { input.value = ''; });
     renderTradeBalancer();
     tbInputs[0].focus();
   });
-  renderTradeBalancer();
 
-  // --- Balance all 4: instead of two pairs, every account ends on the same
+  // Balance all 4: instead of two pairs, every account ends on the same
   // number. Trades are made between accounts (each takes one off both sides)
   // until all four match, keeping as many as possible so the fewest trades
   // are spent on balancing; what's left is the same amount for everyone.
-  const tb2Inputs = [0, 1, 2, 3].map(i => document.getElementById(`tb2-input-${i}`));
-  const tb2ResultEl = document.getElementById('tb2-result');
-
   function balanceAll(counts) {
     const { a, leftover } = tbNormalize(counts);
     const total = a.reduce((s, v) => s + v, 0);
@@ -5065,41 +5060,12 @@
     // surplus to the others.
     const target = Math.min(Math.min(...a), total / 2 - Math.max(...a));
     const toShed = a.map(v => v - target);
-    const plan = balanceTrades(toShed, TB_PAIRINGS[0]);
+    const plan = balanceTrades(toShed, TB_PAIRING);
     const trades = [...plan.cross, ...plan.pairs.filter(([, , n]) => n > 0)];
     return { target, trades, leftover };
   }
 
-  function renderTradeBalancerAll() {
-    const counts = tb2Inputs.map(tbReadCount);
-    if (counts.every(c => c === 0)) {
-      tb2ResultEl.innerHTML = '<div class="particle-actions-label" style="margin: 0; font-weight: 400; color: var(--text-faint);">Enter how many Pok&eacute;mon each account will trade.</div>';
-      return;
-    }
-    const { target, trades, leftover } = balanceAll(counts);
-    let html = `
-      <div class="particle-actions-label">Balanced</div>
-      <div class="tb-balanced">${[target, target, target, target].join(' ')}</div>
-      <div class="tb-odd">Odd <b>${leftover.reduce((s, v) => s + v, 0) || '-'}</b></div>
-    `;
-    html += '<div class="particle-actions-label" style="margin-top: 16px;">To balance them</div>';
-    html += trades.length
-      ? `<ul class="tb-steps">${trades.map(([from, to, n]) => `<li>${tbName(from)} trades <b>${n} Pokémon</b> with ${tbName(to)}</li>`).join('')}</ul>`
-      : '<div class="tb-note">Nothing extra needed &mdash; they already match.</div>';
-    if (target > 0) {
-      html += '<div class="particle-actions-label" style="margin-top: 16px;">Then trade in pairs</div>';
-      html += `<ul class="tb-steps"><li>${tbName(0)} trades <b>${target} Pokémon</b> with ${tbName(1)}</li><li>${tbName(2)} trades <b>${target} Pokémon</b> with ${tbName(3)}</li></ul>`;
-    }
-    tb2ResultEl.innerHTML = html;
-  }
-  tb2Inputs.forEach(input => input.addEventListener('input', renderTradeBalancerAll));
-  document.getElementById('tb2-reset-btn').addEventListener('click', () => {
-    tb2Inputs.forEach(input => { input.value = ''; });
-    renderTradeBalancerAll();
-    tb2Inputs[0].focus();
-  });
-  renderTradeBalancerAll();
-
+  renderTradeBalancer();
   // --- Search Term: builds a Pokemon GO search-bar string from a few
   // pickers. Every filled-in piece becomes one term, and the terms are
   // joined with the chosen separator (& = all must match, , = any).
