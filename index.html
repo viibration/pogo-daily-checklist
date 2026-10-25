@@ -900,6 +900,7 @@
   .pt-disable { width: 18px; height: 18px; flex-shrink: 0; accent-color: var(--bad); cursor: pointer; margin: 0; }
   .pt-account-off span { opacity: 0.45; text-decoration: line-through; }
   .pt-cell:disabled { opacity: 0.3; cursor: not-allowed; pointer-events: none; }
+  .pt-cell.pt-blank:disabled { opacity: 1; cursor: default; }
   .clear-tracked-btn {
     display: block;
     width: 100%;
@@ -1771,6 +1772,7 @@
     <div class="panel panel-theme-indigo">
       <input class="particle-manual-input" id="mega-tracker-search" type="search" placeholder="Search a type or a Mega, e.g. dragon or dragonite" autocomplete="off" autocapitalize="off" spellcheck="false" style="display: block; width: 100%;">
       <div class="sx-hint" id="mega-tracker-matches" style="margin-top: 8px;"></div>
+      <div class="sx-hint" id="mega-tracker-view-status" style="margin-top: 4px;"></div>
     </div>
     <div class="panel">
       <div class="candy-table-wrap">
@@ -5031,14 +5033,57 @@
     return MEGA_TYPES.filter(([type]) => wanted.has(type));
   }
 
+  // Three-way view, cycled by the icon in the table's corner: everything,
+  // only what's been acquired, or only what's still missing. Starts on All
+  // every time the page opens.
+  const MEGA_VIEWS = [
+    { id: 'all', label: 'Showing everything', title: 'All - tap for acquired only',
+      path: 'M12,9A3,3 0 0,0 9,12A3,3 0 0,0 12,15A3,3 0 0,0 15,12A3,3 0 0,0 12,9M12,17A5,5 0 0,1 7,12A5,5 0 0,1 12,7A5,5 0 0,1 17,12A5,5 0 0,1 12,17M12,4.5C7,4.5 2.73,7.61 1,12C2.73,16.39 7,19.5 12,19.5C17,19.5 21.27,16.39 23,12C21.27,7.61 17,4.5 12,4.5Z', color: 'var(--accent)' },
+    { id: 'have', label: 'Showing acquired Megas only', title: 'Acquired only - tap for not acquired only',
+      path: 'M12 2C6.5 2 2 6.5 2 12S6.5 22 12 22 22 17.5 22 12 17.5 2 12 2M10 17L5 12L6.41 10.59L10 14.17L17.59 6.58L19 8L10 17Z', color: 'var(--good)' },
+    { id: 'missing', label: 'Showing not-acquired Megas only', title: 'Not acquired only - tap for all',
+      path: 'M12,2C17.53,2 22,6.47 22,12C22,17.53 17.53,22 12,22C6.47,22 2,17.53 2,12C2,6.47 6.47,2 12,2M15.59,7L12,10.59L8.41,7L7,8.41L10.59,12L7,15.59L8.41,17L12,13.41L15.59,17L17,15.59L13.41,12L17,8.41L15.59,7Z', color: 'var(--bad)' },
+  ];
+  let megaViewIndex = 0;
+  const megaViewStatus = document.getElementById('mega-tracker-view-status');
+
   function renderMegaTrackerGrid() {
-    const visible = megaVisibleTypes();
+    const mode = MEGA_VIEWS[megaViewIndex];
+    const has = (account, type) => !!(megaTracker.have[account] && megaTracker.have[account][type]);
+    const setHas = (account, type, value) => {
+      if (!megaTracker.have[account]) megaTracker.have[account] = {};
+      if (value) megaTracker.have[account][type] = true;
+      else delete megaTracker.have[account][type];
+    };
+    const saveMega = () => localStorage.setItem(MEGA_TRACKER_KEY, JSON.stringify(megaTracker));
+    const countHave = (type) => accountNames.filter(a => has(a, type)).length;
+
+    // Search first, then drop the columns the chosen view has nothing to show for.
+    const visible = megaVisibleTypes().filter(([type]) => {
+      if (mode.id === 'have') return countHave(type) > 0;
+      if (mode.id === 'missing') return countHave(type) < accountNames.length;
+      return true;
+    });
+    megaViewStatus.textContent = mode.id === 'all' ? '' : mode.label + (visible.length ? '' : ' \u2014 nothing to show');
+
+    // Rebuilding the grid would otherwise snap a sideways-scrolled table back to the left.
+    const wrapEl = megaTrackerGridEl.parentElement;
+    const scrollLeft = wrapEl.scrollLeft;
     megaTrackerGridEl.innerHTML = '';
     megaTrackerGridEl.style.gridTemplateColumns = `128px repeat(${visible.length}, 76px)`;
 
     const corner = document.createElement('div');
-    corner.className = 'candy-cell-corner';
-    corner.textContent = 'Account';
+    corner.className = 'candy-cell-corner pt-corner';
+    corner.innerHTML = `
+      <span>Account</span>
+      <button type="button" class="pt-eye" style="color: ${mode.color}" aria-label="${mode.title}" title="${mode.title}">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="${mode.path}"/></svg>
+      </button>
+    `;
+    corner.querySelector('.pt-eye').addEventListener('click', () => {
+      megaViewIndex = (megaViewIndex + 1) % MEGA_VIEWS.length;
+      renderMegaTrackerGrid();
+    });
     megaTrackerGridEl.appendChild(corner);
 
     visible.forEach(([type, color]) => {
@@ -5056,13 +5101,6 @@
         </svg>
       </span>
     `;
-    const has = (account, type) => !!(megaTracker.have[account] && megaTracker.have[account][type]);
-    const setHas = (account, type, value) => {
-      if (!megaTracker.have[account]) megaTracker.have[account] = {};
-      if (value) megaTracker.have[account][type] = true;
-      else delete megaTracker.have[account][type];
-    };
-    const saveMega = () => localStorage.setItem(MEGA_TRACKER_KEY, JSON.stringify(megaTracker));
     // Per-column repaint callbacks so one tick can refresh the column's
     // "Check all" box and "Check all" can refresh every tick in its column.
     const columnPaints = new Map(visible.map(([type]) => [type, []]));
@@ -5078,6 +5116,16 @@
         const cell = document.createElement('button');
         cell.type = 'button';
         cell.setAttribute('role', 'checkbox');
+        // In the acquired / not-acquired views the cells that don't belong
+        // stay as empty, untappable blanks so the grid keeps its shape.
+        const hidden = (mode.id === 'have' && !has(account, type)) || (mode.id === 'missing' && has(account, type));
+        if (hidden) {
+          cell.className = 'pt-cell pt-blank';
+          cell.disabled = true;
+          cell.setAttribute('aria-hidden', 'true');
+          megaTrackerGridEl.appendChild(cell);
+          return;
+        }
         cell.innerHTML = checkboxHtml;
         const paint = () => {
           cell.className = 'pt-cell' + (has(account, type) ? ' checked' : '');
@@ -5089,13 +5137,18 @@
         cell.addEventListener('click', () => {
           setHas(account, type, !has(account, type));
           saveMega();
-          paint();
-          footerPaints.get(type)();
+          if (mode.id === 'all') {
+            paint();
+            footerPaints.get(type)();
+          } else {
+            renderMegaTrackerGrid();
+          }
         });
         megaTrackerGridEl.appendChild(cell);
       });
     });
 
+    wrapEl.scrollLeft = scrollLeft;
     if (!visible.length) return;
     const footerLabel = document.createElement('div');
     footerLabel.className = 'candy-cell-footer pt-footer';
@@ -5118,13 +5171,17 @@
         const target = !allHave();
         accountNames.forEach(account => setHas(account, type, target));
         saveMega();
-        columnPaints.get(type).forEach(fn => fn());
-        paint();
+        if (mode.id === 'all') {
+          columnPaints.get(type).forEach(fn => fn());
+          paint();
+        } else {
+          renderMegaTrackerGrid();
+        }
       });
       megaTrackerGridEl.appendChild(cell);
     });
-  }
-  megaTrackerSearch.addEventListener('input', renderMegaTrackerGrid);  renderMegaTrackerGrid();
+  }  megaTrackerSearch.addEventListener('input', renderMegaTrackerGrid);
+  renderMegaTrackerGrid();
 
   // --- Trade Balancer: each account has some number of Pokemon to trade.
   // A trade swaps one Pokemon each, so two accounts always trade equal
