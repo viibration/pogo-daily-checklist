@@ -1768,6 +1768,10 @@
         <button class="app-tab" data-tab="search-term" type="button">Search Term</button>
       </div>
     </div>
+    <div class="panel panel-theme-indigo">
+      <input class="particle-manual-input" id="mega-tracker-search" type="search" placeholder="Search a type or a Mega, e.g. dragon or dragonite" autocomplete="off" autocapitalize="off" spellcheck="false" style="display: block; width: 100%;">
+      <div class="sx-hint" id="mega-tracker-matches" style="margin-top: 8px;"></div>
+    </div>
     <div class="panel">
       <div class="candy-table-wrap">
         <div class="candy-grid" id="mega-tracker-grid"></div>
@@ -4998,16 +5002,46 @@
   const megaTracker = loadMegaTracker();
   const megaTrackerGridEl = document.getElementById('mega-tracker-grid');
 
+  // Every Mega / Primal form with its type(s), so searching a Mega's name
+  // can show the type columns it belongs to (Mega Dragonite -> Dragon + Flying).
+  // Names/types come from PokeAPI's data, so it also lists Megas that
+  // aren't in Pokemon GO yet.
+  const MEGA_POKEMON = [["Mega Venusaur","grass","poison"],["Mega Charizard X","fire","dragon"],["Mega Charizard Y","fire","flying"],["Mega Blastoise","water"],["Mega Beedrill","bug","poison"],["Mega Pidgeot","normal","flying"],["Mega Raichu X","electric"],["Mega Raichu Y","electric"],["Mega Clefable","fairy","flying"],["Mega Alakazam","psychic"],["Mega Victreebel","grass","poison"],["Mega Slowbro","water","psychic"],["Mega Gengar","ghost","poison"],["Mega Kangaskhan","normal"],["Mega Starmie","water","psychic"],["Mega Pinsir","bug","flying"],["Mega Gyarados","water","dark"],["Mega Aerodactyl","rock","flying"],["Mega Dragonite","dragon","flying"],["Mega Mewtwo X","psychic","fighting"],["Mega Mewtwo Y","psychic"],["Mega Meganium","grass","fairy"],["Mega Feraligatr","water","dragon"],["Mega Ampharos","electric","dragon"],["Mega Steelix","steel","ground"],["Mega Scizor","bug","steel"],["Mega Heracross","bug","fighting"],["Mega Skarmory","steel","flying"],["Mega Houndoom","dark","fire"],["Mega Tyranitar","rock","dark"],["Mega Sceptile","grass","dragon"],["Mega Blaziken","fire","fighting"],["Mega Swampert","water","ground"],["Mega Gardevoir","psychic","fairy"],["Mega Sableye","dark","ghost"],["Mega Mawile","steel","fairy"],["Mega Aggron","steel"],["Mega Medicham","fighting","psychic"],["Mega Manectric","electric"],["Mega Sharpedo","water","dark"],["Mega Camerupt","fire","ground"],["Mega Altaria","dragon","fairy"],["Mega Banette","ghost"],["Mega Chimecho","psychic","steel"],["Mega Absol","dark"],["Mega Absol Z","dark","ghost"],["Mega Glalie","ice"],["Mega Salamence","dragon","flying"],["Mega Metagross","steel","psychic"],["Mega Latias","dragon","psychic"],["Mega Latios","dragon","psychic"],["Primal Kyogre","water"],["Primal Groudon","ground","fire"],["Mega Rayquaza","dragon","flying"],["Mega Staraptor","fighting","flying"],["Mega Lopunny","normal","fighting"],["Mega Garchomp","dragon","ground"],["Mega Garchomp Z","dragon"],["Mega Lucario","fighting","steel"],["Mega Lucario Z","fighting","steel"],["Mega Abomasnow","grass","ice"],["Mega Gallade","psychic","fighting"],["Mega Froslass","ice","ghost"],["Mega Heatran","fire","steel"],["Mega Darkrai","dark"],["Mega Emboar","fire","fighting"],["Mega Excadrill","ground","steel"],["Mega Audino","normal","fairy"],["Mega Scolipede","bug","poison"],["Mega Scrafty","dark","fighting"],["Mega Eelektross","electric"],["Mega Chandelure","ghost","fire"],["Mega Golurk","ground","ghost"],["Mega Chesnaught","grass","fighting"],["Mega Delphox","fire","psychic"],["Mega Greninja","water","dark"],["Mega Pyroar","fire","normal"],["Mega Floette","fairy"],["Mega Meowstic","psychic"],["Mega Malamar","dark","psychic"],["Mega Barbaracle","rock","fighting"],["Mega Dragalge","poison","dragon"],["Mega Hawlucha","fighting","flying"],["Mega Zygarde","dragon","ground"],["Mega Diancie","rock","fairy"],["Mega Crabominable","fighting","ice"],["Mega Golisopod","bug","steel"],["Mega Drampa","normal","dragon"],["Mega Magearna","steel","fairy"],["Mega Zeraora","electric"],["Mega Falinks","fighting"],["Mega Scovillain","grass","fire"],["Mega Glimmora","rock","poison"],["Mega Tatsugiri","dragon","water"],["Mega Baxcalibur","dragon","ice"]];
+  const megaTrackerSearch = document.getElementById('mega-tracker-search');
+  const megaTrackerMatches = document.getElementById('mega-tracker-matches');
+
+  // A query that starts a type name ("dra", "fi") shows just those types.
+  // Otherwise it's matched against Mega names ("dragonite", "mega char") and
+  // shows every type those Megas have.
+  function megaVisibleTypes() {
+    const q = megaTrackerSearch.value.trim().toLowerCase();
+    megaTrackerMatches.textContent = '';
+    if (!q) return MEGA_TYPES;
+    const byType = MEGA_TYPES.filter(([type]) => type.startsWith(q));
+    if (byType.length) return byType;
+    const megas = MEGA_POKEMON.filter(([name]) => name.toLowerCase().includes(q));
+    if (!megas.length) {
+      megaTrackerMatches.textContent = 'No type or Mega matches that.';
+      return [];
+    }
+    const wanted = new Set();
+    megas.forEach(([, ...types]) => types.forEach(t => wanted.add(t)));
+    const shown = megas.slice(0, 6).map(([name, ...types]) => `${name}: ${types.map(t => t[0].toUpperCase() + t.slice(1)).join(' + ')}`);
+    megaTrackerMatches.textContent = shown.join('  \u2022  ') + (megas.length > 6 ? `  \u2022  +${megas.length - 6} more` : '');
+    return MEGA_TYPES.filter(([type]) => wanted.has(type));
+  }
+
   function renderMegaTrackerGrid() {
+    const visible = megaVisibleTypes();
     megaTrackerGridEl.innerHTML = '';
-    megaTrackerGridEl.style.gridTemplateColumns = `128px repeat(${MEGA_TYPES.length}, 76px)`;
+    megaTrackerGridEl.style.gridTemplateColumns = `128px repeat(${visible.length}, 76px)`;
 
     const corner = document.createElement('div');
     corner.className = 'candy-cell-corner';
     corner.textContent = 'Account';
     megaTrackerGridEl.appendChild(corner);
 
-    MEGA_TYPES.forEach(([type, color]) => {
+    visible.forEach(([type, color]) => {
       const head = document.createElement('div');
       head.className = 'candy-cell-header';
       head.style.color = color;
@@ -5022,36 +5056,75 @@
         </svg>
       </span>
     `;
+    const has = (account, type) => !!(megaTracker.have[account] && megaTracker.have[account][type]);
+    const setHas = (account, type, value) => {
+      if (!megaTracker.have[account]) megaTracker.have[account] = {};
+      if (value) megaTracker.have[account][type] = true;
+      else delete megaTracker.have[account][type];
+    };
+    const saveMega = () => localStorage.setItem(MEGA_TRACKER_KEY, JSON.stringify(megaTracker));
+    // Per-column repaint callbacks so one tick can refresh the column's
+    // "Check all" box and "Check all" can refresh every tick in its column.
+    const columnPaints = new Map(visible.map(([type]) => [type, []]));
+    const footerPaints = new Map();
+
     accountNames.forEach(account => {
       const acctCell = document.createElement('div');
       acctCell.className = 'candy-cell-account';
       acctCell.textContent = account;
       megaTrackerGridEl.appendChild(acctCell);
 
-      MEGA_TYPES.forEach(([type]) => {
+      visible.forEach(([type]) => {
         const cell = document.createElement('button');
         cell.type = 'button';
         cell.setAttribute('role', 'checkbox');
         cell.innerHTML = checkboxHtml;
-        const has = () => !!(megaTracker.have[account] && megaTracker.have[account][type]);
         const paint = () => {
-          cell.className = 'pt-cell' + (has() ? ' checked' : '');
-          cell.setAttribute('aria-checked', String(has()));
+          cell.className = 'pt-cell' + (has(account, type) ? ' checked' : '');
+          cell.setAttribute('aria-checked', String(has(account, type)));
           cell.setAttribute('aria-label', `${account} has a ${type} Mega`);
         };
         paint();
+        columnPaints.get(type).push(paint);
         cell.addEventListener('click', () => {
-          if (!megaTracker.have[account]) megaTracker.have[account] = {};
-          if (has()) delete megaTracker.have[account][type];
-          else megaTracker.have[account][type] = true;
-          localStorage.setItem(MEGA_TRACKER_KEY, JSON.stringify(megaTracker));
+          setHas(account, type, !has(account, type));
+          saveMega();
           paint();
+          footerPaints.get(type)();
         });
         megaTrackerGridEl.appendChild(cell);
       });
     });
+
+    if (!visible.length) return;
+    const footerLabel = document.createElement('div');
+    footerLabel.className = 'candy-cell-footer pt-footer';
+    footerLabel.textContent = 'Check all';
+    megaTrackerGridEl.appendChild(footerLabel);
+    visible.forEach(([type]) => {
+      const cell = document.createElement('button');
+      cell.type = 'button';
+      cell.setAttribute('role', 'checkbox');
+      cell.innerHTML = checkboxHtml;
+      const allHave = () => accountNames.every(account => has(account, type));
+      const paint = () => {
+        cell.className = 'pt-cell pt-footer' + (allHave() ? ' checked' : '');
+        cell.setAttribute('aria-checked', String(allHave()));
+        cell.setAttribute('aria-label', `Check or uncheck every account for ${type}`);
+      };
+      paint();
+      footerPaints.set(type, paint);
+      cell.addEventListener('click', () => {
+        const target = !allHave();
+        accountNames.forEach(account => setHas(account, type, target));
+        saveMega();
+        columnPaints.get(type).forEach(fn => fn());
+        paint();
+      });
+      megaTrackerGridEl.appendChild(cell);
+    });
   }
-  renderMegaTrackerGrid();
+  megaTrackerSearch.addEventListener('input', renderMegaTrackerGrid);  renderMegaTrackerGrid();
 
   // --- Trade Balancer: each account has some number of Pokemon to trade.
   // A trade swaps one Pokemon each, so two accounts always trade equal
