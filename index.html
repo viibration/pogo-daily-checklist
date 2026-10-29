@@ -302,6 +302,8 @@
     user-select: none;
   }
   .task-row:hover { border-color: var(--accent); }
+  .item.locked, .task-row.locked { cursor: not-allowed; opacity: 0.5; }
+  .item.locked:hover, .task-row.locked:hover { border-color: var(--line); }
   .task-row:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
 
   .task-row .label { flex: 1; min-width: 0; font-size: 17px; }
@@ -1050,6 +1052,10 @@
         <span class="status-badges" id="badge-max-monday-time"></span>
       </div>
       <div class="tz-badges-row">
+        <span class="status-badges" id="badge-showcase-label"></span>
+        <span class="status-badges" id="badge-showcase-time"></span>
+      </div>
+      <div class="tz-badges-row">
         <span class="status-badges" id="badge-spotlight-hour-label"></span>
         <span class="status-badges" id="badge-spotlight-hour-time"></span>
       </div>
@@ -1313,6 +1319,10 @@
       <div class="tz-badges-row">
         <span class="status-badges" id="badge-max-monday-label-2"></span>
         <span class="status-badges" id="badge-max-monday-time-2"></span>
+      </div>
+      <div class="tz-badges-row">
+        <span class="status-badges" id="badge-showcase-label-2"></span>
+        <span class="status-badges" id="badge-showcase-time-2"></span>
       </div>
       <div class="tz-badges-row">
         <span class="status-badges" id="badge-spotlight-hour-label-2"></span>
@@ -1870,6 +1880,7 @@
 <script>
   const tasks = [
     { id: 'special-trade', label: 'Daily Trade' },
+    { id: 'showcase', label: 'Showcase' },
     { id: 'first-catch', label: 'First catch' },
     { id: 'first-spin', label: 'First spin' },
     { id: 'first-research', label: 'First research' },
@@ -2062,8 +2073,28 @@
     return `${y}-${m}-${d}`;
   }
 
+  // Showcase is only available on Tuesdays, judged by the day of the week in
+  // the timezone currently selected on the badge box (not this device's own
+  // clock). A locked task can't be checked and isn't counted in the totals.
+  function isShowcaseDay(date) {
+    return date.getDay() === 2;
+  }
+  // The Showcase event itself runs 10:00-20:00 local time on Tuesdays (badge only;
+  // the task unlocks for the whole Tuesday).
+  function isShowcaseHours(date) {
+    return isShowcaseDay(date) && date.getHours() >= 10 && date.getHours() < 20;
+  }
+  const SHOWCASE_HOUR_RANGE = '10:00 - 20:00 น.';
+  function zonedNow() {
+    const zone = timezones.find(z => z.key === currentTz);
+    // Round-trips through a locale string so the Date's local getters read as that zone's wall-clock time.
+    return new Date(new Date().toLocaleString('en-US', { timeZone: zone.tz }));
+  }
+  function isTaskLocked(task) {
+    return task.id === 'showcase' && !isShowcaseDay(zonedNow());
+  }
   function countableTasks() {
-    return allTasks();
+    return allTasks().filter(t => !isTaskLocked(t));
   }
 
   const STORAGE_KEY = 'pogo-daily-checklist';
@@ -2277,8 +2308,9 @@
   const MAX_MONDAY_HOUR_RANGE = '06:00 - 21:00 น.';
   const WEEKLY_HOUR_RANGE = '18:00 - 19:00 น.';
 
-  function renderWeeklyBadges(maxMonLabelEl, maxMonTimeEl, spotlightLabelEl, spotlightTimeEl, raidHourLabelEl, raidHourTimeEl, date) {
+  function renderWeeklyBadges(maxMonLabelEl, maxMonTimeEl, showcaseLabelEl, showcaseTimeEl, spotlightLabelEl, spotlightTimeEl, raidHourLabelEl, raidHourTimeEl, date) {
     setBadgeRow(maxMonLabelEl, maxMonTimeEl, isMaxMonday(date) ? '🟢' : '🔴', 'Max Monday (วันจันทร์)', `(${MAX_MONDAY_HOUR_RANGE})`);
+    setBadgeRow(showcaseLabelEl, showcaseTimeEl, isShowcaseHours(date) ? '🟢' : '🔴', 'Showcase (วันอังคาร)', `(${SHOWCASE_HOUR_RANGE})`);
     setBadgeRow(spotlightLabelEl, spotlightTimeEl, isSpotlightHour(date) ? '🟢' : '🔴', 'Spotlight Hour (วันพฤหัส)', `(${WEEKLY_HOUR_RANGE})`);
     setBadgeRow(raidHourLabelEl, raidHourTimeEl, isRaidHour(date) ? '🟢' : '🔴', 'Raid Hour (วันพุธ)', `(${WEEKLY_HOUR_RANGE})`);
   }
@@ -2307,6 +2339,8 @@
     [badgeMaxBattleTimeEl, badgeMaxBattleTimeEl2],
     [badgeMaxMondayLabelEl, badgeMaxMondayLabelEl2],
     [badgeMaxMondayTimeEl, badgeMaxMondayTimeEl2],
+    [badgeShowcaseLabelEl, badgeShowcaseLabelEl2],
+    [badgeShowcaseTimeEl, badgeShowcaseTimeEl2],
     [badgeSpotlightHourLabelEl, badgeSpotlightHourLabelEl2],
     [badgeSpotlightHourTimeEl, badgeSpotlightHourTimeEl2],
     [badgeRaidHourLabelEl, badgeRaidHourLabelEl2],
@@ -2316,6 +2350,7 @@
     'badge-raid-label', 'badge-raid-time',
     'badge-max-battle-label', 'badge-max-battle-time',
     'badge-max-monday-label', 'badge-max-monday-time',
+    'badge-showcase-label', 'badge-showcase-time',
     'badge-spotlight-hour-label', 'badge-spotlight-hour-time',
     'badge-raid-hour-label', 'badge-raid-hour-time',
   );
@@ -2369,17 +2404,28 @@
     renderStatusBadges(badgeRaidLabelEl2, badgeRaidTimeEl2, badgeMaxBattleLabelEl2, badgeMaxBattleTimeEl2, zoned);
     renderWeeklyBadges(
       badgeMaxMondayLabelEl, badgeMaxMondayTimeEl,
+      badgeShowcaseLabelEl, badgeShowcaseTimeEl,
       badgeSpotlightHourLabelEl, badgeSpotlightHourTimeEl,
       badgeRaidHourLabelEl, badgeRaidHourTimeEl,
       zoned
     );
     renderWeeklyBadges(
       badgeMaxMondayLabelEl2, badgeMaxMondayTimeEl2,
+      badgeShowcaseLabelEl2, badgeShowcaseTimeEl2,
       badgeSpotlightHourLabelEl2, badgeSpotlightHourTimeEl2,
       badgeRaidHourLabelEl2, badgeRaidHourTimeEl2,
       zoned
     );
+
+    // The first call only records the state; later flips re-render the lists.
+    const showcaseLocked = !isShowcaseDay(zoned);
+    if (lastShowcaseLocked !== null && lastShowcaseLocked !== showcaseLocked) {
+      renderDashboard();
+      if (!viewChecklist.hidden && currentAccount) renderChecklist();
+    }
+    lastShowcaseLocked = showcaseLocked;
   }
+  let lastShowcaseLocked = null;
 
   renderTzTabs();
   fixClockWidth(tzClockEl);
@@ -2458,27 +2504,32 @@
       const complete = doneAccounts.length === total;
       const partial = doneAccounts.length > 0 && !complete;
 
+      const locked = isTaskLocked(task);
       const row = document.createElement('div');
-      row.className = 'task-row' + (task.group ? ' grp-' + task.group : '');
-      row.tabIndex = 0;
+      row.className = 'task-row' + (task.group ? ' grp-' + task.group : '') + (locked ? ' locked' : '');
+      row.tabIndex = locked ? -1 : 0;
       row.setAttribute('role', 'button');
+      if (locked) row.setAttribute('aria-disabled', 'true');
       row.innerHTML = `
         <span class="label">${taskTextHtml(task.label, task.type)}</span>
         <span class="badge${complete ? ' complete' : ''}${partial ? ' partial' : ''}">${doneAccounts.length} / ${total}</span>
       `;
-      row.addEventListener('click', () => openModal(task.id));
-      row.addEventListener('keydown', (e) => {
-        if (e.key === ' ' || e.key === 'Enter') {
-          e.preventDefault();
-          openModal(task.id);
-        }
-      });
+      if (!locked) {
+        row.addEventListener('click', () => openModal(task.id));
+        row.addEventListener('keydown', (e) => {
+          if (e.key === ' ' || e.key === 'Enter') {
+            e.preventDefault();
+            openModal(task.id);
+          }
+        });
+      }
       masterTasksEl.appendChild(row);
     });
   }
 
   function openModal(taskId) {
     const task = allTasks().find(t => t.id === taskId);
+    if (isTaskLocked(task)) return;
     modalTaskId = taskId;
     modalTitleEl.innerHTML = taskTextHtml(task.detail || task.label, task.type);
     renderModalAccounts();
@@ -3945,11 +3996,13 @@
     itemsEl.innerHTML = '';
     allTasks().forEach(task => {
       const isDone = !!done[task.id];
+      const locked = isTaskLocked(task);
       const row = document.createElement('div');
-      row.className = 'item' + (isDone ? ' done' : '') + (task.group ? ' grp-' + task.group : '');
-      row.tabIndex = 0;
+      row.className = 'item' + (isDone ? ' done' : '') + (task.group ? ' grp-' + task.group : '') + (locked ? ' locked' : '');
+      row.tabIndex = locked ? -1 : 0;
       row.setAttribute('role', 'checkbox');
       row.setAttribute('aria-checked', String(isDone));
+      if (locked) row.setAttribute('aria-disabled', 'true');
       row.innerHTML = `
         <span class="box">
           <svg viewBox="0 0 24 24" fill="none" stroke="#0e1620" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
@@ -3958,13 +4011,15 @@
         </span>
         <span class="label">${taskTextHtml(task.label, task.type)}</span>
       `;
-      row.addEventListener('click', () => toggle(task.id));
-      row.addEventListener('keydown', (e) => {
-        if (e.key === ' ' || e.key === 'Enter') {
-          e.preventDefault();
-          toggle(task.id);
-        }
-      });
+      if (!locked) {
+        row.addEventListener('click', () => toggle(task.id));
+        row.addEventListener('keydown', (e) => {
+          if (e.key === ' ' || e.key === 'Enter') {
+            e.preventDefault();
+            toggle(task.id);
+          }
+        });
+      }
       itemsEl.appendChild(row);
     });
 
