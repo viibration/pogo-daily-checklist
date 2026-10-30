@@ -863,6 +863,36 @@
   }
   .sx-chip.on { background: var(--accent); border-color: var(--accent); color: #fff; }
   .sx-chip.not { background: rgba(255, 122, 104, 0.15); border-color: var(--bad); color: var(--bad); }
+  /* Showcase Calculator: IV pips copied from the IV appraisal tool - 15
+     squares per stat in two rows, colored by the selected value. */
+  .sc-stat { margin-bottom: 18px; }
+  .sc-stat:last-child { margin-bottom: 0; }
+  .sc-stat-head { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 8px; }
+  .sc-stat-name { font-size: 13px; font-weight: 800; letter-spacing: 0.05em; text-transform: uppercase; }
+  .sc-stat-num { font-size: 13px; font-weight: 700; color: var(--text-dim); font-variant-numeric: tabular-nums; }
+  .sc-stat-num b { color: var(--text); font-size: 15px; }
+  .sc-star { margin-left: 4px; color: var(--text-faint); opacity: 0.35; }
+  .sc-star.lit { color: #ffcc33; opacity: 1; }
+  .sc-meter { display: flex; flex-direction: column; gap: 8px; cursor: pointer; touch-action: none; user-select: none; border-radius: 6px; }
+  .sc-meter:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; }
+  .sc-row { display: flex; gap: 10px; height: 38px; pointer-events: none; }
+  .sc-group { flex: 1; display: grid; grid-template-columns: repeat(5, 1fr); gap: 5px; }
+  .sc-spacer { flex: 0.5; }
+  .sc-pip { border-radius: 5px; background: #0b1220; border: 1px solid var(--line); transition: background 0.15s, transform 0.1s; }
+  .sc-pip.on { background: linear-gradient(180deg, #3fa6ff, #1c6fc7); border-color: #1c6fc7; box-shadow: inset 0 -2px 2px rgba(0, 0, 0, 0.25); }
+  .sc-pip.on.tier2 { background: linear-gradient(180deg, #a855f7, #7c3aed); border-color: #7c3aed; }
+  .sc-pip.on.tier3 { background: linear-gradient(180deg, #ff9640, #d9722a); border-color: #d9722a; }
+  .sc-pip.on.perfect { background: linear-gradient(180deg, #ffcc33, #b8860f); border-color: #b8860f; }
+  .sc-pip.current { transform: scale(1.12); box-shadow: 0 0 0 2px var(--panel), 0 0 0 4px var(--text); position: relative; z-index: 1; }
+  .sc-pip.current.perfect { box-shadow: 0 0 0 2px var(--panel), 0 0 0 4px #ffcc33; }
+  .sc-entry { display: flex; align-items: center; gap: 10px; padding: 10px 12px; background: var(--panel-2); border: 1px solid var(--line); border-radius: 10px; cursor: pointer; }
+  .sc-entry-main { flex: 1; min-width: 0; }
+  .sc-entry-title { font-size: 15px; font-weight: 700; }
+  .sc-entry-sub { font-size: 12px; color: var(--text-faint); margin-top: 2px; }
+  .sc-entry-score { font-size: 18px; font-weight: 800; font-variant-numeric: tabular-nums; flex-shrink: 0; }
+  .sc-entry-del { font: inherit; font-size: 18px; line-height: 1; color: var(--text-faint); background: transparent; border: none; padding: 4px 6px; cursor: pointer; }
+  .sc-entry-del:hover { color: var(--bad); }
+  @media (max-width: 380px) { .sc-row { gap: 6px; height: 34px; } }
   .tb-inputs { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
   .tb-field { display: block; }
   .tb-field .particle-manual-input { display: block; width: 100%; }
@@ -1024,14 +1054,12 @@
       <div class="app-tabs">
         <button class="app-tab active" data-tab="dashboard" type="button">Daily Checklist</button>
         <button class="app-tab" data-tab="particles" type="button">Max Particle</button>
-        <button class="app-tab" data-tab="pokemon-tracker" type="button">Pokemon Tracker</button>
+        <button class="app-tab" data-tab="tracker" type="button">Tracker</button>
         <button class="app-tab" data-tab="trade-balancer" type="button">Trade Balancer</button>
-        <button class="app-tab" data-tab="candy" type="button">Power Up Calculator</button>
-        <button class="app-tab" data-tab="pokedex" type="button">Pokedex Search</button>
-        <button class="app-tab" data-tab="candy-tracker" type="button">Candy Tracker</button>
-        <button class="app-tab" data-tab="shadow-tracker" type="button">Shadow Tracker</button>
-        <button class="app-tab" data-tab="mega-tracker" type="button">Mega Tracker</button>
         <button class="app-tab" data-tab="search-term" type="button">Search Term</button>
+        <button class="app-tab" data-tab="pokedex" type="button">Pokedex Search</button>
+        <button class="app-tab" data-tab="candy" type="button">Power Up Calculator</button>
+        <button class="app-tab" data-tab="showcase" type="button">Showcase Calculator</button>
       </div>
     </div>
     <div class="panel tz-card">
@@ -1293,14 +1321,12 @@
       <div class="app-tabs">
         <button class="app-tab" data-tab="dashboard" type="button">Daily Checklist</button>
         <button class="app-tab active" data-tab="particles" type="button">Max Particle</button>
-        <button class="app-tab" data-tab="pokemon-tracker" type="button">Pokemon Tracker</button>
+        <button class="app-tab" data-tab="tracker" type="button">Tracker</button>
         <button class="app-tab" data-tab="trade-balancer" type="button">Trade Balancer</button>
-        <button class="app-tab" data-tab="candy" type="button">Power Up Calculator</button>
-        <button class="app-tab" data-tab="pokedex" type="button">Pokedex Search</button>
-        <button class="app-tab" data-tab="candy-tracker" type="button">Candy Tracker</button>
-        <button class="app-tab" data-tab="shadow-tracker" type="button">Shadow Tracker</button>
-        <button class="app-tab" data-tab="mega-tracker" type="button">Mega Tracker</button>
         <button class="app-tab" data-tab="search-term" type="button">Search Term</button>
+        <button class="app-tab" data-tab="pokedex" type="button">Pokedex Search</button>
+        <button class="app-tab" data-tab="candy" type="button">Power Up Calculator</button>
+        <button class="app-tab" data-tab="showcase" type="button">Showcase Calculator</button>
       </div>
     </div>
     <div class="panel tz-card">
@@ -1356,6 +1382,7 @@
           <button class="particle-btn" type="button" data-pick-amt="1080">+1080</button>
         </div>
       </div>
+      <button class="reset-btn" id="particle-pick-reset-btn" type="button">Reset daily gain for selected accounts</button>
     </div>
     <div class="panel panel-theme-violet">
       <div class="particle-actions-label">Spend on raid for selected accounts</div>
@@ -1442,14 +1469,12 @@
       <div class="app-tabs">
         <button class="app-tab" data-tab="dashboard" type="button">Daily Checklist</button>
         <button class="app-tab" data-tab="particles" type="button">Max Particle</button>
-        <button class="app-tab" data-tab="pokemon-tracker" type="button">Pokemon Tracker</button>
+        <button class="app-tab" data-tab="tracker" type="button">Tracker</button>
         <button class="app-tab" data-tab="trade-balancer" type="button">Trade Balancer</button>
-        <button class="app-tab active" data-tab="candy" type="button">Power Up Calculator</button>
-        <button class="app-tab" data-tab="pokedex" type="button">Pokedex Search</button>
-        <button class="app-tab" data-tab="candy-tracker" type="button">Candy Tracker</button>
-        <button class="app-tab" data-tab="shadow-tracker" type="button">Shadow Tracker</button>
-        <button class="app-tab" data-tab="mega-tracker" type="button">Mega Tracker</button>
         <button class="app-tab" data-tab="search-term" type="button">Search Term</button>
+        <button class="app-tab" data-tab="pokedex" type="button">Pokedex Search</button>
+        <button class="app-tab active" data-tab="candy" type="button">Power Up Calculator</button>
+        <button class="app-tab" data-tab="showcase" type="button">Showcase Calculator</button>
       </div>
     </div>
     <div class="panel">
@@ -1563,14 +1588,12 @@
       <div class="app-tabs">
         <button class="app-tab" data-tab="dashboard" type="button">Daily Checklist</button>
         <button class="app-tab" data-tab="particles" type="button">Max Particle</button>
-        <button class="app-tab" data-tab="pokemon-tracker" type="button">Pokemon Tracker</button>
+        <button class="app-tab" data-tab="tracker" type="button">Tracker</button>
         <button class="app-tab" data-tab="trade-balancer" type="button">Trade Balancer</button>
-        <button class="app-tab" data-tab="candy" type="button">Power Up Calculator</button>
-        <button class="app-tab active" data-tab="pokedex" type="button">Pokedex Search</button>
-        <button class="app-tab" data-tab="candy-tracker" type="button">Candy Tracker</button>
-        <button class="app-tab" data-tab="shadow-tracker" type="button">Shadow Tracker</button>
-        <button class="app-tab" data-tab="mega-tracker" type="button">Mega Tracker</button>
         <button class="app-tab" data-tab="search-term" type="button">Search Term</button>
+        <button class="app-tab active" data-tab="pokedex" type="button">Pokedex Search</button>
+        <button class="app-tab" data-tab="candy" type="button">Power Up Calculator</button>
+        <button class="app-tab" data-tab="showcase" type="button">Showcase Calculator</button>
       </div>
     </div>
     <div class="panel panel-theme-indigo">
@@ -1608,14 +1631,18 @@
       <div class="app-tabs">
         <button class="app-tab" data-tab="dashboard" type="button">Daily Checklist</button>
         <button class="app-tab" data-tab="particles" type="button">Max Particle</button>
-        <button class="app-tab" data-tab="pokemon-tracker" type="button">Pokemon Tracker</button>
+        <button class="app-tab active" data-tab="tracker" type="button">Tracker</button>
         <button class="app-tab" data-tab="trade-balancer" type="button">Trade Balancer</button>
-        <button class="app-tab" data-tab="candy" type="button">Power Up Calculator</button>
-        <button class="app-tab" data-tab="pokedex" type="button">Pokedex Search</button>
-        <button class="app-tab active" data-tab="candy-tracker" type="button">Candy Tracker</button>
-        <button class="app-tab" data-tab="shadow-tracker" type="button">Shadow Tracker</button>
-        <button class="app-tab" data-tab="mega-tracker" type="button">Mega Tracker</button>
         <button class="app-tab" data-tab="search-term" type="button">Search Term</button>
+        <button class="app-tab" data-tab="pokedex" type="button">Pokedex Search</button>
+        <button class="app-tab" data-tab="candy" type="button">Power Up Calculator</button>
+        <button class="app-tab" data-tab="showcase" type="button">Showcase Calculator</button>
+      </div>
+      <div class="tz-tabs tracker-select" style="margin-top: 10px;">
+        <button class="tz-tab" data-tracker="pokemon-tracker" type="button">Pokemon Tracker</button>
+        <button class="tz-tab" data-tracker="mega-tracker" type="button">Mega Tracker</button>
+        <button class="tz-tab" data-tracker="shadow-tracker" type="button">Shadow Tracker</button>
+        <button class="tz-tab" data-tracker="candy-tracker" type="button">Candy Tracker</button>
       </div>
     </div>
     <div class="panel panel-theme-indigo">
@@ -1655,14 +1682,18 @@
       <div class="app-tabs">
         <button class="app-tab" data-tab="dashboard" type="button">Daily Checklist</button>
         <button class="app-tab" data-tab="particles" type="button">Max Particle</button>
-        <button class="app-tab active" data-tab="pokemon-tracker" type="button">Pokemon Tracker</button>
+        <button class="app-tab active" data-tab="tracker" type="button">Tracker</button>
         <button class="app-tab" data-tab="trade-balancer" type="button">Trade Balancer</button>
-        <button class="app-tab" data-tab="candy" type="button">Power Up Calculator</button>
-        <button class="app-tab" data-tab="pokedex" type="button">Pokedex Search</button>
-        <button class="app-tab" data-tab="candy-tracker" type="button">Candy Tracker</button>
-        <button class="app-tab" data-tab="shadow-tracker" type="button">Shadow Tracker</button>
-        <button class="app-tab" data-tab="mega-tracker" type="button">Mega Tracker</button>
         <button class="app-tab" data-tab="search-term" type="button">Search Term</button>
+        <button class="app-tab" data-tab="pokedex" type="button">Pokedex Search</button>
+        <button class="app-tab" data-tab="candy" type="button">Power Up Calculator</button>
+        <button class="app-tab" data-tab="showcase" type="button">Showcase Calculator</button>
+      </div>
+      <div class="tz-tabs tracker-select" style="margin-top: 10px;">
+        <button class="tz-tab" data-tracker="pokemon-tracker" type="button">Pokemon Tracker</button>
+        <button class="tz-tab" data-tracker="mega-tracker" type="button">Mega Tracker</button>
+        <button class="tz-tab" data-tracker="shadow-tracker" type="button">Shadow Tracker</button>
+        <button class="tz-tab" data-tracker="candy-tracker" type="button">Candy Tracker</button>
       </div>
     </div>
     <div class="panel panel-theme-indigo">
@@ -1714,14 +1745,18 @@
       <div class="app-tabs">
         <button class="app-tab" data-tab="dashboard" type="button">Daily Checklist</button>
         <button class="app-tab" data-tab="particles" type="button">Max Particle</button>
-        <button class="app-tab" data-tab="pokemon-tracker" type="button">Pokemon Tracker</button>
+        <button class="app-tab active" data-tab="tracker" type="button">Tracker</button>
         <button class="app-tab" data-tab="trade-balancer" type="button">Trade Balancer</button>
-        <button class="app-tab" data-tab="candy" type="button">Power Up Calculator</button>
-        <button class="app-tab" data-tab="pokedex" type="button">Pokedex Search</button>
-        <button class="app-tab" data-tab="candy-tracker" type="button">Candy Tracker</button>
-        <button class="app-tab active" data-tab="shadow-tracker" type="button">Shadow Tracker</button>
-        <button class="app-tab" data-tab="mega-tracker" type="button">Mega Tracker</button>
         <button class="app-tab" data-tab="search-term" type="button">Search Term</button>
+        <button class="app-tab" data-tab="pokedex" type="button">Pokedex Search</button>
+        <button class="app-tab" data-tab="candy" type="button">Power Up Calculator</button>
+        <button class="app-tab" data-tab="showcase" type="button">Showcase Calculator</button>
+      </div>
+      <div class="tz-tabs tracker-select" style="margin-top: 10px;">
+        <button class="tz-tab" data-tracker="pokemon-tracker" type="button">Pokemon Tracker</button>
+        <button class="tz-tab" data-tracker="mega-tracker" type="button">Mega Tracker</button>
+        <button class="tz-tab" data-tracker="shadow-tracker" type="button">Shadow Tracker</button>
+        <button class="tz-tab" data-tracker="candy-tracker" type="button">Candy Tracker</button>
       </div>
     </div>
     <div class="panel">
@@ -1737,14 +1772,12 @@
       <div class="app-tabs">
         <button class="app-tab" data-tab="dashboard" type="button">Daily Checklist</button>
         <button class="app-tab" data-tab="particles" type="button">Max Particle</button>
-        <button class="app-tab" data-tab="pokemon-tracker" type="button">Pokemon Tracker</button>
+        <button class="app-tab" data-tab="tracker" type="button">Tracker</button>
         <button class="app-tab active" data-tab="trade-balancer" type="button">Trade Balancer</button>
-        <button class="app-tab" data-tab="candy" type="button">Power Up Calculator</button>
-        <button class="app-tab" data-tab="pokedex" type="button">Pokedex Search</button>
-        <button class="app-tab" data-tab="candy-tracker" type="button">Candy Tracker</button>
-        <button class="app-tab" data-tab="shadow-tracker" type="button">Shadow Tracker</button>
-        <button class="app-tab" data-tab="mega-tracker" type="button">Mega Tracker</button>
         <button class="app-tab" data-tab="search-term" type="button">Search Term</button>
+        <button class="app-tab" data-tab="pokedex" type="button">Pokedex Search</button>
+        <button class="app-tab" data-tab="candy" type="button">Power Up Calculator</button>
+        <button class="app-tab" data-tab="showcase" type="button">Showcase Calculator</button>
       </div>
     </div>
     <div class="panel panel-theme-teal">
@@ -1769,14 +1802,18 @@
       <div class="app-tabs">
         <button class="app-tab" data-tab="dashboard" type="button">Daily Checklist</button>
         <button class="app-tab" data-tab="particles" type="button">Max Particle</button>
-        <button class="app-tab" data-tab="pokemon-tracker" type="button">Pokemon Tracker</button>
+        <button class="app-tab active" data-tab="tracker" type="button">Tracker</button>
         <button class="app-tab" data-tab="trade-balancer" type="button">Trade Balancer</button>
-        <button class="app-tab" data-tab="candy" type="button">Power Up Calculator</button>
-        <button class="app-tab" data-tab="pokedex" type="button">Pokedex Search</button>
-        <button class="app-tab" data-tab="candy-tracker" type="button">Candy Tracker</button>
-        <button class="app-tab" data-tab="shadow-tracker" type="button">Shadow Tracker</button>
-        <button class="app-tab active" data-tab="mega-tracker" type="button">Mega Tracker</button>
         <button class="app-tab" data-tab="search-term" type="button">Search Term</button>
+        <button class="app-tab" data-tab="pokedex" type="button">Pokedex Search</button>
+        <button class="app-tab" data-tab="candy" type="button">Power Up Calculator</button>
+        <button class="app-tab" data-tab="showcase" type="button">Showcase Calculator</button>
+      </div>
+      <div class="tz-tabs tracker-select" style="margin-top: 10px;">
+        <button class="tz-tab" data-tracker="pokemon-tracker" type="button">Pokemon Tracker</button>
+        <button class="tz-tab" data-tracker="mega-tracker" type="button">Mega Tracker</button>
+        <button class="tz-tab" data-tracker="shadow-tracker" type="button">Shadow Tracker</button>
+        <button class="tz-tab" data-tracker="candy-tracker" type="button">Candy Tracker</button>
       </div>
     </div>
     <div class="panel panel-theme-indigo">
@@ -1796,14 +1833,12 @@
       <div class="app-tabs">
         <button class="app-tab" data-tab="dashboard" type="button">Daily Checklist</button>
         <button class="app-tab" data-tab="particles" type="button">Max Particle</button>
-        <button class="app-tab" data-tab="pokemon-tracker" type="button">Pokemon Tracker</button>
+        <button class="app-tab" data-tab="tracker" type="button">Tracker</button>
         <button class="app-tab" data-tab="trade-balancer" type="button">Trade Balancer</button>
-        <button class="app-tab" data-tab="candy" type="button">Power Up Calculator</button>
-        <button class="app-tab" data-tab="pokedex" type="button">Pokedex Search</button>
-        <button class="app-tab" data-tab="candy-tracker" type="button">Candy Tracker</button>
-        <button class="app-tab" data-tab="shadow-tracker" type="button">Shadow Tracker</button>
-        <button class="app-tab" data-tab="mega-tracker" type="button">Mega Tracker</button>
         <button class="app-tab active" data-tab="search-term" type="button">Search Term</button>
+        <button class="app-tab" data-tab="pokedex" type="button">Pokedex Search</button>
+        <button class="app-tab" data-tab="candy" type="button">Power Up Calculator</button>
+        <button class="app-tab" data-tab="showcase" type="button">Showcase Calculator</button>
       </div>
     </div>
 
@@ -1839,15 +1874,15 @@
       <div class="particle-actions-label">Candy count</div>
       <div class="sx-range-label">Candy</div>
       <div class="tb-inputs">
-        <input class="particle-manual-input" id="sx-candy-min" type="number" inputmode="numeric" min="0" placeholder="min">
-        <input class="particle-manual-input" id="sx-candy-max" type="number" inputmode="numeric" min="0" placeholder="max">
+        <input class="particle-manual-input" id="sx-candy" type="number" inputmode="numeric" min="0" placeholder="candy">
+        <input class="particle-manual-input" id="sx-candy-mult" type="number" inputmode="numeric" min="1" placeholder="&times; Pok&eacute;mon">
       </div>
       <div class="sx-range-label">Candy XL</div>
       <div class="tb-inputs">
-        <input class="particle-manual-input" id="sx-candyxl-min" type="number" inputmode="numeric" min="0" placeholder="min">
-        <input class="particle-manual-input" id="sx-candyxl-max" type="number" inputmode="numeric" min="0" placeholder="max">
+        <input class="particle-manual-input" id="sx-candyxl" type="number" inputmode="numeric" min="0" placeholder="candy XL">
+        <input class="particle-manual-input" id="sx-candyxl-mult" type="number" inputmode="numeric" min="1" placeholder="&times; Pok&eacute;mon">
       </div>
-      <div class="sx-hint">Min only = that many or more. Max only = that many or fewer.</div>
+      <div class="sx-hint">Matches that many candy or more. The multiplier is optional: 296 &times; 2 searches for 592 or more.</div>
     </div>
 
     <div class="panel">
@@ -1873,6 +1908,81 @@
       <div class="sx-range-label">Tap a tag once to include it, twice to exclude it (!)</div>
       <div class="sx-chips" id="sx-chips"></div>
       <button class="clear-tracked-btn" id="sx-reset-btn" type="button">Reset everything</button>
+    </div>
+  </div>
+
+  <div id="view-showcase" hidden>
+    <div class="panel">
+      <div class="app-tabs">
+        <button class="app-tab" data-tab="dashboard" type="button">Daily Checklist</button>
+        <button class="app-tab" data-tab="particles" type="button">Max Particle</button>
+        <button class="app-tab" data-tab="tracker" type="button">Tracker</button>
+        <button class="app-tab" data-tab="trade-balancer" type="button">Trade Balancer</button>
+        <button class="app-tab" data-tab="search-term" type="button">Search Term</button>
+        <button class="app-tab" data-tab="pokedex" type="button">Pokedex Search</button>
+        <button class="app-tab" data-tab="candy" type="button">Power Up Calculator</button>
+        <button class="app-tab active" data-tab="showcase" type="button">Showcase Calculator</button>
+      </div>
+    </div>
+
+    <div class="panel panel-theme-indigo">
+      <div class="particle-actions-label">Pok&eacute;mon</div>
+      <input class="particle-manual-input" id="sc-name" list="sc-names" type="text" placeholder="e.g. wailord" autocomplete="off" autocapitalize="off" spellcheck="false" style="display: block; width: 100%;">
+      <datalist id="sc-names"></datalist>
+      <div class="sx-range-label">Species average (filled in for you, editable)</div>
+      <div class="tb-inputs">
+        <label class="tb-field"><span class="candy-level-label">Height (m)</span><input class="particle-manual-input" id="sc-ref-h" type="number" inputmode="decimal" step="any" min="0" placeholder="0.00"></label>
+        <label class="tb-field"><span class="candy-level-label">Weight (kg)</span><input class="particle-manual-input" id="sc-ref-w" type="number" inputmode="decimal" step="any" min="0" placeholder="0.0"></label>
+      </div>
+      <div class="sx-range-label">XXL height class (max size as a multiple of the average)</div>
+      <div class="tz-tabs" id="sc-class-tabs">
+        <button class="tz-tab" data-cls="1.55" type="button">1.55&times;</button>
+        <button class="tz-tab" data-cls="1.75" type="button">1.75&times;</button>
+        <button class="tz-tab" data-cls="2" type="button">2.00&times;</button>
+      </div>
+      <div class="sx-hint" id="sc-class-note"></div>
+    </div>
+
+    <div class="panel">
+      <div class="particle-actions-label">Your Pok&eacute;mon</div>
+      <div class="tb-inputs">
+        <label class="tb-field"><span class="candy-level-label">Height (m)</span><input class="particle-manual-input" id="sc-h" type="number" inputmode="decimal" step="any" min="0" placeholder="0.00"></label>
+        <label class="tb-field"><span class="candy-level-label">Weight (kg)</span><input class="particle-manual-input" id="sc-w" type="number" inputmode="decimal" step="any" min="0" placeholder="0.00"></label>
+      </div>
+      <label class="maxmove-check sx-family"><input type="checkbox" id="sc-xxl"> It has the XXL tag (+178)</label>
+    </div>
+
+    <div class="panel sc-iv-panel">
+      <div class="sc-stat">
+        <div class="sc-stat-head"><span class="sc-stat-name">Attack</span><span class="sc-stat-num"><b id="sc-atk-val">0</b>/15 <span class="sc-star" id="sc-atk-star">&#9733;</span></span></div>
+        <div class="sc-meter" id="sc-atk" tabindex="0" role="slider" aria-label="Attack IV" aria-valuemin="0" aria-valuemax="15" aria-valuenow="0"></div>
+      </div>
+      <div class="sc-stat">
+        <div class="sc-stat-head"><span class="sc-stat-name">Defense</span><span class="sc-stat-num"><b id="sc-def-val">0</b>/15 <span class="sc-star" id="sc-def-star">&#9733;</span></span></div>
+        <div class="sc-meter" id="sc-def" tabindex="0" role="slider" aria-label="Defense IV" aria-valuemin="0" aria-valuemax="15" aria-valuenow="0"></div>
+      </div>
+      <div class="sc-stat">
+        <div class="sc-stat-head"><span class="sc-stat-name">Stamina</span><span class="sc-stat-num"><b id="sc-sta-val">0</b>/15 <span class="sc-star" id="sc-sta-star">&#9733;</span></span></div>
+        <div class="sc-meter" id="sc-sta" tabindex="0" role="slider" aria-label="Stamina IV" aria-valuemin="0" aria-valuemax="15" aria-valuenow="0"></div>
+      </div>
+    </div>
+
+    <div class="panel panel-theme-teal">
+      <div class="particle-actions-label">Showcase points</div>
+      <div class="tb-balanced" id="sc-score">&mdash;</div>
+      <div class="sx-hint" id="sc-breakdown"></div>
+      <button class="check-all-btn" id="sc-save-btn" type="button" style="margin: 12px 0 0;">Save to compare list</button>
+    </div>
+
+    <div class="panel">
+      <div class="particle-actions-label">Compare list (best first)</div>
+      <div class="items" id="sc-list"></div>
+      <div class="sx-hint" id="sc-list-empty">Nothing saved yet. Tap an entry to load it back in.</div>
+      <button class="clear-tracked-btn" id="sc-clear-btn" type="button">Clear list</button>
+    </div>
+
+    <div class="panel">
+      <div class="sx-hint" style="margin-top: 0;">Points = height (up to 800) + weight (up to 150) + IVs (up to 50) + XXL bonus (178), max 1178. This is a community-derived estimate, not Niantic&rsquo;s formula, and in-game height and weight are rounded, so the score can be a few points off (shown as a range). Since September 2024 every Pok&eacute;mon is scored against its own species. Sources: pokemondb.net/go/showcases, pokemongocoordinates.com/showcase, pogotrades.com showcase calculator, pokexperience.com/showcase.</div>
     </div>
   </div>
 </div>
@@ -2176,6 +2286,7 @@
   const viewMegaTracker = document.getElementById('view-mega-tracker');
   const viewTradeBalancer = document.getElementById('view-trade-balancer');
   const viewSearchTerm = document.getElementById('view-search-term');
+  const viewShowcase = document.getElementById('view-showcase');
   const viewCustomTasks = document.getElementById('view-custom-tasks');
   const viewSync = document.getElementById('view-sync');
   const accountsEl = document.getElementById('accounts');
@@ -3077,11 +3188,19 @@
   let gainModalAmt = 0;
   let gainModalSelected = new Set();
 
+  // amt 0 = reset mode: the same picker, but applying zeroes the daily
+  // gain (currentTotal untouched, same as the individual page's reset).
+  const gainModalIsReset = () => gainModalAmt === 0;
+  const gainModalEligible = (name) => {
+    const gained = state.accounts[name].particles || 0;
+    return gainModalIsReset() ? gained > 0 : gained < PARTICLE_LIMIT;
+  };
+
   function openGainModal(amt) {
     gainModalAmt = amt;
     gainModalSelected = new Set();
-    gainModalTitleEl.textContent = `Gain +${amt} max particle`;
-    gainModalApplyBtn.textContent = `Apply +${amt} to selected`;
+    gainModalTitleEl.textContent = gainModalIsReset() ? 'Reset daily gain to 0' : `Gain +${amt} max particle`;
+    gainModalApplyBtn.textContent = gainModalIsReset() ? 'Reset selected to 0' : `Apply +${amt} to selected`;
     renderGainModalAccounts();
     gainModalBackdrop.hidden = false;
     history.pushState({ view: 'gain-modal' }, '');
@@ -3097,7 +3216,7 @@
       const selected = gainModalSelected.has(name);
       const gained = state.accounts[name].particles || 0;
       const total = state.accounts[name].currentTotal || 0;
-      const underQuota = gained < PARTICLE_LIMIT;
+      const underQuota = gainModalEligible(name);
       const row = document.createElement('div');
       row.className = 'modal-account-row' + (selected ? ' done' : '') + (underQuota ? '' : ' disabled');
       row.tabIndex = 0;
@@ -3110,7 +3229,7 @@
       // the real value the instant it's unchecked. Shown alongside the
       // real running total (same number Spend/Max Move show) so both
       // are visible at once instead of only the capped daily figure.
-      const previewGained = selected ? gained + gainModalAmt : gained;
+      const previewGained = selected ? (gainModalIsReset() ? 0 : gained + gainModalAmt) : gained;
       const previewTotal = selected ? total + gainModalAmt : total;
       row.innerHTML = `
         <span class="box">
@@ -3138,7 +3257,7 @@
       gainModalAccountsEl.appendChild(row);
     });
 
-    const underQuotaNames = accountNames.filter(name => (state.accounts[name].particles || 0) < PARTICLE_LIMIT);
+    const underQuotaNames = accountNames.filter(gainModalEligible);
     const allSelected = underQuotaNames.length > 0 && underQuotaNames.every(name => gainModalSelected.has(name));
     gainModalSelectAllBtn.textContent = allSelected ? 'Deselect all accounts' : 'Select all accounts';
   }
@@ -3153,13 +3272,15 @@
     btn.addEventListener('click', () => openGainModal(Number(btn.dataset.pickAmt)));
   });
 
+  document.getElementById('particle-pick-reset-btn').addEventListener('click', () => openGainModal(0));
+
   gainModalCloseBtn.addEventListener('click', closeGainModal);
   gainModalBackdrop.addEventListener('click', (e) => {
     if (e.target === gainModalBackdrop) closeGainModal();
   });
 
   gainModalSelectAllBtn.addEventListener('click', () => {
-    const underQuotaNames = accountNames.filter(name => (state.accounts[name].particles || 0) < PARTICLE_LIMIT);
+    const underQuotaNames = accountNames.filter(gainModalEligible);
     const allSelected = underQuotaNames.length > 0 && underQuotaNames.every(name => gainModalSelected.has(name));
     if (allSelected) gainModalSelected.clear();
     else underQuotaNames.forEach(name => gainModalSelected.add(name));
@@ -3180,6 +3301,7 @@
   gainModalApplyBtn.addEventListener('click', () => {
     if (gainModalSelected.size === 0) return;
     gainModalSelected.forEach(name => {
+      if (gainModalIsReset()) { state.accounts[name].particles = 0; return; }
       const gained = state.accounts[name].particles || 0;
       state.accounts[name].particles = gained + gainModalAmt;
       state.accounts[name].currentTotal = (state.accounts[name].currentTotal || 0) + gainModalAmt;
@@ -3285,8 +3407,15 @@
   // (equal priority), not a parent/child pair, so switching between them
   // doesn't push a history entry - only genuine sub-views (account
   // checklist, particle detail, custom tasks, sync, modals) do that.
-  const ROOT_TAB_ORDER = ['dashboard', 'particles', 'pokemon-tracker', 'trade-balancer', 'candy', 'pokedex', 'candy-tracker', 'shadow-tracker', 'mega-tracker', 'search-term'];
+  // The four trackers share one "Tracker" tab; a pill selector under the
+  // tab bar picks which one shows. Each is still its own view underneath.
+  const TRACKER_TABS = ['pokemon-tracker', 'mega-tracker', 'shadow-tracker', 'candy-tracker'];
+  let currentTracker = 'pokemon-tracker';
+  const rootKey = (tab) => (TRACKER_TABS.includes(tab) ? 'tracker' : tab);
+  const ROOT_TAB_ORDER = ['dashboard', 'particles', 'tracker', 'trade-balancer', 'search-term', 'pokedex', 'candy', 'showcase'];
   function switchTab(tab) {
+    if (tab === 'tracker') tab = currentTracker;
+    if (TRACKER_TABS.includes(tab)) currentTracker = tab;
     viewDashboard.hidden = tab !== 'dashboard';
     viewParticles.hidden = tab !== 'particles';
     viewCandy.hidden = tab !== 'candy';
@@ -3297,8 +3426,12 @@
     viewMegaTracker.hidden = tab !== 'mega-tracker';
     viewTradeBalancer.hidden = tab !== 'trade-balancer';
     viewSearchTerm.hidden = tab !== 'search-term';
+    viewShowcase.hidden = tab !== 'showcase';
     document.querySelectorAll('.app-tab').forEach(btn => {
-      btn.classList.toggle('active', btn.dataset.tab === tab);
+      btn.classList.toggle('active', btn.dataset.tab === rootKey(tab));
+    });
+    document.querySelectorAll('.tracker-select .tz-tab').forEach(btn => {
+      btn.classList.toggle('active', btn.dataset.tracker === tab);
     });
     if (tab === 'dashboard') renderDashboard();
     else if (tab === 'particles') renderParticleList();
@@ -3312,6 +3445,9 @@
   document.querySelectorAll('.app-tab').forEach(btn => {
     btn.addEventListener('click', () => switchTab(btn.dataset.tab));
   });
+  document.querySelectorAll('.tracker-select .tz-tab').forEach(btn => {
+    btn.addEventListener('click', () => switchTab(btn.dataset.tracker));
+  });
 
   function currentRootTab() {
     if (!viewDashboard.hidden) return 'dashboard';
@@ -3324,6 +3460,7 @@
     if (!viewMegaTracker.hidden) return 'mega-tracker';
     if (!viewTradeBalancer.hidden) return 'trade-balancer';
     if (!viewSearchTerm.hidden) return 'search-term';
+    if (!viewShowcase.hidden) return 'showcase';
     return null;
   }
 
@@ -3360,7 +3497,7 @@
       if (Math.abs(dx) < Math.abs(dy) * 1.2) return;
       const cur = currentRootTab();
       if (!cur) return;
-      const idx = ROOT_TAB_ORDER.indexOf(cur);
+      const idx = ROOT_TAB_ORDER.indexOf(rootKey(cur));
       if (dx < 0 && idx < ROOT_TAB_ORDER.length - 1) switchTab(ROOT_TAB_ORDER[idx + 1]);
       else if (dx > 0 && idx > 0) switchTab(ROOT_TAB_ORDER[idx - 1]);
     }, { passive: true });
@@ -5412,6 +5549,15 @@
     return '';
   }
 
+  // One number, "at least that many": amount x multiplier (blank = 1) ->
+  // "prefix592-". The multiplier is how many Pokémon you want to cover.
+  function sxCandy(prefix, amountId, multId) {
+    const amount = parseInt(sxId(amountId).value, 10);
+    if (Number.isNaN(amount) || amount < 0) return '';
+    const mult = parseInt(sxId(multId).value, 10);
+    return `${prefix}${amount * (Number.isNaN(mult) || mult < 1 ? 1 : mult)}-`;
+  }
+
   function sxBuildTerm() {
     const parts = [];
     const name = sxId('sx-name').value.trim().replace(/^\+/, '');
@@ -5422,8 +5568,8 @@
     // the groups themselves join with the chosen separator like everything else.
     if (sxFastTypes.size) parts.push([...sxFastTypes].map(t => `@1${t}`).join(','));
     if (sxChargeTypes.size) parts.push([...sxChargeTypes].map(t => `@2${t}`).join(','));
-    parts.push(sxRange('countcandy', 'sx-candy-min', 'sx-candy-max'));
-    parts.push(sxRange('countcandyxl', 'sx-candyxl-min', 'sx-candyxl-max'));
+    parts.push(sxCandy('countcandy', 'sx-candy', 'sx-candy-mult'));
+    parts.push(sxCandy('countcandyxl', 'sx-candyxl', 'sx-candyxl-mult'));
     parts.push(sxRange('cp', 'sx-cp-min', 'sx-cp-max'));
     if (sxId('sx-stars').value) parts.push(sxId('sx-stars').value);
     SX_CHIPS.forEach(chip => {
@@ -5484,7 +5630,7 @@
   }
 
   ['sx-name', 'sx-family', 'sx-type', 'sx-stars',
-    'sx-candy-min', 'sx-candy-max', 'sx-candyxl-min', 'sx-candyxl-max', 'sx-cp-min', 'sx-cp-max'].forEach(id => {
+    'sx-candy', 'sx-candy-mult', 'sx-candyxl', 'sx-candyxl-mult', 'sx-cp-min', 'sx-cp-max'].forEach(id => {
     sxId(id).addEventListener('input', renderSearchTerm);
     sxId(id).addEventListener('change', renderSearchTerm);
   });
@@ -5516,7 +5662,7 @@
   sxCopyBtn.addEventListener('click', () => sxCopy(sxCopyBtn, false));
   sxCopyCodeBtn.addEventListener('click', () => sxCopy(sxCopyCodeBtn, true));
   sxId('sx-reset-btn').addEventListener('click', () => {
-    ['sx-name', 'sx-candy-min', 'sx-candy-max', 'sx-candyxl-min', 'sx-candyxl-max', 'sx-cp-min', 'sx-cp-max'].forEach(id => { sxId(id).value = ''; });
+    ['sx-name', 'sx-candy', 'sx-candy-mult', 'sx-candyxl', 'sx-candyxl-mult', 'sx-cp-min', 'sx-cp-max'].forEach(id => { sxId(id).value = ''; });
     ['sx-type', 'sx-stars'].forEach(id => { sxId(id).value = ''; });
     sxFastTypes.clear();
     sxChargeTypes.clear();
@@ -5529,6 +5675,293 @@
   renderSxChips();
   renderSxTypeChips();
   renderSearchTerm();
+
+
+  // --- Showcase Calculator. Points = 800 * height / (class * avg height)
+  // + 150 * (weight / avg weight) / (class + 0.5) + 50 * (IV sum / 45)
+  // + 178 if XXL, where "class" is the species' XXL max-height multiple
+  // (1.55 / 1.75 / 2.00). Community-derived; in-game height/weight are
+  // rounded, so the score is shown as a range. Species data: height/weight
+  // from PokeAPI (num:dm:hg), class lists from pokemondb's showcase data. ---
+  const SC_SIZES = (() => {
+    const m = {};
+    '1:7:69,2:10:130,3:20:1000,4:6:85,5:11:190,6:17:905,7:5:90,8:10:225,9:16:855,10:3:29,11:7:99,12:11:320,13:3:32,14:6:100,15:10:295,16:3:18,17:11:300,18:15:395,19:3:35,20:7:185,21:3:20,22:12:380,23:20:69,24:35:650,25:4:60,26:8:300,27:6:120,28:10:295,29:4:70,30:8:200,31:13:600,32:5:90,33:9:195,34:14:620,35:6:75,36:13:400,37:6:99,38:11:199,39:5:55,40:10:120,41:8:75,42:16:550,43:5:54,44:8:86,45:12:186,46:3:54,47:10:295,48:10:300,49:15:125,50:2:8,51:7:333,52:4:42,53:10:320,54:8:196,55:17:766,56:5:280,57:10:320,58:7:190,59:19:1550,60:6:124,61:10:200,62:13:540,63:9:195,64:13:565,65:15:480,66:8:195,67:15:705,68:16:1300,69:7:40,70:10:64,71:17:155,72:9:455,73:16:550,74:4:200,75:10:1050,76:14:3000,77:10:300,78:17:950,79:12:360,80:16:785,81:3:60,82:10:600,83:8:150,84:14:392,85:18:852,86:11:900,87:17:1200,88:9:300,89:12:300,90:3:40,91:15:1325,92:13:1,93:16:1,94:15:405,95:88:2100,96:10:324,97:16:756,98:4:65,99:13:600,100:5:104,101:12:666,102:4:25,103:20:1200,104:4:65,105:10:450,106:15:498,107:14:502,108:12:655,109:6:10,110:12:95,111:10:1150,112:19:1200,113:11:346,114:10:350,115:22:800,116:4:80,117:12:250,118:6:150,119:13:390,120:8:345,121:11:800,122:13:545,123:15:560,124:14:406,125:11:300,126:13:445,127:15:550,128:14:884,129:9:100,130:65:2350,131:25:2200,132:3:40,133:3:65,134:10:290,135:8:245,136:9:250,137:8:365,138:4:75,139:10:350,140:5:115,141:13:405,142:18:590,143:21:4600,144:17:554,145:16:526,146:20:600,147:18:33,148:40:165,149:22:2100,150:20:1220,151:4:40,152:9:64,153:12:158,154:18:1005,155:5:79,156:9:190,157:17:795,158:6:95,159:11:250,160:23:888,161:8:60,162:18:325,163:7:212,164:16:408,165:10:108,166:14:356,167:5:85,168:11:335,169:18:750,170:5:120,171:12:225,172:3:20,173:3:30,174:3:10,175:3:15,176:6:32,177:2:20,178:15:150,179:6:78,180:8:133,181:14:615,182:4:58,183:4:85,184:8:285,185:12:380,186:11:339,187:4:5,188:6:10,189:8:30,190:8:115,191:3:18,192:8:85,193:12:380,194:4:85,195:14:750,196:9:265,197:10:270,198:5:21,199:20:795,200:7:10,201:5:50,202:13:285,203:15:415,204:6:72,205:12:1258,206:15:140,207:11:648,208:92:4000,209:6:78,210:14:487,211:5:39,212:18:1180,213:6:205,214:15:540,215:9:280,216:6:88,217:18:1258,218:7:350,219:8:550,220:4:65,221:11:558,222:6:50,223:6:120,224:9:285,225:9:160,226:21:2200,227:17:505,228:6:108,229:14:350,230:18:1520,231:5:335,232:11:1200,233:6:325,234:14:712,235:12:580,236:7:210,237:14:480,238:4:60,239:6:235,240:7:214,241:12:755,242:15:468,243:19:1780,244:21:1980,245:20:1870,246:6:720,247:12:1520,248:20:2020,249:52:2160,250:38:1990,251:6:50,252:5:50,253:9:216,254:17:522,255:4:25,256:9:195,257:19:520,258:4:76,259:7:280,260:15:819,261:5:136,262:10:370,263:4:175,264:5:325,265:3:36,266:6:100,267:10:284,268:7:115,269:12:316,270:5:26,271:12:325,272:15:550,273:5:40,274:10:280,275:13:596,276:3:23,277:7:198,278:6:95,279:12:280,280:4:66,281:8:202,282:16:484,283:5:17,284:8:36,285:4:45,286:12:392,287:8:240,288:14:465,289:20:1305,290:5:55,291:8:120,292:8:12,293:6:163,294:10:405,295:15:840,296:10:864,297:23:2538,298:2:20,299:10:970,300:6:110,301:11:326,302:5:110,303:6:115,304:4:600,305:9:1200,306:21:3600,307:6:112,308:13:315,309:6:152,310:15:402,311:4:42,312:4:42,313:7:177,314:6:177,315:3:20,316:4:103,317:17:800,318:8:208,319:18:888,320:20:1300,321:145:3980,322:7:240,323:19:2200,324:5:804,325:7:306,326:9:715,327:11:50,328:7:150,329:11:153,330:20:820,331:4:513,332:13:774,333:4:12,334:11:206,335:13:403,336:27:525,337:10:1680,338:12:1540,339:4:19,340:9:236,341:6:115,342:11:328,343:5:215,344:15:1080,345:10:238,346:15:604,347:7:125,348:15:682,349:6:74,350:62:1620,351:3:8,352:10:220,353:6:23,354:11:125,355:8:150,356:16:306,357:20:1000,358:6:10,359:12:470,360:6:140,361:7:168,362:15:2565,363:8:395,364:11:876,365:14:1506,366:4:525,367:17:270,368:18:226,369:10:234,370:6:87,371:6:421,372:11:1105,373:15:1026,374:6:952,375:12:2025,376:16:5500,377:17:2300,378:18:1750,379:19:2050,380:14:400,381:20:600,382:45:3520,383:35:9500,384:70:2065,385:3:11,386:17:608,387:4:102,388:11:970,389:22:3100,390:5:62,391:9:220,392:12:550,393:4:52,394:8:230,395:17:845,396:3:20,397:6:155,398:12:249,399:5:200,400:10:315,401:3:22,402:10:255,403:5:95,404:9:305,405:14:420,406:2:12,407:9:145,408:9:315,409:16:1025,410:5:570,411:13:1495,412:2:34,413:5:65,414:9:233,415:3:55,416:12:385,417:4:39,418:7:295,419:11:335,420:4:33,421:5:93,422:3:63,423:9:299,424:12:203,425:4:12,426:12:150,427:4:55,428:12:333,429:9:44,430:9:273,431:5:39,432:10:438,433:2:6,434:4:192,435:10:380,436:5:605,437:13:1870,438:5:150,439:6:130,440:6:244,441:5:19,442:10:1080,443:7:205,444:14:560,445:19:950,446:6:1050,447:7:202,448:12:540,449:8:495,450:20:3000,451:8:120,452:13:615,453:7:230,454:13:444,455:14:270,456:4:70,457:12:240,458:10:650,459:10:505,460:22:1355,461:11:340,462:12:1800,463:17:1400,464:24:2828,465:20:1286,466:18:1386,467:16:680,468:15:380,469:19:515,470:10:255,471:8:259,472:20:425,473:25:2910,474:9:340,475:16:520,476:14:3400,477:22:1066,478:13:266,479:3:3,480:3:3,481:3:3,482:3:3,483:54:6830,484:42:3360,485:17:4300,486:37:4200,487:45:7500,488:15:856,489:4:31,490:3:14,491:15:505,492:2:21,493:32:3200,494:4:40,495:6:81,496:8:160,497:33:630,498:5:99,499:10:555,500:16:1500,501:5:59,502:8:245,503:15:946,504:5:116,505:11:270,506:4:41,507:9:147,508:12:610,509:4:101,510:11:375,511:6:105,512:11:305,513:6:110,514:10:280,515:6:135,516:10:290,517:6:233,518:11:605,519:3:21,520:6:150,521:12:290,522:8:298,523:16:795,524:4:180,525:9:1020,526:17:2600,527:4:21,528:9:105,529:3:85,530:7:404,531:11:310,532:6:125,533:12:400,534:14:870,535:5:45,536:8:170,537:15:620,538:13:555,539:14:510,540:3:25,541:5:73,542:12:205,543:4:53,544:12:585,545:25:2005,546:3:6,547:7:66,548:5:66,549:11:163,550:10:180,551:7:152,552:10:334,553:15:963,554:6:375,555:13:929,556:10:280,557:3:145,558:14:2000,559:6:118,560:11:300,561:14:140,562:5:15,563:17:765,564:7:165,565:12:810,566:5:95,567:14:320,568:6:310,569:19:1073,570:7:125,571:16:811,572:4:58,573:5:75,574:4:58,575:7:180,576:15:440,577:3:10,578:6:80,579:10:201,580:5:55,581:13:242,582:4:57,583:11:410,584:13:575,585:6:195,586:19:925,587:4:50,588:5:59,589:10:330,590:2:10,591:6:105,592:12:330,593:22:1350,594:12:316,595:1:6,596:8:143,597:6:188,598:10:1100,599:3:210,600:6:510,601:6:810,602:2:3,603:12:220,604:21:805,605:5:90,606:10:345,607:3:31,608:6:130,609:10:343,610:6:180,611:10:360,612:18:1055,613:5:85,614:26:2600,615:11:1480,616:4:77,617:8:253,618:7:110,619:9:200,620:14:355,621:16:1390,622:10:920,623:28:3300,624:5:102,625:16:700,626:16:946,627:5:105,628:15:410,629:5:90,630:12:395,631:14:580,632:3:330,633:8:173,634:14:500,635:18:1600,636:11:288,637:16:460,638:21:2500,639:19:2600,640:20:2000,641:15:630,642:15:610,643:32:3300,644:29:3450,645:15:680,646:30:3250,647:14:485,648:6:65,649:15:825,650:4:90,651:7:290,652:16:900,653:4:94,654:10:145,655:15:390,656:3:70,657:6:109,658:15:400,659:4:50,660:10:424,661:3:17,662:7:160,663:12:245,664:3:25,665:3:84,666:12:170,667:6:135,668:15:815,669:1:1,670:2:9,671:11:100,672:9:310,673:17:910,674:6:80,675:21:1360,676:12:280,677:3:35,678:6:85,679:8:20,680:8:45,681:17:530,682:2:5,683:8:155,684:4:35,685:8:50,686:4:35,687:15:470,688:5:310,689:13:960,690:5:73,691:18:815,692:5:83,693:13:353,694:5:60,695:10:210,696:8:260,697:25:2700,698:13:252,699:27:2250,700:10:235,701:8:215,702:2:22,703:3:57,704:3:28,705:8:175,706:20:1505,707:2:30,708:4:70,709:15:710,710:4:50,711:9:125,712:10:995,713:20:5050,714:5:80,715:15:850,716:30:2150,717:58:2030,718:50:3050,719:7:88,720:5:90,721:17:1950,722:3:15,723:7:160,724:16:366,725:4:43,726:7:250,727:18:830,728:4:75,729:6:175,730:18:440,731:3:12,732:6:148,733:11:260,734:4:60,735:7:142,736:4:44,737:5:105,738:15:450,739:6:70,740:17:1800,741:6:34,742:1:2,743:2:5,744:5:92,745:8:250,746:2:3,747:4:80,748:7:145,749:10:1100,750:25:9200,751:3:40,752:18:820,753:3:15,754:9:185,755:2:15,756:10:115,757:6:48,758:12:222,759:5:68,760:21:1350,761:3:32,762:7:82,763:12:214,764:1:3,765:15:760,766:20:828,767:5:120,768:20:1080,769:5:700,770:13:2500,771:3:12,772:19:1205,773:23:1005,774:3:400,775:4:199,776:20:2120,777:3:33,778:2:7,779:9:190,780:30:1850,781:39:2100,782:6:297,783:12:470,784:16:782,785:18:205,786:12:186,787:19:455,788:13:212,789:2:1,790:1:9999,791:34:2300,792:40:1200,793:12:555,794:24:3336,795:18:250,796:38:1000,797:92:9999,798:3:1,799:55:8880,800:24:2300,801:10:805,802:7:222,803:6:18,804:36:1500,805:55:8200,806:18:130,807:15:445,808:2:80,809:25:8000,810:3:50,811:7:140,812:21:900,813:3:45,814:6:90,815:14:330,816:3:40,817:7:115,818:19:452,819:3:25,820:6:60,821:2:18,822:8:160,823:22:750,824:4:80,825:4:195,826:4:408,827:6:89,828:12:199,829:4:22,830:5:25,831:6:60,832:13:430,833:3:85,834:10:1155,835:3:135,836:10:340,837:3:120,838:11:780,839:28:3105,840:2:5,841:3:10,842:4:130,843:22:76,844:38:655,845:8:180,846:5:10,847:13:300,848:4:110,849:16:400,850:7:10,851:30:1200,852:6:40,853:16:390,854:1:2,855:2:4,856:4:34,857:6:48,858:21:51,859:4:55,860:8:125,861:15:610,862:16:460,863:8:280,864:10:4,865:8:1170,866:15:582,867:16:666,868:2:3,869:3:5,870:30:620,871:3:10,872:3:38,873:13:420,874:25:5200,875:14:890,876:9:280,877:3:30,878:12:1000,879:30:6500,880:18:1900,881:23:1500,882:23:2150,883:20:1750,884:18:400,885:5:20,886:14:110,887:30:500,888:28:1100,889:29:2100,890:200:9500,891:6:120,892:19:1050,893:18:700,894:12:1450,895:21:2000,896:22:8000,897:20:445,898:11:77,899:18:951,900:18:890,901:24:2900,902:30:1100,903:13:430,904:25:605,905:16:480,906:4:41,907:9:122,908:15:312,909:4:98,910:10:307,911:16:3265,912:5:61,913:12:215,914:18:619,915:5:102,916:10:1200,917:3:40,918:10:165,919:2:10,920:10:175,921:3:25,922:4:65,923:9:410,924:3:18,925:3:28,926:3:109,927:5:149,928:3:65,929:6:119,930:14:482,931:6:24,932:4:160,933:6:1050,934:23:2400,935:6:105,936:15:850,937:16:620,938:3:4,939:12:1130,940:4:36,941:14:386,942:5:160,943:11:610,944:2:7,945:7:272,946:6:6,947:12:60,948:9:330,949:19:580,950:13:790,951:3:30,952:9:150,953:2:10,954:3:35,955:2:15,956:19:900,957:4:89,958:7:591,959:7:1128,960:12:18,961:12:54,962:15:429,963:13:602,964:13:602,965:10:350,966:18:1200,967:16:630,968:25:3100,969:7:80,970:15:450,971:6:350,972:20:150,973:16:370,974:12:450,975:45:7000,976:25:900,977:120:2200,978:3:80,979:12:560,980:18:2230,981:32:1600,982:36:392,983:20:1200,984:22:3200,985:12:80,986:12:210,987:14:40,988:32:920,989:23:600,990:9:2400,991:6:110,992:18:3807,993:13:1110,994:12:360,995:16:3030,996:5:170,997:8:300,998:21:2100,999:3:50,1000:12:300,1001:15:742,1002:19:1522,1003:27:6997,1004:4:49,1005:20:3800,1006:14:350,1007:25:3030,1008:35:2400,1009:35:2800,1010:15:1250,1011:4:97,1012:1:11,1013:2:22,1014:18:922,1015:10:122,1016:14:301,1017:12:398,1018:20:600,1019:18:930,1020:35:5900,1021:52:4800,1022:15:1625,1023:16:1560,1024:2:65,1025:3:3'.split(',').forEach(s => {
+      const [n, h, w] = s.split(':').map(Number);
+      m[n] = [h / 10, w / 10];
+    });
+    return m;
+  })();
+  const SC_CLASS_155 = new Set([43,44,48,49,55,69,78,84,85,97,106,107,122,124,134,135,136,152,153,154,158,159,160,162,195,196,197,199,212,252,253,254,255,256,257,258,259,260,282,288,289,295,297,300,301,307,308,310,322,323,325,327,336,352,356,358,377,378,379,380,381,382,383,384,385,387,388,389,402,424,428,432,435,450,452,454,461,463,464,466,469,470,471,472,475,478,483,484,485,486,488,491,494,495,496,497,498,499,500,501,502,503,504,505,508,510,518,531,533,534,535,536,537,538,539,542,544,545,549,554,563,568,569,571,576,583,584,589,591,595,596,613,614,620,625,626,638,639,640,643,644,646,649,673,675,689,700,706,712,713,715,716,717,719,721,722,723,724,725,726,727,728,729,730,740,749,750,758,760,763,765,766,768,776,780,785,786,787,788,789,790,791,792,793,794,795,796,797,798,799,800,802,803,804,805,806,807,809,810,811,812,816,817,818,823,832,839,843,844,851,853,858,861,862,866,867,870,890,891,893,894,895,899,900,901,903,906,907,908,909,910,911,912,913,914,915,921,922,923,924,926,927,935,936,937,938,939,944,945,948,949,957,958,959,960,961,971,972,974,975,979,980,983,1000,1011,1019]);
+  const SC_CLASS_200 = new Set([31,34,38,45,50,70,71,72,73,81,82,88,89,92,93,94,99,100,101,102,103,109,110,114,117,118,119,129,130,132,137,138,139,140,141,142,170,171,182,185,191,192,198,222,224,226,227,231,232,233,248,270,276,277,299,304,305,306,316,317,318,319,320,321,330,331,332,337,338,339,340,345,346,348,349,350,357,366,367,368,369,370,373,374,375,376,408,409,410,411,420,425,426,429,430,442,443,444,445,455,456,457,458,474,525,526,548,556,564,565,566,567,590,594,597,598,599,600,601,602,603,604,608,609,611,612,615,621,622,623,630,663,686,687,696,697,698,699,703,709,753,754,755,756,761,762,764,769,770,779,781,826,829,830,846,847,874,932,933,934,950,968]);
+  const SC_CLASSES = [1.55, 1.75, 2];
+  const SC_LIST_KEY = 'pogo-daily-checklist-showcase-list';
+  const scId = (id) => document.getElementById(id);
+  const scNameToNum = new Map(POKEDEX.map(p => [p.name.toLowerCase(), p.num]));
+  const scNumToName = new Map(POKEDEX.map(p => [p.num, p.name]));
+  scId('sc-names').innerHTML = POKEDEX.map(p => `<option value="${p.name}"></option>`).join('');
+
+  let scCls = 1.75;
+  let scSpecies = 0;
+  const scIv = { atk: 0, def: 0, sta: 0 };
+  let scList = [];
+  try { scList = JSON.parse(localStorage.getItem(SC_LIST_KEY)) || []; } catch { scList = []; }
+  if (!Array.isArray(scList)) scList = [];
+
+  const scClassOf = (num) => (SC_CLASS_155.has(num) ? 1.55 : SC_CLASS_200.has(num) ? 2 : 1.75);
+  const scNum = (id) => {
+    const v = parseFloat(scId(id).value);
+    return Number.isNaN(v) || v < 0 ? null : v;
+  };
+
+  function scPoints(h, w, refH, refW, cls, ivSum, xxl) {
+    const height = 800 * h / (cls * refH);
+    const weight = 150 * (w / refW) / (cls + 0.5);
+    const iv = 50 * ivSum / 45;
+    const bonus = xxl ? 178 : 0;
+    return { height, weight, iv, bonus, total: height + weight + iv + bonus };
+  }
+
+  // Same +/- rounding slack pokemondb uses: height to 0.01 m, weight to 0.1 kg.
+  function scRange(e) {
+    const f = (dh, dw) => Math.round(scPoints(Math.max(0, e.h + dh), Math.max(0, e.w + dw), e.refH, e.refW, e.cls, e.iv[0] + e.iv[1] + e.iv[2], e.xxl).total);
+    return [f(-0.005, -0.05), f(0.005, 0.05)];
+  }
+
+  function scReadEntry() {
+    const refH = scNum('sc-ref-h'), refW = scNum('sc-ref-w'), h = scNum('sc-h'), w = scNum('sc-w');
+    if (!refH || !refW || h === null || w === null || !h || !w) return null;
+    return {
+      name: scNumToName.get(scSpecies) || scId('sc-name').value.trim() || 'Pokémon', num: scSpecies,
+      refH, refW, cls: scCls, h, w,
+      iv: [scIv.atk, scIv.def, scIv.sta], xxl: scId('sc-xxl').checked,
+    };
+  }
+
+  const scFmt = (r) => (r[0] === r[1] ? String(r[0]) : `${r[0]} - ${r[1]}`);
+
+  function renderShowcase() {
+    scId('sc-class-tabs').querySelectorAll('.tz-tab').forEach(b => {
+      b.classList.toggle('active', Math.abs(Number(b.dataset.cls) - scCls) < 0.005);
+    });
+    scId('sc-class-note').textContent = SC_CLASSES.some(c => Math.abs(c - scCls) < 0.005) ? '' : `Custom class ${scCls}×`;
+    const e = scReadEntry();
+    const scoreEl = scId('sc-score');
+    const breakdownEl = scId('sc-breakdown');
+    scId('sc-save-btn').disabled = !e;
+    if (!e) {
+      scoreEl.textContent = '—';
+      breakdownEl.textContent = 'Pick a Pokémon, then enter its height and weight from the details screen.';
+      return;
+    }
+    const p = scPoints(e.h, e.w, e.refH, e.refW, e.cls, e.iv[0] + e.iv[1] + e.iv[2], e.xxl);
+    scoreEl.textContent = `${scFmt(scRange(e))} / 1178`;
+    breakdownEl.textContent = `Height ${Math.round(p.height)}/800 · Weight ${Math.round(p.weight)}/150 · IVs ${Math.round(p.iv)}/50 · XXL ${p.bonus ? '+178' : '0'}`;
+  }
+
+  // IV meters: 15 squares per stat in two rows (1-10, then 11-15), tap or
+  // drag to pick; the whole bar's color follows the selected value.
+  function scBuildGroup(count) {
+    const group = document.createElement('div');
+    group.className = 'sc-group';
+    for (let i = 0; i < count; i++) {
+      const p = document.createElement('div');
+      p.className = 'sc-pip';
+      group.appendChild(p);
+    }
+    return group;
+  }
+  function scBuildMeter(el) {
+    const row1 = document.createElement('div');
+    row1.className = 'sc-row';
+    row1.append(scBuildGroup(5), scBuildGroup(5));
+    const row2 = document.createElement('div');
+    row2.className = 'sc-row';
+    const left = document.createElement('div');
+    left.className = 'sc-spacer';
+    const right = document.createElement('div');
+    right.className = 'sc-spacer';
+    row2.append(left, scBuildGroup(5), right);
+    el.append(row1, row2);
+  }
+
+  function scPaintMeter(key) {
+    const value = scIv[key];
+    const meter = scId(`sc-${key}`);
+    const pips = meter.querySelectorAll('.sc-pip');
+    const tier2 = value >= 6 && value <= 10;
+    const tier3 = value >= 11 && value <= 14;
+    const perfect = value >= 15;
+    pips.forEach((pip, i) => {
+      const on = i < value;
+      pip.classList.toggle('on', on);
+      pip.classList.toggle('tier2', on && tier2);
+      pip.classList.toggle('tier3', on && tier3);
+      pip.classList.toggle('perfect', on && perfect);
+      pip.classList.toggle('current', i === value - 1);
+    });
+    scId(`sc-${key}-val`).textContent = value;
+    scId(`sc-${key}-star`).classList.toggle('lit', perfect);
+    meter.setAttribute('aria-valuenow', String(value));
+  }
+
+  function scSetIv(key, value) {
+    value = Math.max(0, Math.min(15, value));
+    if (scIv[key] === value) return;
+    scIv[key] = value;
+    scPaintMeter(key);
+    renderShowcase();
+  }
+
+  function scAttachMeter(key) {
+    const meter = scId(`sc-${key}`);
+    let dragging = false;
+    // The pips sit on two rows, so find the row the pointer is in by Y,
+    // then the nearest pip in it by X.
+    function valueFromPoint(x, y) {
+      const pips = Array.from(meter.querySelectorAll('.sc-pip'));
+      let candidates = pips.filter(p => {
+        const r = p.getBoundingClientRect();
+        return y >= r.top - 4 && y <= r.bottom + 4;
+      });
+      if (!candidates.length) candidates = pips;
+      let best = candidates[0], bestDist = Infinity;
+      candidates.forEach(p => {
+        const r = p.getBoundingClientRect();
+        const d = Math.abs(x - (r.left + r.width / 2));
+        if (d < bestDist) { bestDist = d; best = p; }
+      });
+      return pips.indexOf(best) + 1;
+    }
+    meter.addEventListener('pointerdown', (e) => {
+      dragging = true;
+      meter.setPointerCapture(e.pointerId);
+      const v = valueFromPoint(e.clientX, e.clientY);
+      // Tapping the lone lit square again is how you get back to 0.
+      scSetIv(key, v === 1 && scIv[key] === 1 ? 0 : v);
+    });
+    meter.addEventListener('pointermove', (e) => {
+      if (dragging) scSetIv(key, valueFromPoint(e.clientX, e.clientY));
+    });
+    meter.addEventListener('pointerup', (e) => {
+      dragging = false;
+      meter.releasePointerCapture(e.pointerId);
+    });
+    meter.addEventListener('pointercancel', () => { dragging = false; });
+    meter.addEventListener('keydown', (e) => {
+      if (e.key === 'ArrowRight' || e.key === 'ArrowUp') { e.preventDefault(); scSetIv(key, scIv[key] + 1); }
+      else if (e.key === 'ArrowLeft' || e.key === 'ArrowDown') { e.preventDefault(); scSetIv(key, scIv[key] - 1); }
+    });
+    // Dragging across the bars must not count as a tab swipe.
+    ['touchstart', 'touchend'].forEach(type => meter.addEventListener(type, (e) => e.stopPropagation(), { passive: true }));
+  }
+
+  ['atk', 'def', 'sta'].forEach(key => {
+    scBuildMeter(scId(`sc-${key}`));
+    scAttachMeter(key);
+    scPaintMeter(key);
+  });
+
+  // Picking a species fills in its average size and class; either stays
+  // editable for forms the table doesn't cover.
+  function scApplySpecies(num) {
+    scSpecies = num;
+    const size = SC_SIZES[num];
+    if (size) {
+      scId('sc-ref-h').value = size[0];
+      scId('sc-ref-w').value = size[1];
+    }
+    scCls = scClassOf(num);
+  }
+
+  scId('sc-name').addEventListener('input', () => {
+    const num = scNameToNum.get(scId('sc-name').value.trim().toLowerCase());
+    if (num && num !== scSpecies) scApplySpecies(num);
+    else if (!num) scSpecies = 0;
+    renderShowcase();
+  });
+  ['sc-ref-h', 'sc-ref-w', 'sc-h', 'sc-w', 'sc-xxl'].forEach(id => {
+    scId(id).addEventListener('input', renderShowcase);
+    scId(id).addEventListener('change', renderShowcase);
+  });
+  scId('sc-class-tabs').querySelectorAll('.tz-tab').forEach(b => {
+    b.addEventListener('click', () => { scCls = Number(b.dataset.cls); renderShowcase(); });
+  });
+
+  function scSaveList() {
+    try { localStorage.setItem(SC_LIST_KEY, JSON.stringify(scList)); } catch { /* storage unavailable */ }
+  }
+
+  function scLoadEntry(e) {
+    scId('sc-name').value = e.name;
+    scSpecies = e.num || 0;
+    scId('sc-ref-h').value = e.refH;
+    scId('sc-ref-w').value = e.refW;
+    scCls = e.cls;
+    scId('sc-h').value = e.h;
+    scId('sc-w').value = e.w;
+    scId('sc-xxl').checked = !!e.xxl;
+    ['atk', 'def', 'sta'].forEach((key, i) => { scIv[key] = e.iv[i]; scPaintMeter(key); });
+    renderShowcase();
+  }
+
+  function renderScList() {
+    const listEl = scId('sc-list');
+    listEl.innerHTML = '';
+    const rows = scList.map(e => ({ e, range: scRange(e) })).sort((a, b) => b.range[1] - a.range[1] || b.range[0] - a.range[0]);
+    rows.forEach(({ e, range }, i) => {
+      const row = document.createElement('div');
+      row.className = 'sc-entry';
+      row.tabIndex = 0;
+      row.setAttribute('role', 'button');
+      const main = document.createElement('div');
+      main.className = 'sc-entry-main';
+      const title = document.createElement('div');
+      title.className = 'sc-entry-title';
+      title.textContent = `#${i + 1} ${e.name}`;
+      const sub = document.createElement('div');
+      sub.className = 'sc-entry-sub';
+      sub.textContent = `${e.h} m · ${e.w} kg · IV ${e.iv.join('/')}${e.xxl ? ' · XXL' : ''}`;
+      main.append(title, sub);
+      const score = document.createElement('div');
+      score.className = 'sc-entry-score';
+      score.textContent = scFmt(range);
+      const del = document.createElement('button');
+      del.type = 'button';
+      del.className = 'sc-entry-del';
+      del.setAttribute('aria-label', 'Remove');
+      del.textContent = '×';
+      del.addEventListener('click', (ev) => {
+        ev.stopPropagation();
+        scList.splice(scList.indexOf(e), 1);
+        scSaveList();
+        renderScList();
+      });
+      row.addEventListener('click', () => scLoadEntry(e));
+      row.addEventListener('keydown', (ev) => {
+        if (ev.key === 'Enter' || ev.key === ' ') { ev.preventDefault(); scLoadEntry(e); }
+      });
+      row.append(main, score, del);
+      listEl.appendChild(row);
+    });
+    scId('sc-list-empty').hidden = scList.length > 0;
+    scId('sc-clear-btn').hidden = scList.length === 0;
+  }
+
+  scId('sc-save-btn').addEventListener('click', () => {
+    const e = scReadEntry();
+    if (!e) return;
+    scList.push(e);
+    scSaveList();
+    renderScList();
+  });
+  scId('sc-clear-btn').addEventListener('click', () => {
+    scList = [];
+    scSaveList();
+    renderScList();
+  });
+
+  renderShowcase();
+  renderScList();
 
   renderDashboard();
 
