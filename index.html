@@ -885,6 +885,8 @@
   .sc-pip.on.perfect { background: linear-gradient(180deg, #ffcc33, #b8860f); border-color: #b8860f; }
   .sc-pip.current { transform: scale(1.12); box-shadow: 0 0 0 2px var(--panel), 0 0 0 4px var(--text); position: relative; z-index: 1; }
   .sc-pip.current.perfect { box-shadow: 0 0 0 2px var(--panel), 0 0 0 4px #ffcc33; }
+  .sc-advanced { margin-top: 12px; }
+  .sc-advanced summary { font-size: 13px; font-weight: 700; color: var(--text-faint); cursor: pointer; }
   .sc-entry { display: flex; align-items: center; gap: 10px; padding: 10px 12px; background: var(--panel-2); border: 1px solid var(--line); border-radius: 10px; cursor: pointer; }
   .sc-entry-main { flex: 1; min-width: 0; }
   .sc-entry-title { font-size: 15px; font-weight: 700; }
@@ -1929,10 +1931,12 @@
       <div class="particle-actions-label">Pok&eacute;mon</div>
       <input class="particle-manual-input" id="sc-name" list="sc-names" type="text" placeholder="e.g. wailord" autocomplete="off" autocapitalize="off" spellcheck="false" style="display: block; width: 100%;">
       <datalist id="sc-names"></datalist>
+      <details class="sc-advanced">
+      <summary>Advanced (only if the score looks off)</summary>
       <div class="sx-range-label">Species average (filled in for you, editable)</div>
       <div class="tb-inputs">
-        <label class="tb-field"><span class="candy-level-label">Height (m)</span><input class="particle-manual-input" id="sc-ref-h" type="number" inputmode="decimal" step="any" min="0" placeholder="0.00"></label>
         <label class="tb-field"><span class="candy-level-label">Weight (kg)</span><input class="particle-manual-input" id="sc-ref-w" type="number" inputmode="decimal" step="any" min="0" placeholder="0.0"></label>
+        <label class="tb-field"><span class="candy-level-label">Height (m)</span><input class="particle-manual-input" id="sc-ref-h" type="number" inputmode="decimal" step="any" min="0" placeholder="0.00"></label>
       </div>
       <div class="sx-range-label">XXL height class (max size as a multiple of the average)</div>
       <div class="tz-tabs" id="sc-class-tabs">
@@ -1941,15 +1945,16 @@
         <button class="tz-tab" data-cls="2" type="button">2.00&times;</button>
       </div>
       <div class="sx-hint" id="sc-class-note"></div>
+      </details>
     </div>
 
     <div class="panel">
       <div class="particle-actions-label">Your Pok&eacute;mon</div>
       <div class="tb-inputs">
-        <label class="tb-field"><span class="candy-level-label">Height (m)</span><input class="particle-manual-input" id="sc-h" type="number" inputmode="decimal" step="any" min="0" placeholder="0.00"></label>
         <label class="tb-field"><span class="candy-level-label">Weight (kg)</span><input class="particle-manual-input" id="sc-w" type="number" inputmode="decimal" step="any" min="0" placeholder="0.00"></label>
+        <label class="tb-field"><span class="candy-level-label">Height (m)</span><input class="particle-manual-input" id="sc-h" type="number" inputmode="decimal" step="any" min="0" placeholder="0.00"></label>
       </div>
-      <label class="maxmove-check sx-family"><input type="checkbox" id="sc-xxl"> It has the XXL tag (+178)</label>
+      <label class="maxmove-check sx-family"><input type="checkbox" id="sc-xxl" checked> It has the XXL tag (+178)</label>
     </div>
 
     <div class="panel sc-iv-panel">
@@ -5750,12 +5755,15 @@
     scId('sc-save-btn').disabled = !e;
     if (!e) {
       scoreEl.textContent = '—';
-      breakdownEl.textContent = 'Pick a Pokémon, then enter its height and weight from the details screen.';
+      const known = scNum('sc-ref-h') && scNum('sc-ref-w');
+      breakdownEl.textContent = known
+        ? 'Enter its weight and height from the details screen.'
+        : 'Pick a Pokémon from the suggestions, then enter its weight and height.';
       return;
     }
     const p = scPoints(e.h, e.w, e.refH, e.refW, e.cls, e.iv[0] + e.iv[1] + e.iv[2], e.xxl);
     scoreEl.textContent = `${scFmt(scRange(e))} / 1178`;
-    breakdownEl.textContent = `Height ${Math.round(p.height)}/800 · Weight ${Math.round(p.weight)}/150 · IVs ${Math.round(p.iv)}/50 · XXL ${p.bonus ? '+178' : '0'}`;
+    breakdownEl.textContent = `Weight ${Math.round(p.weight)}/150 · Height ${Math.round(p.height)}/800 · IVs ${Math.round(p.iv)}/50 · XXL ${p.bonus ? '+178' : '0'}`;
   }
 
   // IV meters: 15 squares per stat in two rows (1-10, then 11-15), tap or
@@ -5920,7 +5928,7 @@
       title.textContent = `#${i + 1} ${e.name}`;
       const sub = document.createElement('div');
       sub.className = 'sc-entry-sub';
-      sub.textContent = `${e.h} m · ${e.w} kg · IV ${e.iv.join('/')}${e.xxl ? ' · XXL' : ''}`;
+      sub.textContent = `${e.w} kg · ${e.h} m · IV ${e.iv.join('/')}${e.xxl ? ' · XXL' : ''}`;
       main.append(title, sub);
       const score = document.createElement('div');
       score.className = 'sc-entry-score';
