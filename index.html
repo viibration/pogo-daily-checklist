@@ -121,7 +121,6 @@
   #view-checklist > .panel:first-child,
   #view-particles > .panel:first-child,
   #view-particle-detail > .panel:first-child,
-  #view-custom-tasks > .panel:first-child,
   #view-sync > .panel:first-child {
     position: sticky;
     top: 0;
@@ -332,27 +331,6 @@
   .task-row .badge.partial { color: var(--accent); border-color: var(--accent); }
 
   #custom-tasks-list .task-row { cursor: default; }
-  #custom-tasks-list .task-row.dragging {
-    position: relative;
-    z-index: 5;
-    border-color: var(--accent);
-    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.4);
-  }
-  .drag-handle {
-    flex-shrink: 0;
-    width: 30px;
-    height: 34px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 18px;
-    line-height: 1;
-    color: var(--text-faint);
-    cursor: grab;
-    touch-action: none;
-    user-select: none;
-  }
-  .drag-handle:hover { color: var(--accent); }
 
   .modal-backdrop {
     position: fixed;
@@ -864,20 +842,25 @@
   .sx-chip.on { background: var(--accent); border-color: var(--accent); color: #fff; }
   .sx-chip.not { background: rgba(255, 122, 104, 0.15); border-color: var(--bad); color: var(--bad); }
   /* Showcase Calculator: IV pips copied from the IV appraisal tool - 15
-     squares per stat in two rows, colored by the selected value. */
+     squares per stat in one row, colored by the selected value. */
   .sc-stat { margin-bottom: 18px; }
   .sc-stat:last-child { margin-bottom: 0; }
   .sc-stat-head { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 8px; }
   .sc-stat-name { font-size: 13px; font-weight: 800; letter-spacing: 0.05em; text-transform: uppercase; }
   .sc-stat-num { font-size: 13px; font-weight: 700; color: var(--text-dim); font-variant-numeric: tabular-nums; }
-  .sc-stat-num b { color: var(--text); font-size: 15px; }
+  .sc-iv-input {
+    width: 40px; font: inherit; font-size: 15px; font-weight: 700; text-align: center;
+    color: var(--text); background: var(--panel-2); border: 1px solid var(--line);
+    border-radius: 6px; padding: 2px 4px; margin-right: 2px; -moz-appearance: textfield; appearance: textfield;
+  }
+  .sc-iv-input::-webkit-outer-spin-button, .sc-iv-input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+  .sc-iv-input:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
   .sc-star { margin-left: 4px; color: var(--text-faint); opacity: 0.35; }
   .sc-star.lit { color: #ffcc33; opacity: 1; }
   .sc-meter { display: flex; flex-direction: column; gap: 8px; cursor: pointer; touch-action: none; user-select: none; border-radius: 6px; }
   .sc-meter:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; }
-  .sc-row { display: flex; gap: 10px; height: 38px; pointer-events: none; }
-  .sc-group { flex: 1; display: grid; grid-template-columns: repeat(5, 1fr); gap: 5px; }
-  .sc-spacer { flex: 0.5; }
+  .sc-row { display: flex; gap: 8px; height: 30px; pointer-events: none; }
+  .sc-group { flex: 1; display: grid; grid-template-columns: repeat(5, 1fr); gap: 3px; }
   .sc-pip { border-radius: 5px; background: #0b1220; border: 1px solid var(--line); transition: background 0.15s, transform 0.1s; }
   .sc-pip.on { background: linear-gradient(180deg, #3fa6ff, #1c6fc7); border-color: #1c6fc7; box-shadow: inset 0 -2px 2px rgba(0, 0, 0, 0.25); }
   .sc-pip.on.tier2 { background: linear-gradient(180deg, #a855f7, #7c3aed); border-color: #7c3aed; }
@@ -885,6 +868,8 @@
   .sc-pip.on.perfect { background: linear-gradient(180deg, #ffcc33, #b8860f); border-color: #b8860f; }
   .sc-pip.current { transform: scale(1.12); box-shadow: 0 0 0 2px var(--panel), 0 0 0 4px var(--text); position: relative; z-index: 1; }
   .sc-pip.current.perfect { box-shadow: 0 0 0 2px var(--panel), 0 0 0 4px #ffcc33; }
+  .sc-card-head { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; }
+  .sc-top-score { font-size: 18px; font-weight: 800; font-variant-numeric: tabular-nums; color: var(--accent); white-space: nowrap; margin-bottom: 10px; }
   .sc-advanced { margin-top: 12px; }
   .sc-advanced summary { font-size: 13px; font-weight: 700; color: var(--text-faint); cursor: pointer; }
   .sc-entry { display: flex; align-items: center; gap: 10px; padding: 10px 12px; background: var(--panel-2); border: 1px solid var(--line); border-radius: 10px; cursor: pointer; }
@@ -894,7 +879,7 @@
   .sc-entry-score { font-size: 18px; font-weight: 800; font-variant-numeric: tabular-nums; flex-shrink: 0; }
   .sc-entry-del { font: inherit; font-size: 18px; line-height: 1; color: var(--text-faint); background: transparent; border: none; padding: 4px 6px; cursor: pointer; }
   .sc-entry-del:hover { color: var(--bad); }
-  @media (max-width: 380px) { .sc-row { gap: 6px; height: 34px; } }
+  @media (max-width: 380px) { .sc-row { gap: 6px; height: 28px; } }
   .tb-inputs { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
   .tb-field { display: block; }
   .tb-field .particle-manual-input { display: block; width: 100%; }
@@ -1112,28 +1097,11 @@
         <button class="modal-quick-btn grp-route" id="route-open-btn" type="button">Check route task</button>
         <button class="modal-quick-btn grp-league" id="pvp-open-btn" type="button">Check win pvp all leagues</button>
       </div>
-      <button class="check-all-btn" id="custom-tasks-open-btn" type="button">Manage Tasks&hellip;</button>
+      <div class="modal-quick-row">
+        <button class="modal-quick-btn" id="custom-add-open-btn" type="button">Add custom task</button>
+        <button class="modal-quick-btn" id="custom-remove-open-btn" type="button">Remove custom task</button>
+      </div>
       <div class="items" id="master-tasks"></div>
-    </div>
-  </div>
-
-  <div id="view-custom-tasks" hidden>
-    <div class="panel">
-      <div class="header">
-        <div class="header-with-back">
-          <button class="back-btn" id="custom-tasks-back-btn" type="button" aria-label="Back to dashboard">&larr;</button>
-          <h1>Manage Tasks</h1>
-        </div>
-      </div>
-      <div class="particle-action-row">
-        <input class="particle-manual-input" id="custom-task-input" type="text" placeholder="New task name">
-        <button class="particle-btn" id="custom-task-add-btn" type="button">Add</button>
-      </div>
-    </div>
-    <div class="panel">
-      <div class="particle-actions-label">Drag a custom task by &#8942;&#8942; to reposition it anywhere in the list &mdash; fixed tasks can&rsquo;t be moved or removed</div>
-      <div class="items" id="custom-tasks-list"></div>
-      <button class="reset-btn" id="custom-tasks-clear-all-btn" type="button">Clear all custom tasks</button>
     </div>
   </div>
 
@@ -1225,6 +1193,31 @@
       </div>
       <button class="sync-action-btn" id="move-modal-apply" type="button">Apply to selected</button>
       <div class="modal-accounts" id="move-modal-accounts"></div>
+    </div>
+  </div>
+
+  <div class="modal-backdrop" id="custom-task-modal-backdrop" hidden>
+    <div class="modal-panel">
+      <div class="modal-header">
+        <span class="modal-title">Add custom task</span>
+        <button class="modal-close" id="custom-task-modal-close" type="button" aria-label="Close">&times;</button>
+      </div>
+      <div class="particle-action-row">
+        <input class="particle-manual-input" id="custom-task-input" type="text" placeholder="New task name" autocomplete="off">
+        <button class="particle-btn" id="custom-task-add-btn" type="button">Add</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-backdrop" id="custom-remove-modal-backdrop" hidden>
+    <div class="modal-panel">
+      <div class="modal-header">
+        <span class="modal-title">Remove custom task</span>
+        <button class="modal-close" id="custom-remove-modal-close" type="button" aria-label="Close">&times;</button>
+      </div>
+      <div class="items" id="custom-tasks-list"></div>
+      <div class="sx-hint" id="custom-tasks-empty">No custom tasks to remove.</div>
+      <button class="reset-btn" id="custom-tasks-clear-all-btn" type="button">Clear all custom tasks</button>
     </div>
   </div>
 
@@ -1949,7 +1942,10 @@
     </div>
 
     <div class="panel">
-      <div class="particle-actions-label">Your Pok&eacute;mon</div>
+      <div class="sc-card-head">
+        <div class="particle-actions-label">Your Pok&eacute;mon</div>
+        <div class="sc-top-score" id="sc-score-top">&mdash;</div>
+      </div>
       <div class="tb-inputs">
         <label class="tb-field"><span class="candy-level-label">Weight (kg)</span><input class="particle-manual-input" id="sc-w" type="number" inputmode="decimal" step="any" min="0" placeholder="0.00"></label>
         <label class="tb-field"><span class="candy-level-label">Height (m)</span><input class="particle-manual-input" id="sc-h" type="number" inputmode="decimal" step="any" min="0" placeholder="0.00"></label>
@@ -1959,15 +1955,15 @@
 
     <div class="panel sc-iv-panel">
       <div class="sc-stat">
-        <div class="sc-stat-head"><span class="sc-stat-name">Attack</span><span class="sc-stat-num"><b id="sc-atk-val">0</b>/15 <span class="sc-star" id="sc-atk-star">&#9733;</span></span></div>
+        <div class="sc-stat-head"><span class="sc-stat-name">Attack</span><span class="sc-stat-num"><input class="sc-iv-input" id="sc-atk-val" type="number" inputmode="numeric" min="0" max="15" value="0" aria-label="Attack IV">/15 <span class="sc-star" id="sc-atk-star">&#9733;</span></span></div>
         <div class="sc-meter" id="sc-atk" tabindex="0" role="slider" aria-label="Attack IV" aria-valuemin="0" aria-valuemax="15" aria-valuenow="0"></div>
       </div>
       <div class="sc-stat">
-        <div class="sc-stat-head"><span class="sc-stat-name">Defense</span><span class="sc-stat-num"><b id="sc-def-val">0</b>/15 <span class="sc-star" id="sc-def-star">&#9733;</span></span></div>
+        <div class="sc-stat-head"><span class="sc-stat-name">Defense</span><span class="sc-stat-num"><input class="sc-iv-input" id="sc-def-val" type="number" inputmode="numeric" min="0" max="15" value="0" aria-label="Defense IV">/15 <span class="sc-star" id="sc-def-star">&#9733;</span></span></div>
         <div class="sc-meter" id="sc-def" tabindex="0" role="slider" aria-label="Defense IV" aria-valuemin="0" aria-valuemax="15" aria-valuenow="0"></div>
       </div>
       <div class="sc-stat">
-        <div class="sc-stat-head"><span class="sc-stat-name">Stamina</span><span class="sc-stat-num"><b id="sc-sta-val">0</b>/15 <span class="sc-star" id="sc-sta-star">&#9733;</span></span></div>
+        <div class="sc-stat-head"><span class="sc-stat-name">Stamina</span><span class="sc-stat-num"><input class="sc-iv-input" id="sc-sta-val" type="number" inputmode="numeric" min="0" max="15" value="0" aria-label="Stamina IV">/15 <span class="sc-star" id="sc-sta-star">&#9733;</span></span></div>
         <div class="sc-meter" id="sc-sta" tabindex="0" role="slider" aria-label="Stamina IV" aria-valuemin="0" aria-valuemax="15" aria-valuenow="0"></div>
       </div>
     </div>
@@ -2056,18 +2052,17 @@
   // Custom tasks are user-added extras layered on top of the fixed list
   // above; they live in state.customTasks and persist across the daily
   // reset (only their per-account done state resets each day, same as
-  // fixed tasks) until removed via the Manage Tasks page. state.taskOrder
+  // fixed tasks) until removed in the Add custom task popup. state.taskOrder
   // holds the display order for BOTH fixed and custom tasks together (by
-  // id), so a custom task can be dragged in among the fixed ones instead
-  // of always trailing after them (see setupTaskDrag below); it starts
-  // empty and is only filled in once the user actually drags something.
-  // A custom task missing from it (freshly added) falls back to the end.
+  // id): adding a custom task puts it first (see addCustomTask), ahead of
+  // the fixed ones and any earlier custom tasks. It starts empty.
+  // A custom task missing from it falls back to the end.
   // A FIXED task missing from it (e.g. a new one added to the `tasks`
   // array in a later app update, after someone's device already saved a
-  // taskOrder from dragging) is spliced in next to its nearest tasks[]
+  // taskOrder) is spliced in next to its nearest tasks[]
   // neighbor that IS already tracked, so it lands where the app defines
-  // it instead of always at the very end. Fixed tasks are never
-  // draggable, so their order relative to each other never changes.
+  // it instead of always at the very end. Fixed tasks never move relative
+  // to each other.
   function allTasks() {
     const byId = new Map();
     tasks.forEach(t => byId.set(t.id, t));
@@ -2292,14 +2287,19 @@
   const viewTradeBalancer = document.getElementById('view-trade-balancer');
   const viewSearchTerm = document.getElementById('view-search-term');
   const viewShowcase = document.getElementById('view-showcase');
-  const viewCustomTasks = document.getElementById('view-custom-tasks');
+  const customTaskBackdrop = document.getElementById('custom-task-modal-backdrop');
+  const customTaskCloseBtn = document.getElementById('custom-task-modal-close');
+  const customRemoveBackdrop = document.getElementById('custom-remove-modal-backdrop');
+  const customRemoveCloseBtn = document.getElementById('custom-remove-modal-close');
+  const customTasksEmptyEl = document.getElementById('custom-tasks-empty');
   const viewSync = document.getElementById('view-sync');
   const accountsEl = document.getElementById('accounts');
   const masterTasksEl = document.getElementById('master-tasks');
 
-  const customTasksOpenBtn = document.getElementById('custom-tasks-open-btn');
-  const customTasksBackBtn = document.getElementById('custom-tasks-back-btn');
+  const customAddOpenBtn = document.getElementById('custom-add-open-btn');
+  const customRemoveOpenBtn = document.getElementById('custom-remove-open-btn');
   const customTasksListEl = document.getElementById('custom-tasks-list');
+  const customTasksClearBtn = document.getElementById('custom-tasks-clear-all-btn');
   const customTaskInput = document.getElementById('custom-task-input');
   const customTaskAddBtn = document.getElementById('custom-task-add-btn');
 
@@ -3732,124 +3732,37 @@
   maxmoveCheckboxes.forEach(cb => cb.addEventListener('change', renderMaxMoveCalculator));
   renderMaxMoveCalculator();
 
-  // Lists every task - fixed and custom alike - so a custom task can be
-  // moved in among the fixed ones instead of only reordering against
-  // other custom tasks. Only custom tasks get a remove button; fixed
-  // ones are tagged "Fixed" and can be moved but not deleted.
+  // Custom tasks: one popup to name and Add a task (it takes slot 1 of the
+  // checklist, everything else shifts down), another listing the custom
+  // tasks so they can be removed.
   function renderCustomTasks() {
     customTasksListEl.innerHTML = '';
     const customIds = new Set(state.customTasks.map(t => t.id));
-    allTasks().forEach(task => {
-      const isCustom = customIds.has(task.id);
+    allTasks().filter(task => customIds.has(task.id)).forEach(task => {
       const row = document.createElement('div');
       row.className = 'task-row';
-      row.dataset.taskId = task.id;
       row.innerHTML = `
-        ${isCustom ? '<span class="drag-handle" aria-label="Drag to reposition">&#8942;&#8942;</span>' : ''}
         <span class="label">${taskTextHtml(task.label, task.type)}</span>
-        ${isCustom ? '' : '<span class="badge">Fixed</span>'}
-        ${isCustom ? '<button class="modal-close" type="button" aria-label="Remove task">&times;</button>' : ''}
+        <button class="modal-close" type="button" aria-label="Remove task">&times;</button>
       `;
-      if (isCustom) {
-        setupTaskDrag(row.querySelector('.drag-handle'), row);
-        row.querySelector('[aria-label="Remove task"]').addEventListener('click', () => removeCustomTask(task.id));
-      }
+      row.querySelector('[aria-label="Remove task"]').addEventListener('click', () => removeCustomTask(task.id));
       customTasksListEl.appendChild(row);
     });
-  }
-
-  // Only custom tasks get a drag handle, so fixed tasks can never be
-  // dragged - their relative order never changes since nothing ever
-  // moves them. Dragging repositions the row live in the DOM (swapping
-  // past whichever neighbor's midpoint the pointer crosses); on
-  // release, the DOM order becomes the new persisted taskOrder.
-  //
-  // Move/up listeners are on `document`, not the handle itself: once
-  // dragging starts, row gets repositioned in the DOM on every swap,
-  // and re-parenting the handle mid-gesture isn't reliable everywhere
-  // for keeping a pointer's events targeted at it (some browsers drop
-  // the connection), which showed up as a drag stopping after a single
-  // swap. Listening on `document` and filtering by pointerId sidesteps
-  // that entirely - nothing needs to keep tracking a moving element.
-  function setupTaskDrag(handle, row) {
-    let pointerId = null;
-    let scrollRaf = null;
-    let lastClientY = 0;
-
-    // Recomputes row's full target slot from scratch every time, rather
-    // than swapping past one neighbor at a time - a single pointermove
-    // (or scroll frame) can easily cross several rows' worth of
-    // distance, and swap-one-at-a-time only ever caught up by one row
-    // per event, which is what made a drag look like it stalled after
-    // a single move.
-    function updateDragPosition(clientY) {
-      const siblings = Array.from(customTasksListEl.children).filter(el => el !== row);
-      const target = siblings.find(other => {
-        const rect = other.getBoundingClientRect();
-        return clientY < rect.top + rect.height / 2;
-      });
-      if (target) customTasksListEl.insertBefore(row, target);
-      else customTasksListEl.appendChild(row);
-    }
-
-    // Re-checks the swap on every scroll frame too (not just on a new
-    // pointermove), so holding near the top/bottom edge keeps
-    // reordering against rows as they scroll into range under a
-    // finger that's otherwise sitting still.
-    function autoScroll() {
-      const margin = 70;
-      let speed = 0;
-      if (lastClientY < margin) speed = -(margin - lastClientY) / 3;
-      else if (lastClientY > window.innerHeight - margin) speed = (lastClientY - (window.innerHeight - margin)) / 3;
-      if (speed !== 0) {
-        window.scrollBy(0, speed);
-        updateDragPosition(lastClientY);
-        scrollRaf = requestAnimationFrame(autoScroll);
-      } else {
-        scrollRaf = null;
-      }
-    }
-
-    function onMove(e) {
-      if (e.pointerId !== pointerId) return;
-      e.preventDefault();
-      lastClientY = e.clientY;
-      updateDragPosition(lastClientY);
-      if (!scrollRaf) autoScroll();
-    }
-
-    function onUp(e) {
-      if (e.pointerId !== pointerId) return;
-      if (scrollRaf) { cancelAnimationFrame(scrollRaf); scrollRaf = null; }
-      row.classList.remove('dragging');
-      document.removeEventListener('pointermove', onMove);
-      document.removeEventListener('pointerup', onUp);
-      document.removeEventListener('pointercancel', onUp);
-      pointerId = null;
-      state.taskOrder = Array.from(customTasksListEl.children).map(el => el.dataset.taskId);
-      saveState(state);
-    }
-
-    handle.addEventListener('pointerdown', (e) => {
-      e.preventDefault();
-      pointerId = e.pointerId;
-      lastClientY = e.clientY;
-      row.classList.add('dragging');
-      document.addEventListener('pointermove', onMove);
-      document.addEventListener('pointerup', onUp);
-      document.addEventListener('pointercancel', onUp);
-    });
+    customTasksEmptyEl.hidden = state.customTasks.length > 0;
+    customTasksClearBtn.hidden = state.customTasks.length === 0;
   }
 
   function addCustomTask() {
     const label = customTaskInput.value.trim();
     if (!label) return;
     const id = 'custom-' + Date.now() + '-' + Math.random().toString(36).slice(2, 7);
+    // Newest first: it takes slot 1 of the whole checklist.
+    state.taskOrder = [id, ...allTasks().map(t => t.id)];
     state.customTasks.push({ id, label });
     accountNames.forEach(name => { state.accounts[name].done[id] = false; });
     saveState(state);
     customTaskInput.value = '';
-    renderCustomTasks();
+    closeCustomTasks();
   }
 
   function removeCustomTask(id) {
@@ -3877,19 +3790,32 @@
   });
   document.getElementById('custom-tasks-clear-all-btn').addEventListener('click', clearAllCustomTasks);
 
-  function openCustomTasks() {
-    viewDashboard.hidden = true;
-    viewCustomTasks.hidden = false;
+  function openAddCustomTask() {
+    customTaskInput.value = '';
+    customTaskBackdrop.hidden = false;
+    history.pushState({ view: 'custom-task-modal' }, '');
+    customTaskInput.focus();
+  }
+
+  function openRemoveCustomTask() {
     renderCustomTasks();
-    history.pushState({ view: 'custom-tasks' }, '');
+    customRemoveBackdrop.hidden = false;
+    history.pushState({ view: 'custom-remove-modal' }, '');
   }
 
   function closeCustomTasks() {
-    if (!viewCustomTasks.hidden) history.back();
+    if (!customTaskBackdrop.hidden || !customRemoveBackdrop.hidden) history.back();
   }
 
-  customTasksOpenBtn.addEventListener('click', openCustomTasks);
-  customTasksBackBtn.addEventListener('click', closeCustomTasks);
+  customAddOpenBtn.addEventListener('click', openAddCustomTask);
+  customRemoveOpenBtn.addEventListener('click', openRemoveCustomTask);
+  customTaskCloseBtn.addEventListener('click', closeCustomTasks);
+  customRemoveCloseBtn.addEventListener('click', closeCustomTasks);
+  [customTaskBackdrop, customRemoveBackdrop].forEach(backdrop => {
+    backdrop.addEventListener('click', (e) => {
+      if (e.target === backdrop) closeCustomTasks();
+    });
+  });
 
   // --- Manual sync: copy the entire local state as text on one device,
   // paste it on another to overwrite that device's state. No server,
@@ -4096,9 +4022,9 @@
       renderParticleList();
       return;
     }
-    if (!viewCustomTasks.hidden) {
-      viewCustomTasks.hidden = true;
-      viewDashboard.hidden = false;
+    if (!customTaskBackdrop.hidden || !customRemoveBackdrop.hidden) {
+      customTaskBackdrop.hidden = true;
+      customRemoveBackdrop.hidden = true;
       renderDashboard();
       return;
     }
@@ -5755,6 +5681,7 @@
     scId('sc-save-btn').disabled = !e;
     if (!e) {
       scoreEl.textContent = '—';
+      scId('sc-score-top').textContent = '—';
       const known = scNum('sc-ref-h') && scNum('sc-ref-w');
       breakdownEl.textContent = known
         ? 'Enter its weight and height from the details screen.'
@@ -5763,10 +5690,11 @@
     }
     const p = scPoints(e.h, e.w, e.refH, e.refW, e.cls, e.iv[0] + e.iv[1] + e.iv[2], e.xxl);
     scoreEl.textContent = `${scFmt(scRange(e))} / 1178`;
+    scId('sc-score-top').textContent = scFmt(scRange(e));
     breakdownEl.textContent = `Weight ${Math.round(p.weight)}/150 · Height ${Math.round(p.height)}/800 · IVs ${Math.round(p.iv)}/50 · XXL ${p.bonus ? '+178' : '0'}`;
   }
 
-  // IV meters: 15 squares per stat in two rows (1-10, then 11-15), tap or
+  // IV meters: 15 squares per stat in one row (three groups of 5), tap or
   // drag to pick; the whole bar's color follows the selected value.
   function scBuildGroup(count) {
     const group = document.createElement('div');
@@ -5779,17 +5707,10 @@
     return group;
   }
   function scBuildMeter(el) {
-    const row1 = document.createElement('div');
-    row1.className = 'sc-row';
-    row1.append(scBuildGroup(5), scBuildGroup(5));
-    const row2 = document.createElement('div');
-    row2.className = 'sc-row';
-    const left = document.createElement('div');
-    left.className = 'sc-spacer';
-    const right = document.createElement('div');
-    right.className = 'sc-spacer';
-    row2.append(left, scBuildGroup(5), right);
-    el.append(row1, row2);
+    const row = document.createElement('div');
+    row.className = 'sc-row';
+    row.append(scBuildGroup(5), scBuildGroup(5), scBuildGroup(5));
+    el.append(row);
   }
 
   function scPaintMeter(key) {
@@ -5807,7 +5728,9 @@
       pip.classList.toggle('perfect', on && perfect);
       pip.classList.toggle('current', i === value - 1);
     });
-    scId(`sc-${key}-val`).textContent = value;
+    // Don't clobber the field while it's being typed in (e.g. emptied).
+    const field = scId(`sc-${key}-val`);
+    if (!(document.activeElement === field && field.value === '')) field.value = value;
     scId(`sc-${key}-star`).classList.toggle('lit', perfect);
     meter.setAttribute('aria-valuenow', String(value));
   }
@@ -5823,8 +5746,7 @@
   function scAttachMeter(key) {
     const meter = scId(`sc-${key}`);
     let dragging = false;
-    // The pips sit on two rows, so find the row the pointer is in by Y,
-    // then the nearest pip in it by X.
+    // Pick the pip nearest the pointer by X, among those at its height.
     function valueFromPoint(x, y) {
       const pips = Array.from(meter.querySelectorAll('.sc-pip'));
       let candidates = pips.filter(p => {
@@ -5867,6 +5789,18 @@
     scBuildMeter(scId(`sc-${key}`));
     scAttachMeter(key);
     scPaintMeter(key);
+    // The number above the bar is editable too (0-15).
+    const field = scId(`sc-${key}-val`);
+    field.addEventListener('focus', () => field.select());
+    field.addEventListener('input', () => {
+      const v = parseInt(field.value, 10);
+      if (Number.isNaN(v)) return;
+      const clamped = Math.max(0, Math.min(15, v));
+      if (clamped === scIv[key]) { scPaintMeter(key); return; }
+      scSetIv(key, clamped);
+      if (String(clamped) !== field.value) field.value = clamped;
+    });
+    field.addEventListener('blur', () => { field.value = scIv[key]; });
   });
 
   // Picking a species fills in its average size and class; either stays
