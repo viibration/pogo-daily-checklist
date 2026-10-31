@@ -907,6 +907,28 @@
   .cb-card-fields .particle-manual-input { display: block; width: 100%; min-width: 0; padding: 6px 8px; font-size: 15px; }
   .cb-card-fields .particle-manual-input.invalid { border-color: var(--bad); }
   .cb-card-sub { margin-top: 8px; font-size: 12px; color: var(--text-faint); }
+  .cb-decks { display: flex; gap: 6px; align-items: center; margin-bottom: 8px; }
+  .cb-deck-select { flex: 1; min-width: 0; font: inherit; font-size: 15px; font-weight: 700; color: var(--text); background: var(--panel-2); border: 1px solid var(--line); border-radius: 8px; padding: 6px 8px; }
+  .cb-decks .tz-tab { flex: 0 0 auto; padding: 6px 10px; }
+  .cb-decks .tz-tab:disabled { opacity: 0.4; cursor: default; }
+  .cb-deck-name { display: block; width: 100%; margin-bottom: 10px; font-size: 15px; }
+  #pt-parties { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .pt-party { min-width: 0; padding: 8px; background: var(--panel-2); border: 1px solid var(--line); border-radius: 10px; }
+  .pt-party-title { font-size: 15px; font-weight: 800; }
+  .pt-counts { display: flex; gap: 4px; margin-top: 4px; }
+  .pt-count { font-size: 11px; font-weight: 700; padding: 1px 6px; border-radius: 999px; border: 1px solid var(--line); color: var(--text-faint); }
+  .pt-count.has { color: var(--pt-color); border-color: var(--pt-color); }
+  .pt-slot { --pt-color: var(--line); margin-top: 6px; padding: 5px 6px; background: linear-gradient(90deg, color-mix(in srgb, var(--pt-color) 16%, transparent), transparent 70%), var(--panel); border: 1px solid var(--line); border-left: 5px solid var(--pt-color); border-radius: 8px; }
+  .pt-select { display: block; width: 100%; min-width: 0; font: inherit; font-size: 12px; font-weight: 700; color: var(--text); background: var(--panel-2); border: 1px solid var(--line); border-radius: 6px; padding: 3px 2px; }
+  .pt-select.dup { border-color: var(--bad); }
+  .pt-roles { display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px; margin-top: 5px; }
+  .pt-role { font: inherit; font-size: 12px; font-weight: 700; padding: 5px 0; color: var(--text-dim); background: transparent; border: 1px solid var(--line); border-radius: 6px; cursor: pointer; }
+  .pt-role:hover { border-color: var(--pt-color); }
+  .pt-role.on { color: #0e1620; background: var(--pt-color); border-color: var(--pt-color); }
+  .pt-role:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+  .pt-attacker { --pt-color: var(--bad); }
+  .pt-tanker { --pt-color: var(--accent); }
+  .pt-healer { --pt-color: var(--good); }
   .sc-entry-main { flex: 1; min-width: 0; }
   .sc-entry-title { font-size: 15px; font-weight: 700; }
   .sc-entry-sub { font-size: 12px; color: var(--text-faint); margin-top: 2px; }
@@ -1075,11 +1097,12 @@
       <div class="app-tabs">
         <button class="app-tab active" data-tab="dashboard" type="button">Daily Checklist</button>
         <button class="app-tab" data-tab="particles" type="button">Max Particle</button>
+        <button class="app-tab" data-tab="party" type="button">Party</button>
+        <button class="app-tab" data-tab="calculator" type="button">Calculator</button>
         <button class="app-tab" data-tab="tracker" type="button">Tracker</button>
-        <button class="app-tab" data-tab="trade-balancer" type="button">Trade Balancer</button>
         <button class="app-tab" data-tab="search-term" type="button">Search Term</button>
         <button class="app-tab" data-tab="pokedex" type="button">Pokedex Search</button>
-        <button class="app-tab" data-tab="calculator" type="button">Calculator</button>
+        <button class="app-tab" data-tab="trade-balancer" type="button">Trade Balancer</button>
       </div>
     </div>
     <div class="panel tz-card">
@@ -1349,11 +1372,12 @@
       <div class="app-tabs">
         <button class="app-tab" data-tab="dashboard" type="button">Daily Checklist</button>
         <button class="app-tab active" data-tab="particles" type="button">Max Particle</button>
+        <button class="app-tab" data-tab="party" type="button">Party</button>
+        <button class="app-tab" data-tab="calculator" type="button">Calculator</button>
         <button class="app-tab" data-tab="tracker" type="button">Tracker</button>
-        <button class="app-tab" data-tab="trade-balancer" type="button">Trade Balancer</button>
         <button class="app-tab" data-tab="search-term" type="button">Search Term</button>
         <button class="app-tab" data-tab="pokedex" type="button">Pokedex Search</button>
-        <button class="app-tab" data-tab="calculator" type="button">Calculator</button>
+        <button class="app-tab" data-tab="trade-balancer" type="button">Trade Balancer</button>
       </div>
     </div>
     <div class="panel tz-card">
@@ -1496,11 +1520,12 @@
       <div class="app-tabs">
         <button class="app-tab" data-tab="dashboard" type="button">Daily Checklist</button>
         <button class="app-tab" data-tab="particles" type="button">Max Particle</button>
+        <button class="app-tab" data-tab="party" type="button">Party</button>
+        <button class="app-tab active" data-tab="calculator" type="button">Calculator</button>
         <button class="app-tab" data-tab="tracker" type="button">Tracker</button>
-        <button class="app-tab" data-tab="trade-balancer" type="button">Trade Balancer</button>
         <button class="app-tab" data-tab="search-term" type="button">Search Term</button>
         <button class="app-tab" data-tab="pokedex" type="button">Pokedex Search</button>
-        <button class="app-tab active" data-tab="calculator" type="button">Calculator</button>
+        <button class="app-tab" data-tab="trade-balancer" type="button">Trade Balancer</button>
       </div>
       <div class="tz-tabs calc-select" style="margin-top: 10px;">
         <button class="tz-tab" data-calc="combat" type="button">Combat Calculator</button>
@@ -1619,11 +1644,12 @@
       <div class="app-tabs">
         <button class="app-tab" data-tab="dashboard" type="button">Daily Checklist</button>
         <button class="app-tab" data-tab="particles" type="button">Max Particle</button>
+        <button class="app-tab" data-tab="party" type="button">Party</button>
+        <button class="app-tab" data-tab="calculator" type="button">Calculator</button>
         <button class="app-tab" data-tab="tracker" type="button">Tracker</button>
-        <button class="app-tab" data-tab="trade-balancer" type="button">Trade Balancer</button>
         <button class="app-tab" data-tab="search-term" type="button">Search Term</button>
         <button class="app-tab active" data-tab="pokedex" type="button">Pokedex Search</button>
-        <button class="app-tab" data-tab="calculator" type="button">Calculator</button>
+        <button class="app-tab" data-tab="trade-balancer" type="button">Trade Balancer</button>
       </div>
     </div>
     <div class="panel panel-theme-indigo">
@@ -1661,11 +1687,12 @@
       <div class="app-tabs">
         <button class="app-tab" data-tab="dashboard" type="button">Daily Checklist</button>
         <button class="app-tab" data-tab="particles" type="button">Max Particle</button>
+        <button class="app-tab" data-tab="party" type="button">Party</button>
+        <button class="app-tab" data-tab="calculator" type="button">Calculator</button>
         <button class="app-tab active" data-tab="tracker" type="button">Tracker</button>
-        <button class="app-tab" data-tab="trade-balancer" type="button">Trade Balancer</button>
         <button class="app-tab" data-tab="search-term" type="button">Search Term</button>
         <button class="app-tab" data-tab="pokedex" type="button">Pokedex Search</button>
-        <button class="app-tab" data-tab="calculator" type="button">Calculator</button>
+        <button class="app-tab" data-tab="trade-balancer" type="button">Trade Balancer</button>
       </div>
       <div class="tz-tabs tracker-select" style="margin-top: 10px;">
         <button class="tz-tab" data-tracker="pokemon-tracker" type="button">Pokemon Tracker</button>
@@ -1711,11 +1738,12 @@
       <div class="app-tabs">
         <button class="app-tab" data-tab="dashboard" type="button">Daily Checklist</button>
         <button class="app-tab" data-tab="particles" type="button">Max Particle</button>
+        <button class="app-tab" data-tab="party" type="button">Party</button>
+        <button class="app-tab" data-tab="calculator" type="button">Calculator</button>
         <button class="app-tab active" data-tab="tracker" type="button">Tracker</button>
-        <button class="app-tab" data-tab="trade-balancer" type="button">Trade Balancer</button>
         <button class="app-tab" data-tab="search-term" type="button">Search Term</button>
         <button class="app-tab" data-tab="pokedex" type="button">Pokedex Search</button>
-        <button class="app-tab" data-tab="calculator" type="button">Calculator</button>
+        <button class="app-tab" data-tab="trade-balancer" type="button">Trade Balancer</button>
       </div>
       <div class="tz-tabs tracker-select" style="margin-top: 10px;">
         <button class="tz-tab" data-tracker="pokemon-tracker" type="button">Pokemon Tracker</button>
@@ -1773,11 +1801,12 @@
       <div class="app-tabs">
         <button class="app-tab" data-tab="dashboard" type="button">Daily Checklist</button>
         <button class="app-tab" data-tab="particles" type="button">Max Particle</button>
+        <button class="app-tab" data-tab="party" type="button">Party</button>
+        <button class="app-tab" data-tab="calculator" type="button">Calculator</button>
         <button class="app-tab active" data-tab="tracker" type="button">Tracker</button>
-        <button class="app-tab" data-tab="trade-balancer" type="button">Trade Balancer</button>
         <button class="app-tab" data-tab="search-term" type="button">Search Term</button>
         <button class="app-tab" data-tab="pokedex" type="button">Pokedex Search</button>
-        <button class="app-tab" data-tab="calculator" type="button">Calculator</button>
+        <button class="app-tab" data-tab="trade-balancer" type="button">Trade Balancer</button>
       </div>
       <div class="tz-tabs tracker-select" style="margin-top: 10px;">
         <button class="tz-tab" data-tracker="pokemon-tracker" type="button">Pokemon Tracker</button>
@@ -1799,11 +1828,12 @@
       <div class="app-tabs">
         <button class="app-tab" data-tab="dashboard" type="button">Daily Checklist</button>
         <button class="app-tab" data-tab="particles" type="button">Max Particle</button>
+        <button class="app-tab" data-tab="party" type="button">Party</button>
+        <button class="app-tab" data-tab="calculator" type="button">Calculator</button>
         <button class="app-tab" data-tab="tracker" type="button">Tracker</button>
-        <button class="app-tab active" data-tab="trade-balancer" type="button">Trade Balancer</button>
         <button class="app-tab" data-tab="search-term" type="button">Search Term</button>
         <button class="app-tab" data-tab="pokedex" type="button">Pokedex Search</button>
-        <button class="app-tab" data-tab="calculator" type="button">Calculator</button>
+        <button class="app-tab active" data-tab="trade-balancer" type="button">Trade Balancer</button>
       </div>
     </div>
     <div class="panel panel-theme-teal">
@@ -1828,11 +1858,12 @@
       <div class="app-tabs">
         <button class="app-tab" data-tab="dashboard" type="button">Daily Checklist</button>
         <button class="app-tab" data-tab="particles" type="button">Max Particle</button>
+        <button class="app-tab" data-tab="party" type="button">Party</button>
+        <button class="app-tab" data-tab="calculator" type="button">Calculator</button>
         <button class="app-tab active" data-tab="tracker" type="button">Tracker</button>
-        <button class="app-tab" data-tab="trade-balancer" type="button">Trade Balancer</button>
         <button class="app-tab" data-tab="search-term" type="button">Search Term</button>
         <button class="app-tab" data-tab="pokedex" type="button">Pokedex Search</button>
-        <button class="app-tab" data-tab="calculator" type="button">Calculator</button>
+        <button class="app-tab" data-tab="trade-balancer" type="button">Trade Balancer</button>
       </div>
       <div class="tz-tabs tracker-select" style="margin-top: 10px;">
         <button class="tz-tab" data-tracker="pokemon-tracker" type="button">Pokemon Tracker</button>
@@ -1858,11 +1889,12 @@
       <div class="app-tabs">
         <button class="app-tab" data-tab="dashboard" type="button">Daily Checklist</button>
         <button class="app-tab" data-tab="particles" type="button">Max Particle</button>
+        <button class="app-tab" data-tab="party" type="button">Party</button>
+        <button class="app-tab" data-tab="calculator" type="button">Calculator</button>
         <button class="app-tab" data-tab="tracker" type="button">Tracker</button>
-        <button class="app-tab" data-tab="trade-balancer" type="button">Trade Balancer</button>
         <button class="app-tab active" data-tab="search-term" type="button">Search Term</button>
         <button class="app-tab" data-tab="pokedex" type="button">Pokedex Search</button>
-        <button class="app-tab" data-tab="calculator" type="button">Calculator</button>
+        <button class="app-tab" data-tab="trade-balancer" type="button">Trade Balancer</button>
       </div>
     </div>
 
@@ -1944,16 +1976,38 @@
     </div>
   </div>
 
+  <div id="view-party" hidden>
+    <div class="panel">
+      <div class="app-tabs">
+        <button class="app-tab" data-tab="dashboard" type="button">Daily Checklist</button>
+        <button class="app-tab" data-tab="particles" type="button">Max Particle</button>
+        <button class="app-tab active" data-tab="party" type="button">Party</button>
+        <button class="app-tab" data-tab="calculator" type="button">Calculator</button>
+        <button class="app-tab" data-tab="tracker" type="button">Tracker</button>
+        <button class="app-tab" data-tab="search-term" type="button">Search Term</button>
+        <button class="app-tab" data-tab="pokedex" type="button">Pokedex Search</button>
+        <button class="app-tab" data-tab="trade-balancer" type="button">Trade Balancer</button>
+      </div>
+    </div>
+    <div class="panel">
+      <div class="particle-actions-label">Max Battle</div>
+      <div id="pt-parties"></div>
+      <button class="clear-tracked-btn" id="pt-reset-btn" type="button">Reset parties</button>
+      <div class="sx-hint" style="margin-top: 8px;">Tap a role again to clear it. Red box = account used twice.</div>
+    </div>
+  </div>
+
   <div id="view-combat" hidden>
     <div class="panel">
       <div class="app-tabs">
         <button class="app-tab" data-tab="dashboard" type="button">Daily Checklist</button>
         <button class="app-tab" data-tab="particles" type="button">Max Particle</button>
+        <button class="app-tab" data-tab="party" type="button">Party</button>
+        <button class="app-tab active" data-tab="calculator" type="button">Calculator</button>
         <button class="app-tab" data-tab="tracker" type="button">Tracker</button>
-        <button class="app-tab" data-tab="trade-balancer" type="button">Trade Balancer</button>
         <button class="app-tab" data-tab="search-term" type="button">Search Term</button>
         <button class="app-tab" data-tab="pokedex" type="button">Pokedex Search</button>
-        <button class="app-tab active" data-tab="calculator" type="button">Calculator</button>
+        <button class="app-tab" data-tab="trade-balancer" type="button">Trade Balancer</button>
       </div>
       <div class="tz-tabs calc-select" style="margin-top: 10px;">
         <button class="tz-tab" data-calc="combat" type="button">Combat Calculator</button>
@@ -1995,6 +2049,13 @@
 
     <div class="panel">
       <div class="particle-actions-label">Compare list (highest first)</div>
+      <div class="cb-decks">
+        <select class="cb-deck-select" id="cb-deck-select" aria-label="Deck"></select>
+        <button class="tz-tab" id="cb-deck-new" type="button">+ New</button>
+        <button class="tz-tab" id="cb-deck-copy" type="button">Copy</button>
+        <button class="tz-tab" id="cb-deck-del" type="button">Delete</button>
+      </div>
+      <input class="particle-manual-input cb-deck-name" id="cb-deck-name" type="text" maxlength="40" placeholder="Deck name" autocomplete="off" aria-label="Deck name">
       <div class="tz-tabs" id="cb-sort-tabs" style="margin-bottom: 10px;">
         <button class="tz-tab active" data-sort="cp" type="button">CP</button>
         <button class="tz-tab" data-sort="atk" type="button">Attack</button>
@@ -2016,11 +2077,12 @@
       <div class="app-tabs">
         <button class="app-tab" data-tab="dashboard" type="button">Daily Checklist</button>
         <button class="app-tab" data-tab="particles" type="button">Max Particle</button>
+        <button class="app-tab" data-tab="party" type="button">Party</button>
+        <button class="app-tab active" data-tab="calculator" type="button">Calculator</button>
         <button class="app-tab" data-tab="tracker" type="button">Tracker</button>
-        <button class="app-tab" data-tab="trade-balancer" type="button">Trade Balancer</button>
         <button class="app-tab" data-tab="search-term" type="button">Search Term</button>
         <button class="app-tab" data-tab="pokedex" type="button">Pokedex Search</button>
-        <button class="app-tab active" data-tab="calculator" type="button">Calculator</button>
+        <button class="app-tab" data-tab="trade-balancer" type="button">Trade Balancer</button>
       </div>
       <div class="tz-tabs calc-select" style="margin-top: 10px;">
         <button class="tz-tab" data-calc="combat" type="button">Combat Calculator</button>
@@ -2403,6 +2465,7 @@
   const viewTradeBalancer = document.getElementById('view-trade-balancer');
   const viewSearchTerm = document.getElementById('view-search-term');
   const viewShowcase = document.getElementById('view-showcase');
+  const viewParty = document.getElementById('view-party');
   const viewCombat = document.getElementById('view-combat');
   const customTaskBackdrop = document.getElementById('custom-task-modal-backdrop');
   const customTaskCloseBtn = document.getElementById('custom-task-modal-close');
@@ -3537,7 +3600,7 @@
   const CALC_TABS = ['combat', 'showcase', 'candy'];
   let currentCalc = 'combat';
   const rootKey = (tab) => (TRACKER_TABS.includes(tab) ? 'tracker' : CALC_TABS.includes(tab) ? 'calculator' : tab);
-  const ROOT_TAB_ORDER = ['dashboard', 'particles', 'tracker', 'trade-balancer', 'search-term', 'pokedex', 'calculator'];
+  const ROOT_TAB_ORDER = ['dashboard', 'particles', 'party', 'calculator', 'tracker', 'search-term', 'pokedex', 'trade-balancer'];
   function switchTab(tab) {
     if (tab === 'tracker') tab = currentTracker;
     if (tab === 'calculator') tab = currentCalc;
@@ -3555,6 +3618,7 @@
     viewTradeBalancer.hidden = tab !== 'trade-balancer';
     viewSearchTerm.hidden = tab !== 'search-term';
     viewShowcase.hidden = tab !== 'showcase';
+    viewParty.hidden = tab !== 'party';
     document.querySelectorAll('.app-tab').forEach(btn => {
       btn.classList.toggle('active', btn.dataset.tab === rootKey(tab));
     });
@@ -3571,6 +3635,7 @@
     else if (tab === 'pokemon-tracker') renderPokemonTrackerGrid();
     else if (tab === 'shadow-tracker') renderShadowTrackerGrid();
     else if (tab === 'mega-tracker') renderMegaTrackerGrid();
+    else if (tab === 'party') renderParty();
   }
 
   document.querySelectorAll('.app-tab').forEach(btn => {
@@ -3596,6 +3661,7 @@
     if (!viewSearchTerm.hidden) return 'search-term';
     if (!viewShowcase.hidden) return 'showcase';
     if (!viewCombat.hidden) return 'combat';
+    if (!viewParty.hidden) return 'party';
     return null;
   }
 
@@ -6222,9 +6288,24 @@
     const saved = localStorage.getItem(CB_LIST_KEY + '-sort');
     if (['cp', 'atk', 'def', 'hp'].includes(saved)) cbSort = saved;
   } catch { /* storage unavailable */ }
-  let cbList = [];
-  try { cbList = JSON.parse(localStorage.getItem(CB_LIST_KEY)) || []; } catch { cbList = []; }
-  if (!Array.isArray(cbList)) cbList = [];
+  // Decks are named, switchable copies of the compare list. cbList is always
+  // the active deck's own array, so every edit lands in that deck. The
+  // pre-deck list becomes "Deck 1".
+  const CB_DECKS_KEY = CB_LIST_KEY + '-decks';
+  let cbDecks = null;
+  try { cbDecks = JSON.parse(localStorage.getItem(CB_DECKS_KEY)); } catch { cbDecks = null; }
+  if (!cbDecks || !Array.isArray(cbDecks.decks) || !cbDecks.decks.length) {
+    let first = [];
+    try { first = JSON.parse(localStorage.getItem(CB_LIST_KEY)) || []; } catch { first = []; }
+    cbDecks = { active: 1, decks: [{ id: 1, name: 'Deck 1', list: Array.isArray(first) ? first : [] }] };
+  }
+  cbDecks.decks.forEach((d, i) => {
+    if (!Array.isArray(d.list)) d.list = [];
+    if (typeof d.name !== 'string' || !d.name.trim()) d.name = `Deck ${i + 1}`;
+  });
+  const cbDeck = () => cbDecks.decks.find(d => d.id === cbDecks.active) || cbDecks.decks[0];
+  cbDecks.active = cbDeck().id;
+  let cbList = cbDeck().list;
 
   // Reads the form; null until a known Pokémon, valid IVs (0-15) and a
   // level on the half-level grid (1-51) are filled in.
@@ -6262,7 +6343,8 @@
   }
 
   function cbSaveList() {
-    try { localStorage.setItem(CB_LIST_KEY, JSON.stringify(cbList)); } catch { /* storage unavailable */ }
+    cbDeck().list = cbList;
+    try { localStorage.setItem(CB_DECKS_KEY, JSON.stringify(cbDecks)); } catch { /* storage unavailable */ }
   }
 
   // Saved entries are cards with their own IV and level boxes: typing in one
@@ -6410,7 +6492,68 @@
     cbRefreshCards(true);
     cbId('cb-list-empty').hidden = cbCards.length > 0;
     cbId('cb-clear-btn').hidden = cbList.length === 0;
+    cbRenderDecks();
   }
+
+  function cbRenderDecks() {
+    const sel = cbId('cb-deck-select');
+    sel.innerHTML = '';
+    cbDecks.decks.forEach(d => {
+      const o = document.createElement('option');
+      o.value = d.id;
+      o.textContent = `${d.name} (${d.list.length})`;
+      o.selected = d.id === cbDecks.active;
+      sel.appendChild(o);
+    });
+    const nameBox = cbId('cb-deck-name');
+    if (document.activeElement !== nameBox) nameBox.value = cbDeck().name;
+    cbId('cb-deck-del').disabled = cbDecks.decks.length < 2;
+  }
+  function cbSwitchDeck(id) {
+    cbDecks.active = id;
+    cbList = cbDeck().list;
+    if (document.activeElement === cbId('cb-deck-name')) cbId('cb-deck-name').blur();
+    cbSaveList();
+    renderCbList();
+  }
+  const cbNewDeckId = () => Math.max(...cbDecks.decks.map(d => d.id)) + 1;
+  cbId('cb-deck-select').addEventListener('change', () => cbSwitchDeck(Number(cbId('cb-deck-select').value)));
+  cbId('cb-deck-new').addEventListener('click', () => {
+    const id = cbNewDeckId();
+    cbDecks.decks.push({ id, name: `Deck ${id}`, list: [] });
+    cbSwitchDeck(id);
+    cbId('cb-deck-name').focus();
+  });
+  // Copy snapshots the current list into a new deck and switches to it, so the
+  // original stays as it was while the copy gets changed.
+  cbId('cb-deck-copy').addEventListener('click', () => {
+    const id = cbNewDeckId();
+    cbDecks.decks.push({ id, name: `${cbDeck().name} copy`.slice(0, 40), list: JSON.parse(JSON.stringify(cbList)) });
+    cbSwitchDeck(id);
+  });
+  cbId('cb-deck-del').addEventListener('click', () => {
+    if (cbDecks.decks.length < 2) return;
+    const d = cbDeck();
+    if (d.list.length && !confirm(`Delete "${d.name}" and its ${d.list.length} saved Pokémon?`)) return;
+    const i = cbDecks.decks.indexOf(d);
+    cbDecks.decks.splice(i, 1);
+    cbSwitchDeck(cbDecks.decks[Math.min(i, cbDecks.decks.length - 1)].id);
+  });
+  // Renaming is live; leaving the box empty puts back a default name.
+  cbId('cb-deck-name').addEventListener('input', () => {
+    const v = cbId('cb-deck-name').value.trim();
+    if (!v) return;
+    cbDeck().name = v;
+    cbSaveList();
+    cbRenderDecks();
+  });
+  cbId('cb-deck-name').addEventListener('change', () => {
+    if (!cbId('cb-deck-name').value.trim()) cbDeck().name = `Deck ${cbDeck().id}`;
+    cbId('cb-deck-name').value = cbDeck().name;
+    cbSaveList();
+    cbRenderDecks();
+  });
+  cbId('cb-deck-name').addEventListener('keydown', (ev) => { if (ev.key === 'Enter') cbId('cb-deck-name').blur(); });
 
   // Once the cursor leaves the list (not just hops to another card's box),
   // slide the cards into their new order.
@@ -6471,6 +6614,89 @@
   });
   renderCombat();
   renderCbList();
+
+  // --- Party (Max Battle): two parties of four. Each slot holds an account
+  // and a hand-picked role; defaults are the first four / last four
+  // accounts. Device-local, like the calculators' lists.
+  const PT_KEY = 'pogo-daily-checklist-party-maxbattle';
+  const PT_ROLES = [['attacker', 'Attacker', 'Atk'], ['tanker', 'Tanker', 'Tank'], ['healer', 'Healer', 'Heal']];
+  const ptDefault = () => [FIRST_FOUR_ACCOUNTS, LAST_FOUR_ACCOUNTS].map(group => group.map(acc => ({ acc, role: null })));
+  function ptLoad() {
+    const fallback = ptDefault();
+    try {
+      const saved = JSON.parse(localStorage.getItem(PT_KEY));
+      return fallback.map((party, p) => party.map((slot, s) => {
+        const e = saved && saved[p] && saved[p][s];
+        return {
+          acc: e && accountNames.includes(e.acc) ? e.acc : slot.acc,
+          role: e && PT_ROLES.some(r => r[0] === e.role) ? e.role : null,
+        };
+      }));
+    } catch (e) { return fallback; }
+  }
+  let ptParties = ptLoad();
+  function ptSave() { try { localStorage.setItem(PT_KEY, JSON.stringify(ptParties)); } catch (e) {} }
+
+  function renderParty() {
+    const host = document.getElementById('pt-parties');
+    const used = {};
+    ptParties.forEach(party => party.forEach(s => { used[s.acc] = (used[s.acc] || 0) + 1; }));
+    host.textContent = '';
+    ptParties.forEach((party, p) => {
+      const card = document.createElement('div');
+      card.className = 'pt-party';
+      const title = document.createElement('div');
+      title.className = 'pt-party-title';
+      title.textContent = 'Party ' + (p + 1);
+      const counts = document.createElement('div');
+      counts.className = 'pt-counts';
+      PT_ROLES.forEach(([key, label]) => {
+        const n = party.filter(s => s.role === key).length;
+        const c = document.createElement('span');
+        c.className = 'pt-count pt-' + key + (n ? ' has' : '');
+        c.textContent = n + label[0];
+        c.title = n + ' ' + label;
+        counts.appendChild(c);
+      });
+      card.append(title, counts);
+      party.forEach((slot, s) => {
+        const row = document.createElement('div');
+        row.className = 'pt-slot' + (slot.role ? ' pt-' + slot.role : '');
+        const sel = document.createElement('select');
+        sel.className = 'pt-select' + (used[slot.acc] > 1 ? ' dup' : '');
+        sel.setAttribute('aria-label', 'Party ' + (p + 1) + ' slot ' + (s + 1) + ' account');
+        accountNames.forEach(name => {
+          const o = document.createElement('option');
+          o.value = name;
+          o.textContent = name;
+          o.selected = name === slot.acc;
+          sel.appendChild(o);
+        });
+        sel.addEventListener('change', () => { slot.acc = sel.value; ptSave(); renderParty(); });
+        const roles = document.createElement('div');
+        roles.className = 'pt-roles';
+        PT_ROLES.forEach(([key, label, short]) => {
+          const b = document.createElement('button');
+          b.type = 'button';
+          b.className = 'pt-role pt-' + key + (slot.role === key ? ' on' : '');
+          b.textContent = short;
+          b.setAttribute('aria-label', label);
+          b.setAttribute('aria-pressed', slot.role === key ? 'true' : 'false');
+          b.addEventListener('click', () => { slot.role = slot.role === key ? null : key; ptSave(); renderParty(); });
+          roles.appendChild(b);
+        });
+        row.append(sel, roles);
+        card.appendChild(row);
+      });
+      host.appendChild(card);
+    });
+  }
+  document.getElementById('pt-reset-btn').addEventListener('click', () => {
+    ptParties = ptDefault();
+    ptSave();
+    renderParty();
+  });
+  renderParty();
 
   renderDashboard();
 
