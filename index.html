@@ -1973,7 +1973,13 @@
     </div>
 
     <div class="panel">
-      <div class="particle-actions-label">Compare list (highest CP first)</div>
+      <div class="particle-actions-label">Compare list (highest first)</div>
+      <div class="tz-tabs" id="cb-sort-tabs" style="margin-bottom: 10px;">
+        <button class="tz-tab active" data-sort="cp" type="button">CP</button>
+        <button class="tz-tab" data-sort="atk" type="button">Attack</button>
+        <button class="tz-tab" data-sort="def" type="button">Defense</button>
+        <button class="tz-tab" data-sort="hp" type="button">HP</button>
+      </div>
       <div class="items" id="cb-list"></div>
       <div class="sx-hint" id="cb-list-empty">Nothing saved yet. Tap an entry to load it back in.</div>
       <button class="clear-tracked-btn" id="cb-clear-btn" type="button">Clear list</button>
@@ -6154,6 +6160,12 @@
     };
   }
 
+  // Which stat the compare list is ranked by: cp | atk | def | hp.
+  let cbSort = 'cp';
+  try {
+    const saved = localStorage.getItem(CB_LIST_KEY + '-sort');
+    if (['cp', 'atk', 'def', 'hp'].includes(saved)) cbSort = saved;
+  } catch { /* storage unavailable */ }
   let cbList = [];
   try { cbList = JSON.parse(localStorage.getItem(CB_LIST_KEY)) || []; } catch { cbList = []; }
   if (!Array.isArray(cbList)) cbList = [];
@@ -6208,7 +6220,8 @@
     const rows = cbList.map(e => {
       const mon = CB_MON.get(e.name.toLowerCase());
       return mon ? { e, r: cbCompute(mon.base, e.iv, e.level) } : null;
-    }).filter(Boolean).sort((a, b) => b.r.cp - a.r.cp);
+    }).filter(Boolean).sort((a, b) => b.r[cbSort] - a.r[cbSort] || b.r.cp - a.r.cp);
+    cbId('cb-sort-tabs').querySelectorAll('.tz-tab').forEach(b => b.classList.toggle('active', b.dataset.sort === cbSort));
     rows.forEach(({ e, r }, i) => {
       const row = document.createElement('div');
       row.className = 'sc-entry';
@@ -6221,11 +6234,11 @@
       title.textContent = `#${i + 1} ${e.name}`;
       const sub = document.createElement('div');
       sub.className = 'sc-entry-sub';
-      sub.textContent = `IV ${e.iv.join('/')} · Lv ${e.level} · ${cbFmt(r.atk)} atk · ${cbFmt(r.def)} def · ${r.hp} HP`;
+      sub.textContent = `IV ${e.iv.join('/')} · Lv ${e.level} · CP ${r.cp} · ${cbFmt(r.atk)} atk · ${cbFmt(r.def)} def · ${r.hp} HP`;
       main.append(title, sub);
       const score = document.createElement('div');
       score.className = 'sc-entry-score';
-      score.textContent = r.cp;
+      score.textContent = cbSort === 'atk' || cbSort === 'def' ? cbFmt(r[cbSort]) : r[cbSort];
       const del = document.createElement('button');
       del.type = 'button';
       del.className = 'sc-entry-del';
@@ -6266,6 +6279,13 @@
     cbList = [];
     cbSaveList();
     renderCbList();
+  });
+  cbId('cb-sort-tabs').querySelectorAll('.tz-tab').forEach(b => {
+    b.addEventListener('click', () => {
+      cbSort = b.dataset.sort;
+      try { localStorage.setItem(CB_LIST_KEY + '-sort', cbSort); } catch { /* storage unavailable */ }
+      renderCbList();
+    });
   });
   renderCombat();
   renderCbList();
