@@ -889,6 +889,15 @@
   .sc-advanced { margin-top: 12px; }
   .sc-advanced summary { font-size: 13px; font-weight: 700; color: var(--text-faint); cursor: pointer; }
   .sc-entry { display: flex; align-items: center; gap: 10px; padding: 10px 12px; background: var(--panel-2); border: 1px solid var(--line); border-radius: 10px; cursor: pointer; }
+  .sc-entry.editing { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent); }
+  .cb-card { padding: 10px 12px; background: var(--panel-2); border: 1px solid var(--line); border-radius: 10px; }
+  .cb-card-head { display: flex; align-items: center; gap: 10px; }
+  .cb-card-title { flex: 1; min-width: 0; font-size: 15px; font-weight: 700; }
+  .cb-card-fields { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-top: 8px; }
+  .cb-card-fields span { display: block; margin-bottom: 3px; font-size: 11px; font-weight: 700; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.03em; }
+  .cb-card-fields .particle-manual-input { display: block; width: 100%; min-width: 0; padding: 6px 8px; font-size: 15px; }
+  .cb-card-fields .particle-manual-input.invalid { border-color: var(--bad); }
+  .cb-card-sub { margin-top: 8px; font-size: 12px; color: var(--text-faint); }
   .sc-entry-main { flex: 1; min-width: 0; }
   .sc-entry-title { font-size: 15px; font-weight: 700; }
   .sc-entry-sub { font-size: 12px; color: var(--text-faint); margin-top: 2px; }
@@ -1981,7 +1990,7 @@
         <button class="tz-tab" data-sort="hp" type="button">HP</button>
       </div>
       <div class="items" id="cb-list"></div>
-      <div class="sx-hint" id="cb-list-empty">Nothing saved yet. Tap an entry to load it back in.</div>
+      <div class="sx-hint" id="cb-list-empty">Nothing saved yet. Saved cards have their own IV and level boxes, so you can edit them right there.</div>
       <button class="clear-tracked-btn" id="cb-clear-btn" type="button">Clear list</button>
     </div>
 
@@ -2066,6 +2075,8 @@
       <div class="tb-balanced" id="sc-score">&mdash;</div>
       <div class="sx-hint" id="sc-breakdown"></div>
       <button class="check-all-btn" id="sc-save-btn" type="button" style="margin: 12px 0 0;">Save to compare list</button>
+      <button class="check-all-btn" id="sc-saveas-btn" type="button" style="margin: 8px 0 0;" hidden>Save as a new entry</button>
+      <div class="sx-hint" id="sc-edit-hint" hidden>Editing a saved entry. Change anything above, then tap Update. Tap the entry again to stop editing.</div>
     </div>
 
     <div class="panel">
@@ -5806,6 +5817,8 @@
   let scList = [];
   try { scList = JSON.parse(localStorage.getItem(SC_LIST_KEY)) || []; } catch { scList = []; }
   if (!Array.isArray(scList)) scList = [];
+  // The saved entry loaded back in for editing (null = saving new ones).
+  let scEditing = null;
 
   const scClassOf = (num) => SC_CLASS[num] || 1.75;
   const scNum = (id) => {
@@ -5850,6 +5863,10 @@
     const scoreEl = scId('sc-score');
     const breakdownEl = scId('sc-breakdown');
     scId('sc-save-btn').disabled = !e;
+    scId('sc-save-btn').textContent = scEditing ? 'Update saved entry' : 'Save to compare list';
+    scId('sc-saveas-btn').hidden = !scEditing;
+    scId('sc-saveas-btn').disabled = !e;
+    scId('sc-edit-hint').hidden = !scEditing;
     if (!e) {
       scoreEl.textContent = '—';
       scId('sc-score-top').textContent = '—';
@@ -6055,18 +6072,25 @@
     try { localStorage.setItem(SC_LIST_KEY, JSON.stringify(scList)); } catch { /* storage unavailable */ }
   }
 
+  // Tapping a saved entry loads it for editing; tapping it again lets go.
   function scLoadEntry(e) {
-    scId('sc-name').value = e.name;
-    scSpecies = e.num || 0;
-    scFormName = scFormByName.has(e.name.toLowerCase()) ? e.name : '';
-    scId('sc-ref-h').value = e.refH;
-    scId('sc-ref-w').value = e.refW;
-    scCls = e.cls;
-    scId('sc-h').value = e.h;
-    scId('sc-w').value = e.w;
-    scId('sc-xxl').checked = !!e.xxl;
-    ['atk', 'def', 'sta'].forEach((key, i) => { scIv[key] = e.iv[i]; scPaintMeter(key); });
+    if (scEditing === e) {
+      scEditing = null;
+    } else {
+      scEditing = e;
+      scId('sc-name').value = e.name;
+      scSpecies = e.num || 0;
+      scFormName = scFormByName.has(e.name.toLowerCase()) ? e.name : '';
+      scId('sc-ref-h').value = e.refH;
+      scId('sc-ref-w').value = e.refW;
+      scCls = e.cls;
+      scId('sc-h').value = e.h;
+      scId('sc-w').value = e.w;
+      scId('sc-xxl').checked = !!e.xxl;
+      ['atk', 'def', 'sta'].forEach((key, i) => { scIv[key] = e.iv[i]; scPaintMeter(key); });
+    }
     renderShowcase();
+    renderScList();
   }
 
   function renderScList() {
@@ -6075,7 +6099,7 @@
     const rows = scList.map(e => ({ e, range: scRange(e) })).sort((a, b) => b.range[1] - a.range[1] || b.range[0] - a.range[0]);
     rows.forEach(({ e, range }, i) => {
       const row = document.createElement('div');
-      row.className = 'sc-entry';
+      row.className = 'sc-entry' + (e === scEditing ? ' editing' : '');
       row.tabIndex = 0;
       row.setAttribute('role', 'button');
       const main = document.createElement('div');
@@ -6098,8 +6122,10 @@
       del.addEventListener('click', (ev) => {
         ev.stopPropagation();
         scList.splice(scList.indexOf(e), 1);
+        if (scEditing === e) scEditing = null;
         scSaveList();
         renderScList();
+        renderShowcase();
       });
       row.addEventListener('click', () => scLoadEntry(e));
       row.addEventListener('keydown', (ev) => {
@@ -6112,17 +6138,26 @@
     scId('sc-clear-btn').hidden = scList.length === 0;
   }
 
-  scId('sc-save-btn').addEventListener('click', () => {
+  // Saving while an entry is loaded updates it in place; "Save as a new
+  // entry" keeps the original and adds another.
+  function scSave(asNew) {
     const e = scReadEntry();
     if (!e) return;
-    scList.push(e);
+    if (scEditing && !asNew) Object.assign(scEditing, e);
+    else scList.push(e);
+    scEditing = null;
     scSaveList();
     renderScList();
-  });
+    renderShowcase();
+  }
+  scId('sc-save-btn').addEventListener('click', () => scSave(false));
+  scId('sc-saveas-btn').addEventListener('click', () => scSave(true));
   scId('sc-clear-btn').addEventListener('click', () => {
     scList = [];
+    scEditing = null;
     scSaveList();
     renderScList();
+    renderShowcase();
   });
 
   renderShowcase();
@@ -6205,67 +6240,120 @@
     try { localStorage.setItem(CB_LIST_KEY, JSON.stringify(cbList)); } catch { /* storage unavailable */ }
   }
 
-  function cbLoadEntry(e) {
-    cbId('cb-name').value = e.name;
-    cbId('cb-atk').value = e.iv[0];
-    cbId('cb-def').value = e.iv[1];
-    cbId('cb-hp').value = e.iv[2];
-    cbId('cb-level').value = e.level;
-    renderCombat();
+  // Saved entries are cards with their own IV and level boxes: typing in one
+  // recomputes that card live. Cards only move to their new rank once the
+  // cursor leaves the list, so they don't jump around mid-edit.
+  const cbListEl = cbId('cb-list');
+  let cbCards = [];
+  let cbOrderDirty = false;
+
+  const cbCardResult = (e) => {
+    const mon = CB_MON.get(e.name.toLowerCase());
+    return mon ? cbCompute(mon.base, e.iv, e.level) : null;
+  };
+
+  // Recomputes every card's numbers and rank; moves the cards into rank
+  // order only when asked (moving a focused box would drop the keyboard).
+  function cbRefreshCards(reorder) {
+    cbCards.forEach(c => { c.r = cbCardResult(c.e); });
+    // Compared as shown (attack/defense to 2 decimals), so equal values tie.
+    const key = (r) => Math.round(r[cbSort] * 100);
+    const sorted = [...cbCards].sort((a, b) => key(b.r) - key(a.r) || b.r.cp - a.r.cp);
+    // Entries tied on the sorted stat share a rank (1, 1, 1, 4).
+    let rank = 0;
+    sorted.forEach((c, i) => {
+      rank = i > 0 && key(c.r) === key(sorted[i - 1].r) ? rank : i + 1;
+      c.titleEl.textContent = `#${rank} ${c.e.name}`;
+      c.scoreEl.textContent = cbSort === 'atk' || cbSort === 'def' ? cbFmt(c.r[cbSort]) : c.r[cbSort];
+      c.subEl.textContent = `CP ${c.r.cp} · ${cbFmt(c.r.atk)} atk · ${cbFmt(c.r.def)} def · ${c.r.hp} HP`;
+    });
+    if (reorder) sorted.forEach(c => cbListEl.appendChild(c.el));
+  }
+
+  // Each box: reads a value the same way the main form does and returns
+  // null while it isn't valid (empty, out of range, off the half-level grid).
+  const CB_CARD_FIELDS = [
+    { label: 'Attack', read: (v) => { const n = parseInt(v, 10); return n >= 0 && n <= 15 ? n : null; }, get: (e) => e.iv[0], set: (e, n) => { e.iv[0] = n; } },
+    { label: 'Defense', read: (v) => { const n = parseInt(v, 10); return n >= 0 && n <= 15 ? n : null; }, get: (e) => e.iv[1], set: (e, n) => { e.iv[1] = n; } },
+    { label: 'HP', read: (v) => { const n = parseInt(v, 10); return n >= 0 && n <= 15 ? n : null; }, get: (e) => e.iv[2], set: (e, n) => { e.iv[2] = n; } },
+    { label: 'Level', read: (v) => { const n = parseFloat(v); return n >= 1 && n <= 51 && n * 2 === Math.floor(n * 2) ? n : null; }, get: (e) => e.level, set: (e, n) => { e.level = n; }, decimal: true },
+  ];
+
+  function cbBuildCard(e) {
+    const el = document.createElement('div');
+    el.className = 'cb-card';
+    const head = document.createElement('div');
+    head.className = 'cb-card-head';
+    const titleEl = document.createElement('div');
+    titleEl.className = 'cb-card-title';
+    const scoreEl = document.createElement('div');
+    scoreEl.className = 'sc-entry-score';
+    const del = document.createElement('button');
+    del.type = 'button';
+    del.className = 'sc-entry-del';
+    del.setAttribute('aria-label', 'Remove');
+    del.textContent = '×';
+    del.addEventListener('click', () => {
+      cbList.splice(cbList.indexOf(e), 1);
+      cbSaveList();
+      renderCbList();
+    });
+    head.append(titleEl, scoreEl, del);
+    const fields = document.createElement('div');
+    fields.className = 'cb-card-fields';
+    CB_CARD_FIELDS.forEach(f => {
+      const label = document.createElement('label');
+      const span = document.createElement('span');
+      span.textContent = f.label;
+      const input = document.createElement('input');
+      input.className = 'particle-manual-input';
+      input.type = 'number';
+      input.inputMode = f.decimal ? 'decimal' : 'numeric';
+      if (f.decimal) { input.min = '1'; input.max = '51'; input.step = '0.5'; } else { input.min = '0'; input.max = '15'; }
+      input.value = f.get(e);
+      input.setAttribute('aria-label', `${f.label} for ${e.name}`);
+      input.addEventListener('focus', () => input.select());
+      input.addEventListener('keydown', (ev) => { if (ev.key === 'Enter') input.blur(); });
+      input.addEventListener('input', () => {
+        const n = f.read(input.value);
+        input.classList.toggle('invalid', n === null);
+        if (n === null) return;
+        f.set(e, n);
+        cbSaveList();
+        cbOrderDirty = true;
+        cbRefreshCards(false);
+      });
+      // Leaving a box with a bad value puts the last good one back.
+      input.addEventListener('change', () => { input.value = f.get(e); input.classList.remove('invalid'); });
+      label.append(span, input);
+      fields.appendChild(label);
+    });
+    const subEl = document.createElement('div');
+    subEl.className = 'cb-card-sub';
+    el.append(head, fields, subEl);
+    return { e, el, titleEl, scoreEl, subEl, r: null };
   }
 
   function renderCbList() {
-    const listEl = cbId('cb-list');
-    listEl.innerHTML = '';
-    const rows = cbList.map(e => {
-      const mon = CB_MON.get(e.name.toLowerCase());
-      return mon ? { e, r: cbCompute(mon.base, e.iv, e.level) } : null;
-    }).filter(Boolean);
-    // Compared as shown (attack/defense to 2 decimals), so equal values tie.
-    const key = (r) => Math.round(r[cbSort] * 100);
-    rows.sort((a, b) => key(b.r) - key(a.r) || b.r.cp - a.r.cp);
-    // Entries tied on the sorted stat share a rank (1, 1, 1, 4).
-    let rank = 0;
-    rows.forEach((row, i) => { rank = i > 0 && key(row.r) === key(rows[i - 1].r) ? rank : i + 1; row.rank = rank; });
+    cbListEl.innerHTML = '';
+    cbOrderDirty = false;
+    cbCards = cbList.filter(e => CB_MON.has(e.name.toLowerCase())).map(cbBuildCard);
+    cbCards.forEach(c => cbListEl.appendChild(c.el));
     cbId('cb-sort-tabs').querySelectorAll('.tz-tab').forEach(b => b.classList.toggle('active', b.dataset.sort === cbSort));
-    rows.forEach(({ e, r, rank }) => {
-      const row = document.createElement('div');
-      row.className = 'sc-entry';
-      row.tabIndex = 0;
-      row.setAttribute('role', 'button');
-      const main = document.createElement('div');
-      main.className = 'sc-entry-main';
-      const title = document.createElement('div');
-      title.className = 'sc-entry-title';
-      title.textContent = `#${rank} ${e.name}`;
-      const sub = document.createElement('div');
-      sub.className = 'sc-entry-sub';
-      sub.textContent = `IV ${e.iv.join('/')} · Lv ${e.level} · CP ${r.cp} · ${cbFmt(r.atk)} atk · ${cbFmt(r.def)} def · ${r.hp} HP`;
-      main.append(title, sub);
-      const score = document.createElement('div');
-      score.className = 'sc-entry-score';
-      score.textContent = cbSort === 'atk' || cbSort === 'def' ? cbFmt(r[cbSort]) : r[cbSort];
-      const del = document.createElement('button');
-      del.type = 'button';
-      del.className = 'sc-entry-del';
-      del.setAttribute('aria-label', 'Remove');
-      del.textContent = '×';
-      del.addEventListener('click', (ev) => {
-        ev.stopPropagation();
-        cbList.splice(cbList.indexOf(e), 1);
-        cbSaveList();
-        renderCbList();
-      });
-      row.addEventListener('click', () => cbLoadEntry(e));
-      row.addEventListener('keydown', (ev) => {
-        if (ev.key === 'Enter' || ev.key === ' ') { ev.preventDefault(); cbLoadEntry(e); }
-      });
-      row.append(main, score, del);
-      listEl.appendChild(row);
-    });
-    cbId('cb-list-empty').hidden = rows.length > 0;
+    cbRefreshCards(true);
+    cbId('cb-list-empty').hidden = cbCards.length > 0;
     cbId('cb-clear-btn').hidden = cbList.length === 0;
   }
+
+  // Once the cursor leaves the list (not just hops to another card's box),
+  // slide the cards into their new order.
+  cbListEl.addEventListener('focusout', (ev) => {
+    if (ev.relatedTarget && cbListEl.contains(ev.relatedTarget)) return;
+    if (cbOrderDirty) {
+      cbOrderDirty = false;
+      cbRefreshCards(true);
+    }
+  });
 
   ['cb-name', 'cb-atk', 'cb-def', 'cb-hp', 'cb-level'].forEach(id => {
     cbId(id).addEventListener('input', renderCombat);
