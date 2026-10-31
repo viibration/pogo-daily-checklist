@@ -911,6 +911,7 @@
   .cb-deck-select { flex: 1; min-width: 0; font: inherit; font-size: 15px; font-weight: 700; color: var(--text); background: var(--panel-2); border: 1px solid var(--line); border-radius: 8px; padding: 6px 8px; }
   .cb-decks .tz-tab { flex: 0 0 auto; padding: 6px 10px; }
   .cb-decks .tz-tab:disabled { opacity: 0.4; cursor: default; }
+  .rd-term { display: block; width: 100%; font-family: ui-monospace, Menlo, Consolas, monospace; font-size: 15px; resize: vertical; }
   .cb-deck-name { display: block; width: 100%; margin-bottom: 10px; font-size: 15px; }
   #pt-parties { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
   .pt-party { min-width: 0; padding: 8px; background: var(--panel-2); border: 1px solid var(--line); border-radius: 10px; }
@@ -918,10 +919,10 @@
   .pt-counts { display: flex; gap: 4px; margin-top: 4px; }
   .pt-count { font-size: 11px; font-weight: 700; padding: 1px 6px; border-radius: 999px; border: 1px solid var(--line); color: var(--text-faint); }
   .pt-count.has { color: var(--pt-color); border-color: var(--pt-color); }
-  .pt-slot { --pt-color: var(--line); margin-top: 6px; padding: 5px 6px; background: linear-gradient(90deg, color-mix(in srgb, var(--pt-color) 16%, transparent), transparent 70%), var(--panel); border: 1px solid var(--line); border-left: 5px solid var(--pt-color); border-radius: 8px; }
+  .pt-slot { --pt-color: var(--line); margin-top: 5px; padding: 4px 6px; background: linear-gradient(90deg, color-mix(in srgb, var(--pt-color) 16%, transparent), transparent 70%), var(--panel); border: 1px solid var(--line); border-left: 5px solid var(--pt-color); border-radius: 8px; }
   .pt-name { font-size: 14px; font-weight: 700; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-  .pt-roles { display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px; margin-top: 5px; }
-  .pt-role { font: inherit; font-size: 12px; font-weight: 700; padding: 5px 0; color: var(--text-dim); background: transparent; border: 1px solid var(--line); border-radius: 6px; cursor: pointer; }
+  .pt-roles { display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px; margin-top: 4px; }
+  .pt-role { font: inherit; font-size: 12px; font-weight: 700; padding: 4px 0; color: var(--text-dim); background: transparent; border: 1px solid var(--line); border-radius: 6px; cursor: pointer; }
   .pt-role:hover { border-color: var(--pt-color); }
   .pt-role.on { color: #0e1620; background: var(--pt-color); border-color: var(--pt-color); }
   .pt-role:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
@@ -1987,12 +1988,55 @@
         <button class="app-tab" data-tab="pokedex" type="button">Pokedex Search</button>
         <button class="app-tab" data-tab="trade-balancer" type="button">Trade Balancer</button>
       </div>
+      <div class="tz-tabs party-select" style="margin-top: 10px;">
+        <button class="tz-tab active" data-party="party" type="button">Max Battle</button>
+        <button class="tz-tab" data-party="raid" type="button">Raid</button>
+      </div>
     </div>
     <div class="panel">
-      <div class="particle-actions-label">Max Battle</div>
+      <div class="cb-decks">
+        <select class="cb-deck-select" id="pt-deck-select" aria-label="Deck"></select>
+        <button class="tz-tab" id="pt-deck-new" type="button">+ New</button>
+        <button class="tz-tab" id="pt-deck-copy" type="button">Copy</button>
+        <button class="tz-tab" id="pt-deck-del" type="button">Delete</button>
+      </div>
+      <input class="particle-manual-input cb-deck-name" id="pt-deck-name" type="text" maxlength="40" placeholder="Deck name" autocomplete="off" aria-label="Deck name" style="margin-bottom: 6px; padding: 6px 10px; font-size: 14px;">
       <div id="pt-parties"></div>
-      <button class="clear-tracked-btn" id="pt-reset-btn" type="button">Reset parties</button>
-      <div class="sx-hint" style="margin-top: 8px;">Party 1 is the first 4 accounts, Party 2 the last 4. Tap a role again to clear it.</div>
+      <button class="clear-tracked-btn" id="pt-reset-btn" type="button" style="margin-top: 8px; padding: 6px;" title="Tap a role again to clear just that one">Clear roles</button>
+    </div>
+  </div>
+
+  <div id="view-raid" hidden>
+    <div class="panel">
+      <div class="app-tabs">
+        <button class="app-tab" data-tab="dashboard" type="button">Daily Checklist</button>
+        <button class="app-tab" data-tab="particles" type="button">Max Particle</button>
+        <button class="app-tab active" data-tab="party" type="button">Party</button>
+        <button class="app-tab" data-tab="calculator" type="button">Calculator</button>
+        <button class="app-tab" data-tab="tracker" type="button">Tracker</button>
+        <button class="app-tab" data-tab="search-term" type="button">Search Term</button>
+        <button class="app-tab" data-tab="pokedex" type="button">Pokedex Search</button>
+        <button class="app-tab" data-tab="trade-balancer" type="button">Trade Balancer</button>
+      </div>
+      <div class="tz-tabs party-select" style="margin-top: 10px;">
+        <button class="tz-tab" data-party="party" type="button">Max Battle</button>
+        <button class="tz-tab active" data-party="raid" type="button">Raid</button>
+      </div>
+    </div>
+    <div class="panel panel-theme-indigo">
+      <div class="cb-decks">
+        <select class="cb-deck-select" id="rd-deck-select" aria-label="Deck"></select>
+        <button class="tz-tab" id="rd-deck-new" type="button">+ New</button>
+        <button class="tz-tab" id="rd-deck-copy" type="button">Copy</button>
+        <button class="tz-tab" id="rd-deck-del" type="button">Delete</button>
+      </div>
+      <input class="particle-manual-input cb-deck-name" id="rd-deck-name" type="text" maxlength="40" placeholder="Deck name, e.g. Zacian" autocomplete="off" aria-label="Deck name" style="margin-bottom: 8px;">
+      <textarea class="particle-manual-input rd-term" id="rd-term" rows="4" placeholder="Search term, e.g. @1fire,@1ground&amp;@2fire,@2ground" autocomplete="off" autocapitalize="off" spellcheck="false" aria-label="Search term"></textarea>
+      <div class="particle-action-row" style="margin-top: 10px;">
+        <button class="particle-btn" id="rd-copy-btn" type="button">Copy text</button>
+        <button class="particle-btn" id="rd-copy-code-btn" type="button">Copy `text`</button>
+      </div>
+      <div class="sx-hint" style="margin-top: 8px;">A stash for search terms: one deck per raid boss. Build the term on Search Term, paste it here.</div>
     </div>
   </div>
 
@@ -2465,6 +2509,7 @@
   const viewSearchTerm = document.getElementById('view-search-term');
   const viewShowcase = document.getElementById('view-showcase');
   const viewParty = document.getElementById('view-party');
+  const viewRaid = document.getElementById('view-raid');
   const viewCombat = document.getElementById('view-combat');
   const customTaskBackdrop = document.getElementById('custom-task-modal-backdrop');
   const customTaskCloseBtn = document.getElementById('custom-task-modal-close');
@@ -3598,7 +3643,8 @@
   // Same idea for the three calculators under one "Calculator" tab.
   const CALC_TABS = ['combat', 'showcase', 'candy'];
   let currentCalc = 'combat';
-  const rootKey = (tab) => (TRACKER_TABS.includes(tab) ? 'tracker' : CALC_TABS.includes(tab) ? 'calculator' : tab);
+  // Party has a Max Battle page (always the landing page) and a Raid page.
+  const rootKey = (tab) => (TRACKER_TABS.includes(tab) ? 'tracker' : CALC_TABS.includes(tab) ? 'calculator' : tab === 'raid' ? 'party' : tab);
   const ROOT_TAB_ORDER = ['dashboard', 'particles', 'party', 'calculator', 'tracker', 'search-term', 'pokedex', 'trade-balancer'];
   function switchTab(tab) {
     if (tab === 'tracker') tab = currentTracker;
@@ -3618,6 +3664,10 @@
     viewSearchTerm.hidden = tab !== 'search-term';
     viewShowcase.hidden = tab !== 'showcase';
     viewParty.hidden = tab !== 'party';
+    viewRaid.hidden = tab !== 'raid';
+    document.querySelectorAll('.party-select .tz-tab').forEach(btn => {
+      btn.classList.toggle('active', btn.dataset.party === tab);
+    });
     document.querySelectorAll('.app-tab').forEach(btn => {
       btn.classList.toggle('active', btn.dataset.tab === rootKey(tab));
     });
@@ -3635,6 +3685,7 @@
     else if (tab === 'shadow-tracker') renderShadowTrackerGrid();
     else if (tab === 'mega-tracker') renderMegaTrackerGrid();
     else if (tab === 'party') renderParty();
+    else if (tab === 'raid') renderRaid();
   }
 
   document.querySelectorAll('.app-tab').forEach(btn => {
@@ -3645,6 +3696,9 @@
   });
   document.querySelectorAll('.calc-select .tz-tab').forEach(btn => {
     btn.addEventListener('click', () => switchTab(btn.dataset.calc));
+  });
+  document.querySelectorAll('.party-select .tz-tab').forEach(btn => {
+    btn.addEventListener('click', () => switchTab(btn.dataset.party));
   });
 
   function currentRootTab() {
@@ -3661,6 +3715,7 @@
     if (!viewShowcase.hidden) return 'showcase';
     if (!viewCombat.hidden) return 'combat';
     if (!viewParty.hidden) return 'party';
+    if (!viewRaid.hidden) return 'raid';
     return null;
   }
 
@@ -6620,23 +6675,97 @@
   const PT_KEY = 'pogo-daily-checklist-party-maxbattle';
   const PT_ROLES = [['attacker', 'Attacker', 'Atk'], ['tanker', 'Tanker', 'Tank'], ['healer', 'Healer', 'Heal']];
   const ptDefault = () => [FIRST_FOUR_ACCOUNTS, LAST_FOUR_ACCOUNTS].map(group => group.map(acc => ({ acc, role: null })));
-  function ptLoad() {
-    const fallback = ptDefault();
-    try {
-      const saved = JSON.parse(localStorage.getItem(PT_KEY));
-      return fallback.map((party, p) => party.map((slot, s) => {
-        const e = saved && saved[p] && saved[p][s];
-        return {
-          acc: slot.acc,
-          role: e && PT_ROLES.some(r => r[0] === e.role) ? e.role : null,
-        };
-      }));
-    } catch (e) { return fallback; }
+  // Accounts are fixed, so a saved party only keeps its roles.
+  function ptClean(saved) {
+    return ptDefault().map((party, p) => party.map((slot, s) => {
+      const e = saved && saved[p] && saved[p][s];
+      return { acc: slot.acc, role: e && PT_ROLES.some(r => r[0] === e.role) ? e.role : null };
+    }));
   }
-  let ptParties = ptLoad();
-  function ptSave() { try { localStorage.setItem(PT_KEY, JSON.stringify(ptParties)); } catch (e) {} }
+  // Decks are named, switchable sets of roles. ptParties is always the active
+  // deck's own array, so every tap lands in that deck. The pre-deck roles
+  // become "Deck 1".
+  const PT_DECKS_KEY = PT_KEY + '-decks';
+  let ptDecks = null;
+  try { ptDecks = JSON.parse(localStorage.getItem(PT_DECKS_KEY)); } catch (e) { ptDecks = null; }
+  if (!ptDecks || !Array.isArray(ptDecks.decks) || !ptDecks.decks.length) {
+    let first = null;
+    try { first = JSON.parse(localStorage.getItem(PT_KEY)); } catch (e) { first = null; }
+    ptDecks = { active: 1, decks: [{ id: 1, name: 'Deck 1', parties: first }] };
+  }
+  ptDecks.decks.forEach((d, i) => {
+    d.parties = ptClean(d.parties);
+    if (typeof d.name !== 'string' || !d.name.trim()) d.name = `Deck ${i + 1}`;
+  });
+  const ptDeck = () => ptDecks.decks.find(d => d.id === ptDecks.active) || ptDecks.decks[0];
+  ptDecks.active = ptDeck().id;
+  let ptParties = ptDeck().parties;
+  function ptSave() {
+    ptDeck().parties = ptParties;
+    try { localStorage.setItem(PT_DECKS_KEY, JSON.stringify(ptDecks)); } catch (e) {}
+  }
+  const ptId = (id) => document.getElementById(id);
+  const ptRoleCount = (d) => d.parties.reduce((n, party) => n + party.filter(s => s.role).length, 0);
+  function ptRenderDecks() {
+    const sel = ptId('pt-deck-select');
+    sel.innerHTML = '';
+    ptDecks.decks.forEach(d => {
+      const o = document.createElement('option');
+      o.value = d.id;
+      o.textContent = d.name;
+      o.selected = d.id === ptDecks.active;
+      sel.appendChild(o);
+    });
+    if (document.activeElement !== ptId('pt-deck-name')) ptId('pt-deck-name').value = ptDeck().name;
+    ptId('pt-deck-del').disabled = ptDecks.decks.length < 2;
+  }
+  function ptSwitchDeck(id) {
+    ptDecks.active = id;
+    ptParties = ptDeck().parties;
+    if (document.activeElement === ptId('pt-deck-name')) ptId('pt-deck-name').blur();
+    ptSave();
+    renderParty();
+  }
+  const ptNewDeckId = () => Math.max(...ptDecks.decks.map(d => d.id)) + 1;
+  ptId('pt-deck-select').addEventListener('change', () => ptSwitchDeck(Number(ptId('pt-deck-select').value)));
+  ptId('pt-deck-new').addEventListener('click', () => {
+    const id = ptNewDeckId();
+    ptDecks.decks.push({ id, name: `Deck ${id}`, parties: ptDefault() });
+    ptSwitchDeck(id);
+    ptId('pt-deck-name').focus();
+  });
+  // Copy snapshots the current roles into a new deck and switches to it.
+  ptId('pt-deck-copy').addEventListener('click', () => {
+    const id = ptNewDeckId();
+    ptDecks.decks.push({ id, name: `${ptDeck().name} copy`.slice(0, 40), parties: JSON.parse(JSON.stringify(ptParties)) });
+    ptSwitchDeck(id);
+  });
+  ptId('pt-deck-del').addEventListener('click', () => {
+    if (ptDecks.decks.length < 2) return;
+    const d = ptDeck();
+    if (ptRoleCount(d) && !confirm(`Delete "${d.name}"?`)) return;
+    const i = ptDecks.decks.indexOf(d);
+    ptDecks.decks.splice(i, 1);
+    ptSwitchDeck(ptDecks.decks[Math.min(i, ptDecks.decks.length - 1)].id);
+  });
+  // Renaming is live; leaving the box empty puts back a default name.
+  ptId('pt-deck-name').addEventListener('input', () => {
+    const v = ptId('pt-deck-name').value.trim();
+    if (!v) return;
+    ptDeck().name = v;
+    ptSave();
+    ptRenderDecks();
+  });
+  ptId('pt-deck-name').addEventListener('change', () => {
+    if (!ptId('pt-deck-name').value.trim()) ptDeck().name = `Deck ${ptDeck().id}`;
+    ptId('pt-deck-name').value = ptDeck().name;
+    ptSave();
+    ptRenderDecks();
+  });
+  ptId('pt-deck-name').addEventListener('keydown', (ev) => { if (ev.key === 'Enter') ptId('pt-deck-name').blur(); });
 
   function renderParty() {
+    ptRenderDecks();
     const host = document.getElementById('pt-parties');
     host.textContent = '';
     ptParties.forEach((party, p) => {
@@ -6686,6 +6815,107 @@
     renderParty();
   });
   renderParty();
+
+  // --- Raid: a stash of search terms, one deck per boss. A deck is a name
+  // and a free-text term, with the same two copy buttons as Search Term.
+  const RD_KEY = 'pogo-daily-checklist-party-raid';
+  let rdData = null;
+  try { rdData = JSON.parse(localStorage.getItem(RD_KEY)); } catch (e) { rdData = null; }
+  if (!rdData || !Array.isArray(rdData.decks) || !rdData.decks.length) {
+    rdData = { active: 1, decks: [{ id: 1, name: 'Deck 1', text: '' }] };
+  }
+  rdData.decks.forEach((d, i) => {
+    if (typeof d.text !== 'string') d.text = '';
+    if (typeof d.name !== 'string' || !d.name.trim()) d.name = `Deck ${i + 1}`;
+  });
+  const rdDeck = () => rdData.decks.find(d => d.id === rdData.active) || rdData.decks[0];
+  rdData.active = rdDeck().id;
+  const rdId = (id) => document.getElementById(id);
+  const rdSave = () => { try { localStorage.setItem(RD_KEY, JSON.stringify(rdData)); } catch (e) {} };
+  function renderRaid() {
+    const sel = rdId('rd-deck-select');
+    sel.innerHTML = '';
+    rdData.decks.forEach(d => {
+      const o = document.createElement('option');
+      o.value = d.id;
+      o.textContent = d.name;
+      o.selected = d.id === rdData.active;
+      sel.appendChild(o);
+    });
+    if (document.activeElement !== rdId('rd-deck-name')) rdId('rd-deck-name').value = rdDeck().name;
+    if (document.activeElement !== rdId('rd-term')) rdId('rd-term').value = rdDeck().text;
+    rdId('rd-deck-del').disabled = rdData.decks.length < 2;
+    const empty = !rdDeck().text.trim();
+    rdId('rd-copy-btn').disabled = empty;
+    rdId('rd-copy-code-btn').disabled = empty;
+  }
+  function rdSwitchDeck(id) {
+    rdData.active = id;
+    ['rd-deck-name', 'rd-term'].forEach(i => { if (document.activeElement === rdId(i)) rdId(i).blur(); });
+    rdSave();
+    renderRaid();
+  }
+  const rdNewDeckId = () => Math.max(...rdData.decks.map(d => d.id)) + 1;
+  rdId('rd-deck-select').addEventListener('change', () => rdSwitchDeck(Number(rdId('rd-deck-select').value)));
+  rdId('rd-deck-new').addEventListener('click', () => {
+    const id = rdNewDeckId();
+    rdData.decks.push({ id, name: `Deck ${id}`, text: '' });
+    rdSwitchDeck(id);
+    rdId('rd-deck-name').focus();
+  });
+  rdId('rd-deck-copy').addEventListener('click', () => {
+    const id = rdNewDeckId();
+    rdData.decks.push({ id, name: `${rdDeck().name} copy`.slice(0, 40), text: rdDeck().text });
+    rdSwitchDeck(id);
+  });
+  rdId('rd-deck-del').addEventListener('click', () => {
+    if (rdData.decks.length < 2) return;
+    const d = rdDeck();
+    if (d.text.trim() && !confirm(`Delete "${d.name}"?`)) return;
+    const i = rdData.decks.indexOf(d);
+    rdData.decks.splice(i, 1);
+    rdSwitchDeck(rdData.decks[Math.min(i, rdData.decks.length - 1)].id);
+  });
+  rdId('rd-deck-name').addEventListener('input', () => {
+    const v = rdId('rd-deck-name').value.trim();
+    if (!v) return;
+    rdDeck().name = v;
+    rdSave();
+    renderRaid();
+  });
+  rdId('rd-deck-name').addEventListener('change', () => {
+    if (!rdId('rd-deck-name').value.trim()) rdDeck().name = `Deck ${rdDeck().id}`;
+    rdId('rd-deck-name').value = rdDeck().name;
+    rdSave();
+    renderRaid();
+  });
+  rdId('rd-deck-name').addEventListener('keydown', (ev) => { if (ev.key === 'Enter') rdId('rd-deck-name').blur(); });
+  rdId('rd-term').addEventListener('input', () => {
+    rdDeck().text = rdId('rd-term').value;
+    rdSave();
+    renderRaid();
+  });
+  // Same two copies as Search Term: as-is, or wrapped in backticks so it
+  // pastes as inline code.
+  async function rdCopy(btn, wrapInBackticks) {
+    const text = rdDeck().text.trim();
+    if (!text) return;
+    const out = wrapInBackticks ? '`' + text + '`' : text;
+    try {
+      await navigator.clipboard.writeText(out);
+    } catch {
+      const ta = document.createElement('textarea');
+      ta.value = out;
+      document.body.appendChild(ta);
+      ta.select();
+      document.execCommand('copy');
+      ta.remove();
+    }
+    flashButton(btn, 'Copied!');
+  }
+  rdId('rd-copy-btn').addEventListener('click', () => rdCopy(rdId('rd-copy-btn'), false));
+  rdId('rd-copy-code-btn').addEventListener('click', () => rdCopy(rdId('rd-copy-code-btn'), true));
+  renderRaid();
 
   renderDashboard();
 
