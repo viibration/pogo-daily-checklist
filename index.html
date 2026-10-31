@@ -839,6 +839,12 @@
     padding: 7px 12px;
     cursor: pointer;
   }
+  .sx-iv { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
+  .sx-iv-name { flex: 0 0 62px; font-size: 13px; font-weight: 700; color: var(--text-dim); }
+  .sx-iv .particle-manual-input { flex: 1; min-width: 0; width: 100%; }
+  .sx-iv .particle-manual-input[hidden] { display: none; }
+  .sx-iv-range { flex: 0 0 auto; display: flex; align-items: center; gap: 5px; font-size: 13px; font-weight: 700; color: var(--text-dim); cursor: pointer; }
+  .sx-iv-range input { width: 17px; height: 17px; accent-color: var(--accent); }
   .sx-chip.on { background: var(--accent); border-color: var(--accent); color: #fff; }
   .sx-chip.not { background: rgba(255, 122, 104, 0.15); border-color: var(--bad); color: var(--bad); }
   /* Showcase Calculator: IV pips copied from the IV appraisal tool - 15
@@ -1888,19 +1894,28 @@
 
     <div class="panel">
       <div class="particle-actions-label">More filters</div>
-      <div class="tb-inputs">
-        <label class="tb-field"><span class="candy-level-label">Pok&eacute;mon type</span><select class="particle-manual-input" id="sx-type"></select></label>
-        <label class="tb-field"><span class="candy-level-label">IV rating</span>
-          <select class="particle-manual-input" id="sx-stars">
-            <option value="">Any</option>
-            <option value="4*">4* (hundo)</option>
-            <option value="3*">3*</option>
-            <option value="2*">2*</option>
-            <option value="1*">1*</option>
-            <option value="0*">0* (nundo)</option>
-          </select>
-        </label>
+      <div class="sx-range-label" style="margin-top: 0;">Pok&eacute;mon type (pick one or more)</div>
+      <div class="sx-chips" id="sx-type-chips"></div>
+      <div class="sx-range-label">IVs (0&ndash;15)</div>
+      <div class="sx-iv">
+        <span class="sx-iv-name">Attack</span>
+        <input class="particle-manual-input" id="sx-atk" type="number" inputmode="numeric" min="0" max="15" placeholder="any">
+        <label class="sx-iv-range"><input type="checkbox" id="sx-atk-range"> range</label>
+        <input class="particle-manual-input" id="sx-atk-max" type="number" inputmode="numeric" min="0" max="15" placeholder="up to" hidden>
       </div>
+      <div class="sx-iv">
+        <span class="sx-iv-name">Defense</span>
+        <input class="particle-manual-input" id="sx-def" type="number" inputmode="numeric" min="0" max="15" placeholder="any">
+        <label class="sx-iv-range"><input type="checkbox" id="sx-def-range"> range</label>
+        <input class="particle-manual-input" id="sx-def-max" type="number" inputmode="numeric" min="0" max="15" placeholder="up to" hidden>
+      </div>
+      <div class="sx-iv">
+        <span class="sx-iv-name">HP</span>
+        <input class="particle-manual-input" id="sx-hp" type="number" inputmode="numeric" min="0" max="15" placeholder="any">
+        <label class="sx-iv-range"><input type="checkbox" id="sx-hp-range"> range</label>
+        <input class="particle-manual-input" id="sx-hp-max" type="number" inputmode="numeric" min="0" max="15" placeholder="up to" hidden>
+      </div>
+      <div class="sx-hint">Tick &ldquo;range&rdquo; to add a second number: 0 and 3 searches 0-3attack.</div>
       <div class="sx-range-label">CP</div>
       <div class="tb-inputs">
         <input class="particle-manual-input" id="sx-cp-min" type="number" inputmode="numeric" min="0" placeholder="min">
@@ -5470,13 +5485,10 @@
   const sxChipState = {};
   const sxFastTypes = new Set();
   const sxChargeTypes = new Set();
+  const sxPokeTypes = new Set();
   let sxSeparator = '&';
-
-  function sxFillTypeSelect(select, anyLabel) {
-    select.innerHTML = `<option value="">${anyLabel}</option>` +
-      SX_TYPES.map(t => `<option value="${t}">${t[0].toUpperCase()}${t.slice(1)}</option>`).join('');
-  }
-  sxFillTypeSelect(sxId('sx-type'), 'Any');
+  // IV boxes: id prefix -> search keyword (stamina is "hp" in the game).
+  const SX_IVS = [['sx-atk', 'attack'], ['sx-def', 'defense'], ['sx-hp', 'hp']];
 
   // min only -> "prefix10-", max only -> "prefix-10", both -> "prefix10-20",
   // same number -> exact "prefix10".
@@ -5500,12 +5512,25 @@
     return `${prefix}${amount * (Number.isNaN(mult) || mult < 1 ? 1 : mult)}-`;
   }
 
+  // One IV box: "3attack"; with the range box ticked and a second number,
+  // "0-3attack". A range with only the second number reads as 0 up to it.
+  function sxIv(idPrefix, keyword) {
+    const read = (id) => {
+      const n = parseInt(sxId(id).value, 10);
+      return Number.isNaN(n) ? null : Math.min(15, Math.max(0, n));
+    };
+    const lo = read(idPrefix);
+    const hi = sxId(idPrefix + '-range').checked ? read(idPrefix + '-max') : null;
+    if (hi === null) return lo === null ? '' : `${lo}${keyword}`;
+    const from = lo === null ? 0 : lo;
+    return from === hi ? `${from}${keyword}` : `${Math.min(from, hi)}-${Math.max(from, hi)}${keyword}`;
+  }
+
   function sxBuildTerm() {
     const parts = [];
     const name = sxId('sx-name').value.trim().replace(/^\+/, '');
     if (name) parts.push((sxId('sx-family').checked ? '+' : '') + name);
-    const type = sxId('sx-type').value;
-    if (type) parts.push(type);
+    if (sxPokeTypes.size) parts.push([...sxPokeTypes].join(','));
     // Several types in one move group are OR'd with commas (@1rock,@1ground);
     // the groups themselves join with the chosen separator like everything else.
     if (sxFastTypes.size) parts.push([...sxFastTypes].map(t => `@1${t}`).join(','));
@@ -5513,7 +5538,7 @@
     parts.push(sxCandy('countcandy', 'sx-candy', 'sx-candy-mult'));
     parts.push(sxCandy('countcandyxl', 'sx-candyxl', 'sx-candyxl-mult'));
     parts.push(sxRange('cp', 'sx-cp-min', 'sx-cp-max'));
-    if (sxId('sx-stars').value) parts.push(sxId('sx-stars').value);
+    SX_IVS.forEach(([id, keyword]) => parts.push(sxIv(id, keyword)));
     SX_CHIPS.forEach(chip => {
       if (sxChipState[chip.id] === 1) parts.push(chip.term);
       else if (sxChipState[chip.id] === 2) parts.push('!' + chip.term);
@@ -5535,7 +5560,7 @@
 
   // Move-type picker: tap types on/off; the selection keeps tap order.
   function renderSxTypeChips() {
-    [[sxId('sx-fast-chips'), sxFastTypes], [sxId('sx-charge-chips'), sxChargeTypes]].forEach(([container, selected]) => {
+    [[sxId('sx-type-chips'), sxPokeTypes], [sxId('sx-fast-chips'), sxFastTypes], [sxId('sx-charge-chips'), sxChargeTypes]].forEach(([container, selected]) => {
       container.innerHTML = '';
       SX_TYPES.forEach(type => {
         const btn = document.createElement('button');
@@ -5571,10 +5596,16 @@
     });
   }
 
-  ['sx-name', 'sx-family', 'sx-type', 'sx-stars',
-    'sx-candy', 'sx-candy-mult', 'sx-candyxl', 'sx-candyxl-mult', 'sx-cp-min', 'sx-cp-max'].forEach(id => {
+  ['sx-name', 'sx-family', 'sx-candy', 'sx-candy-mult', 'sx-candyxl', 'sx-candyxl-mult', 'sx-cp-min', 'sx-cp-max',
+    ...SX_IVS.flatMap(([id]) => [id, id + '-range', id + '-max'])].forEach(id => {
     sxId(id).addEventListener('input', renderSearchTerm);
     sxId(id).addEventListener('change', renderSearchTerm);
+  });
+  // The second IV box only shows while its range box is ticked.
+  SX_IVS.forEach(([id]) => {
+    sxId(id + '-range').addEventListener('change', () => {
+      sxId(id + '-max').hidden = !sxId(id + '-range').checked;
+    });
   });
   sxId('sx-sep-tabs').querySelectorAll('.view-mode-btn').forEach(btn => {
     btn.addEventListener('click', () => {
@@ -5605,7 +5636,13 @@
   sxCopyCodeBtn.addEventListener('click', () => sxCopy(sxCopyCodeBtn, true));
   sxId('sx-reset-btn').addEventListener('click', () => {
     ['sx-name', 'sx-candy', 'sx-candy-mult', 'sx-candyxl', 'sx-candyxl-mult', 'sx-cp-min', 'sx-cp-max'].forEach(id => { sxId(id).value = ''; });
-    ['sx-type', 'sx-stars'].forEach(id => { sxId(id).value = ''; });
+    SX_IVS.forEach(([id]) => {
+      sxId(id).value = '';
+      sxId(id + '-max').value = '';
+      sxId(id + '-max').hidden = true;
+      sxId(id + '-range').checked = false;
+    });
+    sxPokeTypes.clear();
     sxFastTypes.clear();
     sxChargeTypes.clear();
     renderSxTypeChips();
