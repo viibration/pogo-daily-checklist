@@ -6220,9 +6220,15 @@
     const rows = cbList.map(e => {
       const mon = CB_MON.get(e.name.toLowerCase());
       return mon ? { e, r: cbCompute(mon.base, e.iv, e.level) } : null;
-    }).filter(Boolean).sort((a, b) => b.r[cbSort] - a.r[cbSort] || b.r.cp - a.r.cp);
+    }).filter(Boolean);
+    // Compared as shown (attack/defense to 2 decimals), so equal values tie.
+    const key = (r) => Math.round(r[cbSort] * 100);
+    rows.sort((a, b) => key(b.r) - key(a.r) || b.r.cp - a.r.cp);
+    // Entries tied on the sorted stat share a rank (1, 1, 1, 4).
+    let rank = 0;
+    rows.forEach((row, i) => { rank = i > 0 && key(row.r) === key(rows[i - 1].r) ? rank : i + 1; row.rank = rank; });
     cbId('cb-sort-tabs').querySelectorAll('.tz-tab').forEach(b => b.classList.toggle('active', b.dataset.sort === cbSort));
-    rows.forEach(({ e, r }, i) => {
+    rows.forEach(({ e, r, rank }) => {
       const row = document.createElement('div');
       row.className = 'sc-entry';
       row.tabIndex = 0;
@@ -6231,7 +6237,7 @@
       main.className = 'sc-entry-main';
       const title = document.createElement('div');
       title.className = 'sc-entry-title';
-      title.textContent = `#${i + 1} ${e.name}`;
+      title.textContent = `#${rank} ${e.name}`;
       const sub = document.createElement('div');
       sub.className = 'sc-entry-sub';
       sub.textContent = `IV ${e.iv.join('/')} · Lv ${e.level} · CP ${r.cp} · ${cbFmt(r.atk)} atk · ${cbFmt(r.def)} def · ${r.hp} HP`;
