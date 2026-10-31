@@ -919,8 +919,7 @@
   .pt-count { font-size: 11px; font-weight: 700; padding: 1px 6px; border-radius: 999px; border: 1px solid var(--line); color: var(--text-faint); }
   .pt-count.has { color: var(--pt-color); border-color: var(--pt-color); }
   .pt-slot { --pt-color: var(--line); margin-top: 6px; padding: 5px 6px; background: linear-gradient(90deg, color-mix(in srgb, var(--pt-color) 16%, transparent), transparent 70%), var(--panel); border: 1px solid var(--line); border-left: 5px solid var(--pt-color); border-radius: 8px; }
-  .pt-select { display: block; width: 100%; min-width: 0; font: inherit; font-size: 12px; font-weight: 700; color: var(--text); background: var(--panel-2); border: 1px solid var(--line); border-radius: 6px; padding: 3px 2px; }
-  .pt-select.dup { border-color: var(--bad); }
+  .pt-name { font-size: 14px; font-weight: 700; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .pt-roles { display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px; margin-top: 5px; }
   .pt-role { font: inherit; font-size: 12px; font-weight: 700; padding: 5px 0; color: var(--text-dim); background: transparent; border: 1px solid var(--line); border-radius: 6px; cursor: pointer; }
   .pt-role:hover { border-color: var(--pt-color); }
@@ -1993,7 +1992,7 @@
       <div class="particle-actions-label">Max Battle</div>
       <div id="pt-parties"></div>
       <button class="clear-tracked-btn" id="pt-reset-btn" type="button">Reset parties</button>
-      <div class="sx-hint" style="margin-top: 8px;">Tap a role again to clear it. Red box = account used twice.</div>
+      <div class="sx-hint" style="margin-top: 8px;">Party 1 is the first 4 accounts, Party 2 the last 4. Tap a role again to clear it.</div>
     </div>
   </div>
 
@@ -6628,7 +6627,7 @@
       return fallback.map((party, p) => party.map((slot, s) => {
         const e = saved && saved[p] && saved[p][s];
         return {
-          acc: e && accountNames.includes(e.acc) ? e.acc : slot.acc,
+          acc: slot.acc,
           role: e && PT_ROLES.some(r => r[0] === e.role) ? e.role : null,
         };
       }));
@@ -6639,8 +6638,6 @@
 
   function renderParty() {
     const host = document.getElementById('pt-parties');
-    const used = {};
-    ptParties.forEach(party => party.forEach(s => { used[s.acc] = (used[s.acc] || 0) + 1; }));
     host.textContent = '';
     ptParties.forEach((party, p) => {
       const card = document.createElement('div');
@@ -6662,17 +6659,9 @@
       party.forEach((slot, s) => {
         const row = document.createElement('div');
         row.className = 'pt-slot' + (slot.role ? ' pt-' + slot.role : '');
-        const sel = document.createElement('select');
-        sel.className = 'pt-select' + (used[slot.acc] > 1 ? ' dup' : '');
-        sel.setAttribute('aria-label', 'Party ' + (p + 1) + ' slot ' + (s + 1) + ' account');
-        accountNames.forEach(name => {
-          const o = document.createElement('option');
-          o.value = name;
-          o.textContent = name;
-          o.selected = name === slot.acc;
-          sel.appendChild(o);
-        });
-        sel.addEventListener('change', () => { slot.acc = sel.value; ptSave(); renderParty(); });
+        const name = document.createElement('div');
+        name.className = 'pt-name';
+        name.textContent = slot.acc;
         const roles = document.createElement('div');
         roles.className = 'pt-roles';
         PT_ROLES.forEach(([key, label, short]) => {
@@ -6685,7 +6674,7 @@
           b.addEventListener('click', () => { slot.role = slot.role === key ? null : key; ptSave(); renderParty(); });
           roles.appendChild(b);
         });
-        row.append(sel, roles);
+        row.append(name, roles);
         card.appendChild(row);
       });
       host.appendChild(card);
