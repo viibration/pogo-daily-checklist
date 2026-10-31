@@ -890,10 +890,19 @@
   .sc-advanced summary { font-size: 13px; font-weight: 700; color: var(--text-faint); cursor: pointer; }
   .sc-entry { display: flex; align-items: center; gap: 10px; padding: 10px 12px; background: var(--panel-2); border: 1px solid var(--line); border-radius: 10px; cursor: pointer; }
   .sc-entry.editing { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent); }
-  .cb-card { padding: 10px 12px; background: var(--panel-2); border: 1px solid var(--line); border-radius: 10px; }
+  .cb-card {
+    --cb-color: var(--accent);
+    padding: 10px 12px;
+    background: linear-gradient(90deg, color-mix(in srgb, var(--cb-color) 16%, transparent), transparent 70%), var(--panel-2);
+    border: 1px solid var(--line);
+    border-left: 6px solid var(--cb-color);
+    border-radius: 10px;
+  }
   .cb-card-head { display: flex; align-items: center; gap: 10px; }
-  .cb-card-title { flex: 1; min-width: 0; font-size: 15px; font-weight: 700; }
-  .cb-card-fields { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-top: 8px; }
+  .cb-card-title { flex: 1; min-width: 0; font-size: 15px; font-weight: 700; color: var(--cb-color); }
+  .cb-card-fields { display: grid; grid-template-columns: repeat(6, 1fr); gap: 8px; margin-top: 8px; }
+  .cb-card-fields label { grid-column: span 2; }
+  .cb-card-fields label:nth-child(n+4) { grid-column: span 3; }
   .cb-card-fields span { display: block; margin-bottom: 3px; font-size: 11px; font-weight: 700; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.03em; }
   .cb-card-fields .particle-manual-input { display: block; width: 100%; min-width: 0; padding: 6px 8px; font-size: 15px; }
   .cb-card-fields .particle-manual-input.invalid { border-color: var(--bad); }
@@ -1967,7 +1976,10 @@
         <label class="tb-field"><span class="candy-level-label">Defense</span><input class="particle-manual-input" id="cb-def" type="number" inputmode="numeric" min="0" max="15" value="15"></label>
         <label class="tb-field"><span class="candy-level-label">HP</span><input class="particle-manual-input" id="cb-hp" type="number" inputmode="numeric" min="0" max="15" value="15"></label>
       </div>
-      <label class="tb-field" style="margin-top: 12px;"><span class="candy-level-label">Level (1&ndash;51, halves allowed)</span><input class="particle-manual-input" id="cb-level" type="number" inputmode="decimal" min="1" max="51" step="0.5" value="50"></label>
+      <div class="tb-inputs" style="margin-top: 12px;">
+        <label class="tb-field"><span class="candy-level-label">Level (1&ndash;51)</span><input class="particle-manual-input" id="cb-level" type="number" inputmode="decimal" min="1" max="51" step="0.5" value="50"></label>
+        <label class="tb-field"><span class="candy-level-label">CP (sets the level)</span><input class="particle-manual-input" id="cb-cp-in" type="number" inputmode="numeric" min="10" placeholder="CP"></label>
+      </div>
     </div>
 
     <div class="panel panel-theme-teal">
@@ -6195,6 +6207,15 @@
     };
   }
 
+  // The level (1-51, half steps) at which these IVs give exactly this CP,
+  // or null when no level does, so only real CP values are accepted.
+  function cbLevelForCp(base, iv, cp) {
+    for (let level = 1; level <= 51; level += 0.5) {
+      if (cbCompute(base, iv, level).cp === cp) return level;
+    }
+    return null;
+  }
+
   // Which stat the compare list is ranked by: cp | atk | def | hp.
   let cbSort = 'cp';
   try {
@@ -6224,12 +6245,16 @@
     cbId('cb-base').textContent = mon ? `Base stats: attack ${mon.base[0]}, defense ${mon.base[1]}, stamina ${mon.base[2]}` : '';
     const e = cbReadEntry();
     cbId('cb-save-btn').disabled = !e;
+    // The CP box follows the level unless it's the box being typed in.
+    const cpIn = cbId('cb-cp-in');
     if (!e) {
+      if (document.activeElement !== cpIn) cpIn.value = '';
       cbId('cb-cp').textContent = '—';
       ['atk', 'def', 'hp'].forEach(k => { cbId(`cb-out-${k}`).textContent = '—'; });
       return;
     }
     const r = cbCompute(e.base, e.iv, e.level);
+    if (document.activeElement !== cpIn) { cpIn.value = r.cp; cpIn.classList.remove('invalid'); }
     cbId('cb-cp').textContent = `CP ${r.cp}`;
     cbId('cb-out-atk').textContent = cbFmt(r.atk);
     cbId('cb-out-def').textContent = cbFmt(r.def);
@@ -6246,6 +6271,26 @@
   const cbListEl = cbId('cb-list');
   let cbCards = [];
   let cbOrderDirty = false;
+
+  // Every saved card keeps its own colour (a hue stored with the entry), so
+  // you can tell where a card went when the ranking reshuffles. A new card
+  // takes the hue farthest from the ones already in use.
+  const cbNextHue = () => {
+    const used = cbList.map(e => e.hue).filter(h => typeof h === 'number');
+    if (!used.length) return 12;
+    let best = 0, bestDist = -1;
+    for (let h = 0; h < 360; h += 3) {
+      const d = Math.min(...used.map(u => { const x = Math.abs(h - u) % 360; return Math.min(x, 360 - x); }));
+      if (d > bestDist) { bestDist = d; best = h; }
+    }
+    return best;
+  };
+  // Cards saved before colours existed get theirs here.
+  function cbEnsureHues() {
+    let changed = false;
+    cbList.forEach(e => { if (typeof e.hue !== 'number') { e.hue = cbNextHue(); changed = true; } });
+    if (changed) cbSaveList();
+  }
 
   const cbCardResult = (e) => {
     const mon = CB_MON.get(e.name.toLowerCase());
@@ -6265,7 +6310,12 @@
       rank = i > 0 && key(c.r) === key(sorted[i - 1].r) ? rank : i + 1;
       c.titleEl.textContent = `#${rank} ${c.e.name}`;
       c.scoreEl.textContent = cbSort === 'atk' || cbSort === 'def' ? cbFmt(c.r[cbSort]) : c.r[cbSort];
-      c.subEl.textContent = `CP ${c.r.cp} · ${cbFmt(c.r.atk)} atk · ${cbFmt(c.r.def)} def · ${c.r.hp} HP`;
+      c.subEl.textContent = `${cbFmt(c.r.atk)} atk · ${cbFmt(c.r.def)} def · ${c.r.hp} HP`;
+      // Keep every box in step with the card (e.g. Level after a CP edit),
+      // except the one being typed in.
+      if (c.inputs) c.inputs.forEach((inp, i) => {
+        if (document.activeElement !== inp) inp.value = CB_CARD_FIELDS[i].get(c.e);
+      });
     });
     if (reorder) sorted.forEach(c => cbListEl.appendChild(c.el));
   }
@@ -6277,11 +6327,19 @@
     { label: 'Defense', read: (v) => { const n = parseInt(v, 10); return n >= 0 && n <= 15 ? n : null; }, get: (e) => e.iv[1], set: (e, n) => { e.iv[1] = n; } },
     { label: 'HP', read: (v) => { const n = parseInt(v, 10); return n >= 0 && n <= 15 ? n : null; }, get: (e) => e.iv[2], set: (e, n) => { e.iv[2] = n; } },
     { label: 'Level', read: (v) => { const n = parseFloat(v); return n >= 1 && n <= 51 && n * 2 === Math.floor(n * 2) ? n : null; }, get: (e) => e.level, set: (e, n) => { e.level = n; }, decimal: true },
+    // CP sets the level: only a CP that some level gives exactly is accepted,
+    // and it's applied when the box is left (half-typed numbers like "30"
+    // may be real CPs of a much lower level).
+    { label: 'CP', onCommit: true, min: '10',
+      levelOf: (e, n) => cbLevelForCp(CB_MON.get(e.name.toLowerCase()).base, e.iv, n),
+      read: (v, e) => { const n = parseInt(v, 10); return n >= 10 && CB_CARD_FIELDS[4].levelOf(e, n) !== null ? n : null; },
+      get: (e) => cbCardResult(e).cp, set: (e, n) => { e.level = CB_CARD_FIELDS[4].levelOf(e, n); } },
   ];
 
   function cbBuildCard(e) {
     const el = document.createElement('div');
     el.className = 'cb-card';
+    el.style.setProperty('--cb-color', `hsl(${e.hue} 80% 65%)`);
     const head = document.createElement('div');
     head.className = 'cb-card-head';
     const titleEl = document.createElement('div');
@@ -6301,6 +6359,7 @@
     head.append(titleEl, scoreEl, del);
     const fields = document.createElement('div');
     fields.className = 'cb-card-fields';
+    const inputs = [];
     CB_CARD_FIELDS.forEach(f => {
       const label = document.createElement('label');
       const span = document.createElement('span');
@@ -6309,34 +6368,42 @@
       input.className = 'particle-manual-input';
       input.type = 'number';
       input.inputMode = f.decimal ? 'decimal' : 'numeric';
-      if (f.decimal) { input.min = '1'; input.max = '51'; input.step = '0.5'; } else { input.min = '0'; input.max = '15'; }
+      if (f.decimal) { input.min = '1'; input.max = '51'; input.step = '0.5'; } else if (f.min) { input.min = f.min; } else { input.min = '0'; input.max = '15'; }
       input.value = f.get(e);
       input.setAttribute('aria-label', `${f.label} for ${e.name}`);
       input.addEventListener('focus', () => input.select());
       input.addEventListener('keydown', (ev) => { if (ev.key === 'Enter') input.blur(); });
-      input.addEventListener('input', () => {
-        const n = f.read(input.value);
+      const apply = () => {
+        const n = f.read(input.value, e);
         input.classList.toggle('invalid', n === null);
         if (n === null) return;
         f.set(e, n);
         cbSaveList();
         cbOrderDirty = true;
         cbRefreshCards(false);
-      });
+      };
+      if (f.onCommit) input.addEventListener('input', () => input.classList.toggle('invalid', input.value !== '' && f.read(input.value, e) === null));
+      else input.addEventListener('input', apply);
       // Leaving a box with a bad value puts the last good one back.
-      input.addEventListener('change', () => { input.value = f.get(e); input.classList.remove('invalid'); });
+      input.addEventListener('change', () => {
+        if (f.onCommit) apply();
+        input.value = f.get(e);
+        input.classList.remove('invalid');
+      });
       label.append(span, input);
       fields.appendChild(label);
+      inputs.push(input);
     });
     const subEl = document.createElement('div');
     subEl.className = 'cb-card-sub';
     el.append(head, fields, subEl);
-    return { e, el, titleEl, scoreEl, subEl, r: null };
+    return { e, el, titleEl, scoreEl, subEl, inputs, r: null };
   }
 
   function renderCbList() {
     cbListEl.innerHTML = '';
     cbOrderDirty = false;
+    cbEnsureHues();
     cbCards = cbList.filter(e => CB_MON.has(e.name.toLowerCase())).map(cbBuildCard);
     cbCards.forEach(c => cbListEl.appendChild(c.el));
     cbId('cb-sort-tabs').querySelectorAll('.tz-tab').forEach(b => b.classList.toggle('active', b.dataset.sort === cbSort));
@@ -6359,13 +6426,34 @@
     cbId(id).addEventListener('input', renderCombat);
     cbId(id).addEventListener('change', renderCombat);
   });
-  ['cb-atk', 'cb-def', 'cb-hp', 'cb-level'].forEach(id => {
+  ['cb-atk', 'cb-def', 'cb-hp', 'cb-level', 'cb-cp-in'].forEach(id => {
     cbId(id).addEventListener('focus', () => cbId(id).select());
   });
+  // Typing a CP finds the level that gives exactly that CP for the current
+  // Pokémon and IVs; a CP no level can produce is refused.
+  const cbCpIn = cbId('cb-cp-in');
+  const cbLevelFromCpBox = () => {
+    const mon = CB_MON.get(cbId('cb-name').value.trim().toLowerCase());
+    const iv = ['cb-atk', 'cb-def', 'cb-hp'].map(id => parseInt(cbId(id).value, 10));
+    const cp = parseInt(cbCpIn.value, 10);
+    if (!mon || iv.some(v => Number.isNaN(v) || v < 0 || v > 15) || Number.isNaN(cp)) return null;
+    return cbLevelForCp(mon.base, iv, cp);
+  };
+  cbCpIn.addEventListener('input', () => {
+    cbCpIn.classList.toggle('invalid', cbCpIn.value !== '' && cbLevelFromCpBox() === null);
+  });
+  cbCpIn.addEventListener('change', () => {
+    const level = cbLevelFromCpBox();
+    if (level !== null) cbId('cb-level').value = level;
+    cbCpIn.classList.remove('invalid');
+    cbCpIn.blur();
+    renderCombat();
+  });
+  cbCpIn.addEventListener('keydown', (ev) => { if (ev.key === 'Enter') cbCpIn.blur(); });
   cbId('cb-save-btn').addEventListener('click', () => {
     const e = cbReadEntry();
     if (!e) return;
-    cbList.push({ name: e.name, iv: e.iv, level: e.level });
+    cbList.push({ name: e.name, iv: e.iv, level: e.level, hue: cbNextHue() });
     cbSaveList();
     renderCbList();
   });
