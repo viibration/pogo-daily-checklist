@@ -921,6 +921,17 @@
   .cb-deck-select { flex: 1; min-width: 0; font: inherit; font-size: 15px; font-weight: 700; color: var(--text); background: var(--panel-2); border: 1px solid var(--line); border-radius: 8px; padding: 6px 8px; }
   .cb-decks .tz-tab { flex: 0 0 auto; padding: 6px 10px; }
   .cb-decks .tz-tab:disabled { opacity: 0.4; cursor: default; }
+  .tzc-zones { display: grid; grid-template-columns: 1fr auto 1fr; gap: 8px; align-items: end; }
+  .tzc-select { display: block; width: 100%; font-size: 14px; }
+  .tzc-swap { font-size: 18px; line-height: 1; padding: 7px 12px; }
+  .tzc-when { display: flex; gap: 8px; align-items: center; margin-top: 12px; }
+  .tzc-when .particle-manual-input { flex: 1; min-width: 0; }
+  .tzc-result { margin-top: 12px; padding: 12px; text-align: center; background: var(--panel-2); border: 1px solid var(--line); border-radius: 10px; }
+  .tzc-big { font-size: 24px; font-weight: 800; font-variant-numeric: tabular-nums; }
+  .tzc-sub { margin-top: 4px; font-size: 13px; color: var(--text-dim); }
+  .tzc-row { display: flex; justify-content: space-between; gap: 10px; padding: 7px 0; border-top: 1px solid var(--line); font-size: 14px; }
+  .tzc-row:first-child { border-top: none; }
+  .tzc-row b { font-variant-numeric: tabular-nums; }
   .rd-term { display: block; width: 100%; font-family: ui-monospace, Menlo, Consolas, monospace; font-size: 15px; resize: vertical; }
   .cb-deck-name { display: block; width: 100%; margin-bottom: 10px; font-size: 15px; }
   #pt-parties { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
@@ -1112,9 +1123,7 @@
         <button class="app-tab" data-tab="party" type="button">Party</button>
         <button class="app-tab" data-tab="calculator" type="button">Calculator</button>
         <button class="app-tab" data-tab="tracker" type="button">Tracker</button>
-        <button class="app-tab" data-tab="search-term" type="button">Search Term</button>
-        <button class="app-tab" data-tab="pokedex" type="button">Pokedex Search</button>
-        <button class="app-tab" data-tab="trade-balancer" type="button">Trade Balancer</button>
+        <button class="app-tab" data-tab="misc" type="button">Misc</button>
       </div>
     </div>
     <div class="panel tz-card">
@@ -1387,9 +1396,7 @@
         <button class="app-tab" data-tab="party" type="button">Party</button>
         <button class="app-tab" data-tab="calculator" type="button">Calculator</button>
         <button class="app-tab" data-tab="tracker" type="button">Tracker</button>
-        <button class="app-tab" data-tab="search-term" type="button">Search Term</button>
-        <button class="app-tab" data-tab="pokedex" type="button">Pokedex Search</button>
-        <button class="app-tab" data-tab="trade-balancer" type="button">Trade Balancer</button>
+        <button class="app-tab" data-tab="misc" type="button">Misc</button>
       </div>
     </div>
     <div class="panel tz-card">
@@ -1535,9 +1542,7 @@
         <button class="app-tab" data-tab="party" type="button">Party</button>
         <button class="app-tab active" data-tab="calculator" type="button">Calculator</button>
         <button class="app-tab" data-tab="tracker" type="button">Tracker</button>
-        <button class="app-tab" data-tab="search-term" type="button">Search Term</button>
-        <button class="app-tab" data-tab="pokedex" type="button">Pokedex Search</button>
-        <button class="app-tab" data-tab="trade-balancer" type="button">Trade Balancer</button>
+        <button class="app-tab" data-tab="misc" type="button">Misc</button>
       </div>
       <div class="tz-tabs calc-select" style="margin-top: 10px;">
         <button class="tz-tab" data-calc="combat" type="button">Combat Calculator</button>
@@ -1659,9 +1664,13 @@
         <button class="app-tab" data-tab="party" type="button">Party</button>
         <button class="app-tab" data-tab="calculator" type="button">Calculator</button>
         <button class="app-tab" data-tab="tracker" type="button">Tracker</button>
-        <button class="app-tab" data-tab="search-term" type="button">Search Term</button>
-        <button class="app-tab active" data-tab="pokedex" type="button">Pokedex Search</button>
-        <button class="app-tab" data-tab="trade-balancer" type="button">Trade Balancer</button>
+        <button class="app-tab active" data-tab="misc" type="button">Misc</button>
+      </div>
+      <div class="tz-tabs misc-select" style="margin-top: 10px;">
+        <button class="tz-tab" data-misc="timezone" type="button">Time Zone</button>
+        <button class="tz-tab" data-misc="search-term" type="button">Search Term</button>
+        <button class="tz-tab active" data-misc="pokedex" type="button">Pokedex Search</button>
+        <button class="tz-tab" data-misc="trade-balancer" type="button">Trade Balancer</button>
       </div>
     </div>
     <div class="panel panel-theme-indigo">
@@ -1702,9 +1711,7 @@
         <button class="app-tab" data-tab="party" type="button">Party</button>
         <button class="app-tab" data-tab="calculator" type="button">Calculator</button>
         <button class="app-tab active" data-tab="tracker" type="button">Tracker</button>
-        <button class="app-tab" data-tab="search-term" type="button">Search Term</button>
-        <button class="app-tab" data-tab="pokedex" type="button">Pokedex Search</button>
-        <button class="app-tab" data-tab="trade-balancer" type="button">Trade Balancer</button>
+        <button class="app-tab" data-tab="misc" type="button">Misc</button>
       </div>
       <div class="tz-tabs tracker-select" style="margin-top: 10px;">
         <button class="tz-tab" data-tracker="pokemon-tracker" type="button">Pokemon Tracker</button>
@@ -1753,9 +1760,7 @@
         <button class="app-tab" data-tab="party" type="button">Party</button>
         <button class="app-tab" data-tab="calculator" type="button">Calculator</button>
         <button class="app-tab active" data-tab="tracker" type="button">Tracker</button>
-        <button class="app-tab" data-tab="search-term" type="button">Search Term</button>
-        <button class="app-tab" data-tab="pokedex" type="button">Pokedex Search</button>
-        <button class="app-tab" data-tab="trade-balancer" type="button">Trade Balancer</button>
+        <button class="app-tab" data-tab="misc" type="button">Misc</button>
       </div>
       <div class="tz-tabs tracker-select" style="margin-top: 10px;">
         <button class="tz-tab" data-tracker="pokemon-tracker" type="button">Pokemon Tracker</button>
@@ -1816,9 +1821,7 @@
         <button class="app-tab" data-tab="party" type="button">Party</button>
         <button class="app-tab" data-tab="calculator" type="button">Calculator</button>
         <button class="app-tab active" data-tab="tracker" type="button">Tracker</button>
-        <button class="app-tab" data-tab="search-term" type="button">Search Term</button>
-        <button class="app-tab" data-tab="pokedex" type="button">Pokedex Search</button>
-        <button class="app-tab" data-tab="trade-balancer" type="button">Trade Balancer</button>
+        <button class="app-tab" data-tab="misc" type="button">Misc</button>
       </div>
       <div class="tz-tabs tracker-select" style="margin-top: 10px;">
         <button class="tz-tab" data-tracker="pokemon-tracker" type="button">Pokemon Tracker</button>
@@ -1843,9 +1846,13 @@
         <button class="app-tab" data-tab="party" type="button">Party</button>
         <button class="app-tab" data-tab="calculator" type="button">Calculator</button>
         <button class="app-tab" data-tab="tracker" type="button">Tracker</button>
-        <button class="app-tab" data-tab="search-term" type="button">Search Term</button>
-        <button class="app-tab" data-tab="pokedex" type="button">Pokedex Search</button>
-        <button class="app-tab active" data-tab="trade-balancer" type="button">Trade Balancer</button>
+        <button class="app-tab active" data-tab="misc" type="button">Misc</button>
+      </div>
+      <div class="tz-tabs misc-select" style="margin-top: 10px;">
+        <button class="tz-tab" data-misc="timezone" type="button">Time Zone</button>
+        <button class="tz-tab" data-misc="search-term" type="button">Search Term</button>
+        <button class="tz-tab" data-misc="pokedex" type="button">Pokedex Search</button>
+        <button class="tz-tab active" data-misc="trade-balancer" type="button">Trade Balancer</button>
       </div>
     </div>
     <div class="panel panel-theme-teal">
@@ -1865,6 +1872,42 @@
 
   </div>
 
+  <div id="view-timezone" hidden>
+    <div class="panel">
+      <div class="app-tabs">
+        <button class="app-tab" data-tab="dashboard" type="button">Daily Checklist</button>
+        <button class="app-tab" data-tab="particles" type="button">Max Particle</button>
+        <button class="app-tab" data-tab="party" type="button">Party</button>
+        <button class="app-tab" data-tab="calculator" type="button">Calculator</button>
+        <button class="app-tab" data-tab="tracker" type="button">Tracker</button>
+        <button class="app-tab active" data-tab="misc" type="button">Misc</button>
+      </div>
+      <div class="tz-tabs misc-select" style="margin-top: 10px;">
+        <button class="tz-tab active" data-misc="timezone" type="button">Time Zone</button>
+        <button class="tz-tab" data-misc="search-term" type="button">Search Term</button>
+        <button class="tz-tab" data-misc="pokedex" type="button">Pokedex Search</button>
+        <button class="tz-tab" data-misc="trade-balancer" type="button">Trade Balancer</button>
+      </div>
+    </div>
+    <div class="panel panel-theme-teal">
+      <div class="particle-actions-label">Time Zone Converter</div>
+      <div class="tzc-zones">
+        <label class="tb-field"><span class="candy-level-label">From</span><select class="cb-deck-select tzc-select" id="tzc-from"></select></label>
+        <button class="tz-tab tzc-swap" id="tzc-swap" type="button" aria-label="Swap zones">&#8644;</button>
+        <label class="tb-field"><span class="candy-level-label">To</span><select class="cb-deck-select tzc-select" id="tzc-to"></select></label>
+      </div>
+      <div class="tzc-when">
+        <input class="particle-manual-input" id="tzc-when" type="datetime-local" step="60" aria-label="Date and time in the From zone">
+        <button class="tz-tab" id="tzc-now" type="button">Now</button>
+      </div>
+      <div class="tzc-result" id="tzc-result"></div>
+    </div>
+    <div class="panel panel-theme-teal">
+      <div class="particle-actions-label">Same moment in your zones</div>
+      <div id="tzc-all"></div>
+    </div>
+  </div>
+
   <div id="view-mega-tracker" hidden>
     <div class="panel">
       <div class="app-tabs">
@@ -1873,9 +1916,7 @@
         <button class="app-tab" data-tab="party" type="button">Party</button>
         <button class="app-tab" data-tab="calculator" type="button">Calculator</button>
         <button class="app-tab active" data-tab="tracker" type="button">Tracker</button>
-        <button class="app-tab" data-tab="search-term" type="button">Search Term</button>
-        <button class="app-tab" data-tab="pokedex" type="button">Pokedex Search</button>
-        <button class="app-tab" data-tab="trade-balancer" type="button">Trade Balancer</button>
+        <button class="app-tab" data-tab="misc" type="button">Misc</button>
       </div>
       <div class="tz-tabs tracker-select" style="margin-top: 10px;">
         <button class="tz-tab" data-tracker="pokemon-tracker" type="button">Pokemon Tracker</button>
@@ -1904,9 +1945,13 @@
         <button class="app-tab" data-tab="party" type="button">Party</button>
         <button class="app-tab" data-tab="calculator" type="button">Calculator</button>
         <button class="app-tab" data-tab="tracker" type="button">Tracker</button>
-        <button class="app-tab active" data-tab="search-term" type="button">Search Term</button>
-        <button class="app-tab" data-tab="pokedex" type="button">Pokedex Search</button>
-        <button class="app-tab" data-tab="trade-balancer" type="button">Trade Balancer</button>
+        <button class="app-tab active" data-tab="misc" type="button">Misc</button>
+      </div>
+      <div class="tz-tabs misc-select" style="margin-top: 10px;">
+        <button class="tz-tab" data-misc="timezone" type="button">Time Zone</button>
+        <button class="tz-tab active" data-misc="search-term" type="button">Search Term</button>
+        <button class="tz-tab" data-misc="pokedex" type="button">Pokedex Search</button>
+        <button class="tz-tab" data-misc="trade-balancer" type="button">Trade Balancer</button>
       </div>
     </div>
 
@@ -1996,9 +2041,7 @@
         <button class="app-tab active" data-tab="party" type="button">Party</button>
         <button class="app-tab" data-tab="calculator" type="button">Calculator</button>
         <button class="app-tab" data-tab="tracker" type="button">Tracker</button>
-        <button class="app-tab" data-tab="search-term" type="button">Search Term</button>
-        <button class="app-tab" data-tab="pokedex" type="button">Pokedex Search</button>
-        <button class="app-tab" data-tab="trade-balancer" type="button">Trade Balancer</button>
+        <button class="app-tab" data-tab="misc" type="button">Misc</button>
       </div>
       <div class="tz-tabs party-select" style="margin-top: 10px;">
         <button class="tz-tab active" data-party="party" type="button">Max Battle</button>
@@ -2026,9 +2069,7 @@
         <button class="app-tab active" data-tab="party" type="button">Party</button>
         <button class="app-tab" data-tab="calculator" type="button">Calculator</button>
         <button class="app-tab" data-tab="tracker" type="button">Tracker</button>
-        <button class="app-tab" data-tab="search-term" type="button">Search Term</button>
-        <button class="app-tab" data-tab="pokedex" type="button">Pokedex Search</button>
-        <button class="app-tab" data-tab="trade-balancer" type="button">Trade Balancer</button>
+        <button class="app-tab" data-tab="misc" type="button">Misc</button>
       </div>
       <div class="tz-tabs party-select" style="margin-top: 10px;">
         <button class="tz-tab" data-party="party" type="button">Max Battle</button>
@@ -2060,9 +2101,7 @@
         <button class="app-tab" data-tab="party" type="button">Party</button>
         <button class="app-tab active" data-tab="calculator" type="button">Calculator</button>
         <button class="app-tab" data-tab="tracker" type="button">Tracker</button>
-        <button class="app-tab" data-tab="search-term" type="button">Search Term</button>
-        <button class="app-tab" data-tab="pokedex" type="button">Pokedex Search</button>
-        <button class="app-tab" data-tab="trade-balancer" type="button">Trade Balancer</button>
+        <button class="app-tab" data-tab="misc" type="button">Misc</button>
       </div>
       <div class="tz-tabs calc-select" style="margin-top: 10px;">
         <button class="tz-tab" data-calc="combat" type="button">Combat Calculator</button>
@@ -2135,9 +2174,7 @@
         <button class="app-tab" data-tab="party" type="button">Party</button>
         <button class="app-tab active" data-tab="calculator" type="button">Calculator</button>
         <button class="app-tab" data-tab="tracker" type="button">Tracker</button>
-        <button class="app-tab" data-tab="search-term" type="button">Search Term</button>
-        <button class="app-tab" data-tab="pokedex" type="button">Pokedex Search</button>
-        <button class="app-tab" data-tab="trade-balancer" type="button">Trade Balancer</button>
+        <button class="app-tab" data-tab="misc" type="button">Misc</button>
       </div>
       <div class="tz-tabs calc-select" style="margin-top: 10px;">
         <button class="tz-tab" data-calc="combat" type="button">Combat Calculator</button>
@@ -2524,6 +2561,7 @@
   const viewShowcase = document.getElementById('view-showcase');
   const viewParty = document.getElementById('view-party');
   const viewRaid = document.getElementById('view-raid');
+  const viewTimezone = document.getElementById('view-timezone');
   const viewCombat = document.getElementById('view-combat');
   const customTaskBackdrop = document.getElementById('custom-task-modal-backdrop');
   const customTaskCloseBtn = document.getElementById('custom-task-modal-close');
@@ -3657,10 +3695,13 @@
   // Same idea for the three calculators under one "Calculator" tab.
   const CALC_TABS = ['combat', 'showcase', 'candy'];
   let currentCalc = 'combat';
+  // Misc groups four pages; it always lands on the Time Zone converter.
+  const MISC_TABS = ['timezone', 'search-term', 'pokedex', 'trade-balancer'];
   // Party has a Max Battle page (always the landing page) and a Raid page.
-  const rootKey = (tab) => (TRACKER_TABS.includes(tab) ? 'tracker' : CALC_TABS.includes(tab) ? 'calculator' : tab === 'raid' ? 'party' : tab);
-  const ROOT_TAB_ORDER = ['dashboard', 'particles', 'party', 'calculator', 'tracker', 'search-term', 'pokedex', 'trade-balancer'];
+  const rootKey = (tab) => (TRACKER_TABS.includes(tab) ? 'tracker' : CALC_TABS.includes(tab) ? 'calculator' : tab === 'raid' ? 'party' : MISC_TABS.includes(tab) ? 'misc' : tab);
+  const ROOT_TAB_ORDER = ['dashboard', 'particles', 'party', 'calculator', 'tracker', 'misc'];
   function switchTab(tab) {
+    if (tab === 'misc') tab = 'timezone';
     if (tab === 'tracker') tab = currentTracker;
     if (tab === 'calculator') tab = currentCalc;
     if (TRACKER_TABS.includes(tab)) currentTracker = tab;
@@ -3679,8 +3720,12 @@
     viewShowcase.hidden = tab !== 'showcase';
     viewParty.hidden = tab !== 'party';
     viewRaid.hidden = tab !== 'raid';
+    viewTimezone.hidden = tab !== 'timezone';
     document.querySelectorAll('.party-select .tz-tab').forEach(btn => {
       btn.classList.toggle('active', btn.dataset.party === tab);
+    });
+    document.querySelectorAll('.misc-select .tz-tab').forEach(btn => {
+      btn.classList.toggle('active', btn.dataset.misc === tab);
     });
     document.querySelectorAll('.app-tab').forEach(btn => {
       btn.classList.toggle('active', btn.dataset.tab === rootKey(tab));
@@ -3700,6 +3745,7 @@
     else if (tab === 'mega-tracker') renderMegaTrackerGrid();
     else if (tab === 'party') renderParty();
     else if (tab === 'raid') renderRaid();
+    else if (tab === 'timezone') renderTzConverter();
   }
 
   document.querySelectorAll('.app-tab').forEach(btn => {
@@ -3713,6 +3759,9 @@
   });
   document.querySelectorAll('.party-select .tz-tab').forEach(btn => {
     btn.addEventListener('click', () => switchTab(btn.dataset.party));
+  });
+  document.querySelectorAll('.misc-select .tz-tab').forEach(btn => {
+    btn.addEventListener('click', () => switchTab(btn.dataset.misc));
   });
 
   function currentRootTab() {
@@ -3730,6 +3779,7 @@
     if (!viewCombat.hidden) return 'combat';
     if (!viewParty.hidden) return 'party';
     if (!viewRaid.hidden) return 'raid';
+    if (!viewTimezone.hidden) return 'timezone';
     return null;
   }
 
@@ -6931,6 +6981,144 @@
   rdId('rd-copy-btn').addEventListener('click', () => rdCopy(rdId('rd-copy-btn'), false));
   rdId('rd-copy-code-btn').addEventListener('click', () => rdCopy(rdId('rd-copy-code-btn'), true));
   renderRaid();
+
+  // --- Time Zone converter: a wall-clock time in one zone shown in another.
+  // Offsets come from Intl at that exact instant, so daylight saving is
+  // handled for whatever date is picked.
+  const TZC_KEY = 'pogo-daily-checklist-tz-converter';
+  const TZC_ZONES = [
+    ...timezones.map(z => ({ label: z.label, tz: z.tz })),
+    { label: 'Los Angeles', tz: 'America/Los_Angeles' },
+    { label: 'London', tz: 'Europe/London' },
+    { label: 'Madrid', tz: 'Europe/Madrid' },
+    { label: 'Seoul', tz: 'Asia/Seoul' },
+    { label: 'Singapore', tz: 'Asia/Singapore' },
+    { label: 'Sydney', tz: 'Australia/Sydney' },
+    { label: 'UTC', tz: 'UTC' },
+  ];
+  const tzcId = (id) => document.getElementById(id);
+  // Offset of a zone from UTC, in minutes, at a given instant (ms).
+  function tzcOffsetMin(tz, ms) {
+    const p = new Intl.DateTimeFormat('en-US', {
+      timeZone: tz, hourCycle: 'h23', year: 'numeric', month: 'numeric', day: 'numeric',
+      hour: 'numeric', minute: 'numeric', second: 'numeric',
+    }).formatToParts(new Date(ms));
+    const g = (t) => Number(p.find(x => x.type === t).value);
+    return (Date.UTC(g('year'), g('month') - 1, g('day'), g('hour'), g('minute'), g('second')) - Math.floor(ms / 1000) * 1000) / 60000;
+  }
+  // The instant (ms) at which a zone's wall clock reads y-m-d h:mi. The second
+  // pass re-reads the offset at the first guess, which fixes times near a DST change.
+  function tzcInstant(tz, y, mo, d, h, mi) {
+    const asUtc = Date.UTC(y, mo - 1, d, h, mi);
+    const first = asUtc - tzcOffsetMin(tz, asUtc) * 60000;
+    return asUtc - tzcOffsetMin(tz, first) * 60000;
+  }
+  function tzcParts(tz, ms) {
+    const p = new Intl.DateTimeFormat('en-GB', {
+      timeZone: tz, hourCycle: 'h23', weekday: 'short', day: 'numeric', month: 'short', year: 'numeric',
+      hour: '2-digit', minute: '2-digit',
+    }).formatToParts(new Date(ms));
+    const g = (t) => p.find(x => x.type === t).value;
+    const dayKey = new Intl.DateTimeFormat('en-CA', { timeZone: tz, year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date(ms));
+    return { text: `${g('weekday')}, ${g('day')} ${g('month')} · ${g('hour')}:${g('minute')}`, dayKey };
+  }
+  const tzcDayMs = (key) => { const [a, b, c] = key.split('-').map(Number); return Date.UTC(a, b - 1, c); };
+  const tzcOffsetLabel = (min) => {
+    const sign = min < 0 ? '-' : '+';
+    const a = Math.abs(min);
+    return `UTC${sign}${Math.floor(a / 60)}${a % 60 ? ':' + String(a % 60).padStart(2, '0') : ''}`;
+  };
+  const tzcHours = (min) => {
+    const sign = min < 0 ? '-' : '+';
+    const a = Math.abs(min);
+    return `${sign}${Math.floor(a / 60)}${a % 60 ? ':' + String(a % 60).padStart(2, '0') : ''} h`;
+  };
+  // <input type="datetime-local"> wants "YYYY-MM-DDTHH:MM" in whatever zone it represents.
+  function tzcNowIn(tz) {
+    const p = new Intl.DateTimeFormat('en-CA', {
+      timeZone: tz, hourCycle: 'h23', year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit',
+    }).formatToParts(new Date());
+    const g = (t) => p.find(x => x.type === t).value;
+    return `${g('year')}-${g('month')}-${g('day')}T${g('hour')}:${g('minute')}`;
+  }
+  let tzcSel = { from: 'Asia/Bangkok', to: 'America/New_York' };
+  try {
+    const saved = JSON.parse(localStorage.getItem(TZC_KEY));
+    if (saved && TZC_ZONES.some(z => z.tz === saved.from) && TZC_ZONES.some(z => z.tz === saved.to)) tzcSel = { from: saved.from, to: saved.to };
+  } catch (e) { /* storage unavailable */ }
+  function tzcFillSelects() {
+    [['tzc-from', 'from'], ['tzc-to', 'to']].forEach(([id, key]) => {
+      const sel = tzcId(id);
+      sel.innerHTML = '';
+      TZC_ZONES.forEach(z => {
+        const o = document.createElement('option');
+        o.value = z.tz;
+        o.textContent = z.label;
+        o.selected = z.tz === tzcSel[key];
+        sel.appendChild(o);
+      });
+    });
+  }
+  function renderTzConverter() {
+    const m = /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})/.exec(tzcId('tzc-when').value);
+    const result = tzcId('tzc-result');
+    const all = tzcId('tzc-all');
+    if (!m) { result.textContent = 'Pick a date and time.'; all.textContent = ''; return; }
+    const [y, mo, d, h, mi] = m.slice(1).map(Number);
+    const ms = tzcInstant(tzcSel.from, y, mo, d, h, mi);
+    const label = (tz) => TZC_ZONES.find(z => z.tz === tz).label;
+    const fromOff = tzcOffsetMin(tzcSel.from, ms);
+    const toOff = tzcOffsetMin(tzcSel.to, ms);
+    const from = tzcParts(tzcSel.from, ms);
+    const to = tzcParts(tzcSel.to, ms);
+    const dayDiff = Math.round((tzcDayMs(to.dayKey) - tzcDayMs(from.dayKey)) / 86400000);
+    const dayNote = dayDiff === 0 ? 'same day' : dayDiff > 0 ? `next day${dayDiff > 1 ? ' +' + dayDiff : ''}` : `previous day${dayDiff < -1 ? ' ' + dayDiff : ''}`;
+    result.innerHTML = '';
+    const small = document.createElement('div');
+    small.className = 'tzc-sub';
+    small.textContent = `${from.text} in ${label(tzcSel.from)} (${tzcOffsetLabel(fromOff)}) is`;
+    const big = document.createElement('div');
+    big.className = 'tzc-big';
+    big.textContent = to.text;
+    const sub = document.createElement('div');
+    sub.className = 'tzc-sub';
+    sub.textContent = `in ${label(tzcSel.to)} (${tzcOffsetLabel(toOff)}) · ${tzcHours(toOff - fromOff)} · ${dayNote}`;
+    result.append(small, big, sub);
+    all.innerHTML = '';
+    timezones.forEach(z => {
+      const row = document.createElement('div');
+      row.className = 'tzc-row';
+      const name = document.createElement('span');
+      name.textContent = `${z.label} (${tzcOffsetLabel(tzcOffsetMin(z.tz, ms))})`;
+      const t = document.createElement('b');
+      t.textContent = tzcParts(z.tz, ms).text;
+      row.append(name, t);
+      all.appendChild(row);
+    });
+  }
+  function tzcSaveSel() { try { localStorage.setItem(TZC_KEY, JSON.stringify(tzcSel)); } catch (e) {} }
+  tzcFillSelects();
+  tzcId('tzc-when').value = tzcNowIn(tzcSel.from);
+  tzcId('tzc-from').addEventListener('change', () => { tzcSel.from = tzcId('tzc-from').value; tzcSaveSel(); renderTzConverter(); });
+  tzcId('tzc-to').addEventListener('change', () => { tzcSel.to = tzcId('tzc-to').value; tzcSaveSel(); renderTzConverter(); });
+  tzcId('tzc-when').addEventListener('input', renderTzConverter);
+  tzcId('tzc-now').addEventListener('click', () => { tzcId('tzc-when').value = tzcNowIn(tzcSel.from); renderTzConverter(); });
+  // Swapping keeps the same moment: the box is re-read in the new From zone.
+  tzcId('tzc-swap').addEventListener('click', () => {
+    const m = /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})/.exec(tzcId('tzc-when').value);
+    const converted = m ? (() => {
+      const ms = tzcInstant(tzcSel.from, ...m.slice(1).map(Number));
+      const p = new Intl.DateTimeFormat('en-CA', { timeZone: tzcSel.to, hourCycle: 'h23', year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' }).formatToParts(new Date(ms));
+      const g = (t) => p.find(x => x.type === t).value;
+      return `${g('year')}-${g('month')}-${g('day')}T${g('hour')}:${g('minute')}`;
+    })() : '';
+    tzcSel = { from: tzcSel.to, to: tzcSel.from };
+    tzcSaveSel();
+    tzcFillSelects();
+    if (converted) tzcId('tzc-when').value = converted;
+    renderTzConverter();
+  });
+  renderTzConverter();
 
   renderDashboard();
 
