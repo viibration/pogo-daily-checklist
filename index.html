@@ -253,6 +253,16 @@
 
   .accounts { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
 
+  /* Account boxes take their team's colour: Valor red, Instinct yellow. */
+  .team-valor { --team: #ff4d4d; }
+  .team-instinct { --team: #ffd23f; }
+  :is(.account-card, .particle-grid-item):is(.team-valor, .team-instinct) {
+    background: linear-gradient(180deg, color-mix(in srgb, var(--team) 16%, transparent), transparent 85%), var(--panel-2);
+    border-color: color-mix(in srgb, var(--team) 70%, var(--line));
+  }
+  :is(.account-card, .particle-grid-item):is(.team-valor, .team-instinct):hover { border-color: var(--team); }
+  :is(.account-card, .particle-grid-item):is(.team-valor, .team-instinct) .name { color: var(--team); }
+
   .account-card {
     background: var(--panel-2);
     border: 1px solid var(--line);
@@ -914,8 +924,10 @@
   .rd-term { display: block; width: 100%; font-family: ui-monospace, Menlo, Consolas, monospace; font-size: 15px; resize: vertical; }
   .cb-deck-name { display: block; width: 100%; margin-bottom: 10px; font-size: 15px; }
   #pt-parties { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
-  .pt-party { min-width: 0; padding: 8px; background: var(--panel-2); border: 1px solid var(--line); border-radius: 10px; }
-  .pt-party-title { font-size: 15px; font-weight: 800; }
+  .pt-party { --team: var(--line); min-width: 0; padding: 8px; background: linear-gradient(180deg, color-mix(in srgb, var(--team) 14%, transparent), transparent 60%), var(--panel-2); border: 1px solid color-mix(in srgb, var(--team) 70%, var(--line)); border-radius: 10px; }
+  .pt-valor { --team: #ff4d4d; }
+  .pt-instinct { --team: #ffd23f; }
+  .pt-party-title { font-size: 15px; font-weight: 800; color: var(--team); }
   .pt-counts { display: flex; gap: 4px; margin-top: 4px; }
   .pt-count { font-size: 11px; font-weight: 700; padding: 1px 6px; border-radius: 999px; border: 1px solid var(--line); color: var(--text-faint); }
   .pt-count.has { color: var(--pt-color); border-color: var(--pt-color); }
@@ -2341,6 +2353,8 @@
   // reused across every account-picker modal below.
   const FIRST_FOUR_ACCOUNTS = accountNames.slice(0, 4);
   const LAST_FOUR_ACCOUNTS = accountNames.slice(-4);
+  // The first four accounts are Team Valor (red), the last four Team Instinct (yellow).
+  const teamClass = (name) => (FIRST_FOUR_ACCOUNTS.includes(name) ? 'team-valor' : 'team-instinct');
 
   // PvP league bulk-check duos, paired for the "Check win pvp all leagues" modal.
   const DUO_1_ACCOUNTS = ['Viibration', 'ViisitorXY'];
@@ -2789,7 +2803,7 @@
       const complete = doneCount === total;
 
       const card = document.createElement('div');
-      card.className = 'account-card';
+      card.className = 'account-card ' + teamClass(name);
       card.tabIndex = 0;
       card.setAttribute('role', 'button');
       card.innerHTML = `
@@ -3105,7 +3119,7 @@
       const total = state.accounts[name].currentTotal || 0;
       const gained = state.accounts[name].particles || 0;
       const card = document.createElement('div');
-      card.className = 'particle-grid-item';
+      card.className = 'particle-grid-item ' + teamClass(name);
       card.tabIndex = 0;
       card.setAttribute('role', 'button');
       const toMax = Math.max(0, MAX_TOTAL_CAP - total);
@@ -6770,10 +6784,11 @@
     host.textContent = '';
     ptParties.forEach((party, p) => {
       const card = document.createElement('div');
-      card.className = 'pt-party';
+      // First four accounts are Team Valor (red), last four Team Instinct (yellow).
+      card.className = 'pt-party ' + (p === 0 ? 'pt-valor' : 'pt-instinct');
       const title = document.createElement('div');
       title.className = 'pt-party-title';
-      title.textContent = 'Party ' + (p + 1);
+      title.textContent = `Party ${p + 1} · ${p === 0 ? 'Valor' : 'Instinct'}`;
       const counts = document.createElement('div');
       counts.className = 'pt-counts';
       PT_ROLES.forEach(([key, label]) => {
