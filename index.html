@@ -925,9 +925,9 @@
   .tzc-select { display: block; width: 100%; font-size: 14px; }
   .tzc-swap { font-size: 18px; line-height: 1; padding: 7px 12px; }
   .tzc-when { display: flex; gap: 8px; align-items: center; margin-top: 12px; }
-  .tzc-when .particle-manual-input { flex: 1; min-width: 0; }
+  .tzc-when .particle-manual-input { flex: 1; min-width: 0; font-size: 14px; padding: 8px 6px; }
   .tzc-result { margin-top: 12px; padding: 12px; text-align: center; background: var(--panel-2); border: 1px solid var(--line); border-radius: 10px; }
-  .tzc-big { font-size: 24px; font-weight: 800; font-variant-numeric: tabular-nums; }
+  .tzc-big { font-size: 20px; font-weight: 800; font-variant-numeric: tabular-nums; }
   .tzc-sub { margin-top: 4px; font-size: 13px; color: var(--text-dim); }
   .tzc-row { display: flex; justify-content: space-between; gap: 10px; padding: 7px 0; border-top: 1px solid var(--line); font-size: 14px; }
   .tzc-row:first-child { border-top: none; }
@@ -1897,7 +1897,8 @@
         <label class="tb-field"><span class="candy-level-label">To</span><select class="cb-deck-select tzc-select" id="tzc-to"></select></label>
       </div>
       <div class="tzc-when">
-        <input class="particle-manual-input" id="tzc-when" type="datetime-local" step="60" aria-label="Date and time in the From zone">
+        <input class="particle-manual-input" id="tzc-date" type="date" aria-label="Date in the From zone">
+        <input class="particle-manual-input" id="tzc-time" type="time" step="60" aria-label="Time in the From zone">
         <button class="tz-tab" id="tzc-now" type="button">Now</button>
       </div>
       <div class="tzc-result" id="tzc-result"></div>
@@ -7013,14 +7014,15 @@
     const first = asUtc - tzcOffsetMin(tz, asUtc) * 60000;
     return asUtc - tzcOffsetMin(tz, first) * 60000;
   }
+  // A zone's wall clock at an instant, worded like the clock on the checklist
+  // page (Thai weekday/month): "อาทิตย์, 1 พฤศจิกายน · 12:00 น."
   function tzcParts(tz, ms) {
-    const p = new Intl.DateTimeFormat('en-GB', {
-      timeZone: tz, hourCycle: 'h23', weekday: 'short', day: 'numeric', month: 'short', year: 'numeric',
-      hour: '2-digit', minute: '2-digit',
+    const p = new Intl.DateTimeFormat('en-CA', {
+      timeZone: tz, hourCycle: 'h23', year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit',
     }).formatToParts(new Date(ms));
     const g = (t) => p.find(x => x.type === t).value;
-    const dayKey = new Intl.DateTimeFormat('en-CA', { timeZone: tz, year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date(ms));
-    return { text: `${g('weekday')}, ${g('day')} ${g('month')} · ${g('hour')}:${g('minute')}`, dayKey };
+    const text = `${thaiDateStr(new Date(Number(g('year')), Number(g('month')) - 1, Number(g('day'))))} · ${g('hour')}:${g('minute')} น.`;
+    return { text, dayKey: `${g('year')}-${g('month')}-${g('day')}` };
   }
   const tzcDayMs = (key) => { const [a, b, c] = key.split('-').map(Number); return Date.UTC(a, b - 1, c); };
   const tzcOffsetLabel = (min) => {
@@ -7033,13 +7035,18 @@
     const a = Math.abs(min);
     return `${sign}${Math.floor(a / 60)}${a % 60 ? ':' + String(a % 60).padStart(2, '0') : ''} h`;
   };
-  // <input type="datetime-local"> wants "YYYY-MM-DDTHH:MM" in whatever zone it represents.
-  function tzcNowIn(tz) {
+  // The date and time boxes are read and written together as "YYYY-MM-DDTHH:MM",
+  // in whatever zone the From box is set to.
+  function tzcWall(tz, ms) {
     const p = new Intl.DateTimeFormat('en-CA', {
       timeZone: tz, hourCycle: 'h23', year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit',
-    }).formatToParts(new Date());
+    }).formatToParts(new Date(ms));
     const g = (t) => p.find(x => x.type === t).value;
     return `${g('year')}-${g('month')}-${g('day')}T${g('hour')}:${g('minute')}`;
+  }
+  const tzcGetWhen = () => `${tzcId('tzc-date').value}T${tzcId('tzc-time').value}`;
+  function tzcSetWhen(wall) {
+    [tzcId('tzc-date').value, tzcId('tzc-time').value] = wall.split('T');
   }
   let tzcSel = { from: 'Asia/Bangkok', to: 'America/New_York' };
   try {
@@ -7060,7 +7067,7 @@
     });
   }
   function renderTzConverter() {
-    const m = /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})/.exec(tzcId('tzc-when').value);
+    const m = /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})/.exec(tzcGetWhen());
     const result = tzcId('tzc-result');
     const all = tzcId('tzc-all');
     if (!m) { result.textContent = 'Pick a date and time.'; all.textContent = ''; return; }
@@ -7098,24 +7105,20 @@
   }
   function tzcSaveSel() { try { localStorage.setItem(TZC_KEY, JSON.stringify(tzcSel)); } catch (e) {} }
   tzcFillSelects();
-  tzcId('tzc-when').value = tzcNowIn(tzcSel.from);
+  tzcSetWhen(tzcWall(tzcSel.from, Date.now()));
   tzcId('tzc-from').addEventListener('change', () => { tzcSel.from = tzcId('tzc-from').value; tzcSaveSel(); renderTzConverter(); });
   tzcId('tzc-to').addEventListener('change', () => { tzcSel.to = tzcId('tzc-to').value; tzcSaveSel(); renderTzConverter(); });
-  tzcId('tzc-when').addEventListener('input', renderTzConverter);
-  tzcId('tzc-now').addEventListener('click', () => { tzcId('tzc-when').value = tzcNowIn(tzcSel.from); renderTzConverter(); });
-  // Swapping keeps the same moment: the box is re-read in the new From zone.
+  tzcId('tzc-date').addEventListener('input', renderTzConverter);
+  tzcId('tzc-time').addEventListener('input', renderTzConverter);
+  tzcId('tzc-now').addEventListener('click', () => { tzcSetWhen(tzcWall(tzcSel.from, Date.now())); renderTzConverter(); });
+  // Swapping keeps the same moment: the boxes are re-read in the new From zone.
   tzcId('tzc-swap').addEventListener('click', () => {
-    const m = /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})/.exec(tzcId('tzc-when').value);
-    const converted = m ? (() => {
-      const ms = tzcInstant(tzcSel.from, ...m.slice(1).map(Number));
-      const p = new Intl.DateTimeFormat('en-CA', { timeZone: tzcSel.to, hourCycle: 'h23', year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' }).formatToParts(new Date(ms));
-      const g = (t) => p.find(x => x.type === t).value;
-      return `${g('year')}-${g('month')}-${g('day')}T${g('hour')}:${g('minute')}`;
-    })() : '';
+    const m = /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})/.exec(tzcGetWhen());
+    const converted = m ? tzcWall(tzcSel.to, tzcInstant(tzcSel.from, ...m.slice(1).map(Number))) : '';
     tzcSel = { from: tzcSel.to, to: tzcSel.from };
     tzcSaveSel();
     tzcFillSelects();
-    if (converted) tzcId('tzc-when').value = converted;
+    if (converted) tzcSetWhen(converted);
     renderTzConverter();
   });
   renderTzConverter();
