@@ -926,9 +926,34 @@
   .tzc-swap { font-size: 18px; line-height: 1; padding: 7px 12px; }
   .tzc-when { display: flex; gap: 8px; align-items: center; margin-top: 12px; }
   .tzc-when .particle-manual-input { flex: 1; min-width: 0; font-size: 14px; padding: 8px 6px; }
+  .tzc-date-btn, .tzc-time-btn { text-align: center; cursor: pointer; }
+  .tzc-date-btn { flex: 1.5; }
+  .tzc-date-btn[aria-expanded="true"], .tzc-time-btn[aria-expanded="true"] { border-color: var(--accent); }
+  .tzc-date-btn.bad, .tzc-time-btn.bad { border-color: var(--bad); color: var(--bad); }
+  .tzc-cal { max-width: 320px; margin: 8px auto 0; padding: 10px; background: var(--panel); border: 1px solid var(--line); border-radius: 12px; }
+  .tzc-cal-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 6px; }
+  .tzc-cal-head .tz-tab { flex: 0 0 auto; padding: 3px 14px; font-size: 18px; line-height: 1.2; }
+  .tzc-cal-title { font-weight: 700; font-size: 14px; }
+  .tzc-cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 2px; text-align: center; }
+  .tzc-cal-dow { padding: 4px 0; font-size: 11px; color: var(--text-faint); }
+  .tzc-day { aspect-ratio: 1; padding: 0; font: inherit; font-size: 14px; font-variant-numeric: tabular-nums; color: var(--text); background: none; border: 1px solid transparent; border-radius: 50%; cursor: pointer; }
+  .tzc-day:hover { background: var(--panel-2); }
+  .tzc-day.today { border-color: #4fd8d8; }
+  .tzc-day.sel { color: #0e1620; background: #4fd8d8; font-weight: 800; }
+  /* Hour : minute wheels. They scroll like a wheel but stop at both ends:
+     00 is the top and 23 / 59 the bottom, never looping round. */
+  .tzc-picker { position: relative; display: flex; align-items: center; justify-content: center; gap: 4px; width: 200px; height: 144px; margin: 8px auto 0; overflow: hidden; background: var(--panel); border: 1px solid var(--line); border-radius: 12px; }
+  .tzc-band { position: absolute; left: 10px; right: 10px; top: 50%; height: 36px; transform: translateY(-50%); background: rgba(79, 216, 216, 0.12); border: 1px solid rgba(79, 216, 216, 0.4); border-radius: 8px; pointer-events: none; }
+  .tzc-colon { position: relative; font-size: 20px; font-weight: 800; color: var(--text-dim); }
+  .tzc-col { position: relative; width: 64px; height: 144px; padding: 54px 0; overflow-y: auto; overscroll-behavior: contain; scroll-snap-type: y mandatory; scrollbar-width: none; -webkit-mask-image: linear-gradient(transparent, #000 30%, #000 70%, transparent); mask-image: linear-gradient(transparent, #000 30%, #000 70%, transparent); }
+  .tzc-col::-webkit-scrollbar { display: none; }
+  .tzc-opt { display: block; width: 100%; height: 36px; padding: 0; font: inherit; font-size: 20px; font-variant-numeric: tabular-nums; text-align: center; color: var(--text-faint); background: none; border: none; cursor: pointer; scroll-snap-align: center; }
+  .tzc-opt.sel { color: var(--text); font-weight: 800; }
   .tzc-result { margin-top: 12px; padding: 12px; text-align: center; background: var(--panel-2); border: 1px solid var(--line); border-radius: 10px; }
   .tzc-big { font-size: 20px; font-weight: 800; font-variant-numeric: tabular-nums; }
   .tzc-sub { margin-top: 4px; font-size: 13px; color: var(--text-dim); }
+  .tzc-left { margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--line); font-size: 15px; font-weight: 700; font-variant-numeric: tabular-nums; color: #4fd8d8; }
+  .tzc-left.past { color: var(--text-dim); font-weight: 600; }
   .tzc-row { display: flex; justify-content: space-between; gap: 10px; padding: 7px 0; border-top: 1px solid var(--line); font-size: 14px; }
   .tzc-row:first-child { border-top: none; }
   .tzc-row b { font-variant-numeric: tabular-nums; }
@@ -1989,9 +2014,25 @@
         <label class="tb-field"><span class="candy-level-label">To</span><select class="cb-deck-select tzc-select" id="tzc-to"></select></label>
       </div>
       <div class="tzc-when">
-        <input class="particle-manual-input" id="tzc-date" type="date" aria-label="Date in the From zone">
-        <input class="particle-manual-input" id="tzc-time" type="time" step="60" aria-label="Time in the From zone">
+        <input id="tzc-date" type="hidden">
+        <input class="particle-manual-input tzc-date-btn" id="tzc-date-btn" type="text" role="combobox" inputmode="none" autocomplete="off" maxlength="10" placeholder="DD/MM/YYYY" aria-label="Date in the From zone" aria-expanded="false">
+        <input id="tzc-time" type="hidden">
+        <input class="particle-manual-input tzc-time-btn" id="tzc-time-btn" type="text" role="combobox" inputmode="none" autocomplete="off" maxlength="5" placeholder="HH:MM" aria-label="Time in the From zone" aria-expanded="false">
         <button class="tz-tab" id="tzc-now" type="button">Now</button>
+      </div>
+      <div class="tzc-cal" id="tzc-cal" hidden>
+        <div class="tzc-cal-head">
+          <button class="tz-tab" id="tzc-cal-prev" type="button" aria-label="Previous month">&lsaquo;</button>
+          <span class="tzc-cal-title" id="tzc-cal-title"></span>
+          <button class="tz-tab" id="tzc-cal-next" type="button" aria-label="Next month">&rsaquo;</button>
+        </div>
+        <div class="tzc-cal-grid" id="tzc-cal-grid"></div>
+      </div>
+      <div class="tzc-picker" id="tzc-picker" hidden>
+        <div class="tzc-band"></div>
+        <div class="tzc-col" id="tzc-col-h" role="listbox" aria-label="Hour"></div>
+        <span class="tzc-colon">:</span>
+        <div class="tzc-col" id="tzc-col-m" role="listbox" aria-label="Minute"></div>
       </div>
       <div class="tzc-result" id="tzc-result"></div>
     </div>
@@ -7556,9 +7597,159 @@
     const g = (t) => p.find(x => x.type === t).value;
     return `${g('year')}-${g('month')}-${g('day')}T${g('hour')}:${g('minute')}`;
   }
+  // The date and time boxes are read and written together as "YYYY-MM-DDTHH:MM",
+  // in whatever zone the From box is set to.
+  // The hidden #tzc-date ("YYYY-MM-DD") and #tzc-time ("HH:MM", 24h) hold the
+  // value; the buttons show the date as DD/MM/YYYY and open a calendar and
+  // an hour / minute wheel.
   const tzcGetWhen = () => `${tzcId('tzc-date').value}T${tzcId('tzc-time').value}`;
   function tzcSetWhen(wall) {
     [tzcId('tzc-date').value, tzcId('tzc-time').value] = wall.split('T');
+    tzcShowDate();
+    tzcShowTime();
+  }
+  const TZC_ROW = 36; // px height of one wheel row
+  const tzcMonths = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+  let tzcCalView = null; // month being browsed: { y, m } with m 1–12
+  // The two boxes are also typeable. Their text is only rewritten from the
+  // stored value while they aren't being typed in, so the picker can't fight
+  // the keyboard.
+  const tzcTyping = (el) => document.activeElement === el;
+  function tzcShowDate() {
+    const el = tzcId('tzc-date-btn');
+    el.classList.remove('bad');
+    if (tzcTyping(el)) return;
+    const [y, mo, d] = (tzcId('tzc-date').value || '').split('-');
+    el.value = d ? `${d}/${mo}/${y}` : '';
+  }
+  function tzcRenderCal() {
+    const { y, m } = tzcCalView;
+    tzcId('tzc-cal-title').textContent = `${tzcMonths[m - 1]} ${y}`;
+    const grid = tzcId('tzc-cal-grid');
+    grid.innerHTML = '';
+    ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'].forEach(n => {
+      const c = document.createElement('div');
+      c.className = 'tzc-cal-dow';
+      c.textContent = n;
+      grid.appendChild(c);
+    });
+    const pad = (n) => String(n).padStart(2, '0');
+    const sel = tzcId('tzc-date').value;
+    const today = tzcWall(tzcSel.from, Date.now()).split('T')[0];
+    for (let i = new Date(Date.UTC(y, m - 1, 1)).getUTCDay(); i > 0; i--) grid.appendChild(document.createElement('div'));
+    for (let d = 1, n = new Date(Date.UTC(y, m, 0)).getUTCDate(); d <= n; d++) {
+      const key = `${y}-${pad(m)}-${pad(d)}`;
+      const b = document.createElement('button');
+      b.type = 'button';
+      b.className = `tzc-day${key === sel ? ' sel' : ''}${key === today ? ' today' : ''}`;
+      b.textContent = d;
+      b.addEventListener('click', () => {
+        tzcId('tzc-date').value = key;
+        tzcShowDate();
+        tzcCloseCal();
+        renderTzConverter();
+      });
+      grid.appendChild(b);
+    }
+  }
+  function tzcOpenCal() {
+    const [y, mo] = (tzcId('tzc-date').value || tzcWall(tzcSel.from, Date.now())).split('-').map(Number);
+    tzcCalView = { y, m: mo };
+    tzcRenderCal();
+    tzcId('tzc-cal').hidden = false;
+    tzcId('tzc-date-btn').setAttribute('aria-expanded', 'true');
+  }
+  function tzcCloseCal() {
+    tzcId('tzc-cal').hidden = true;
+    tzcId('tzc-date-btn').setAttribute('aria-expanded', 'false');
+  }
+  function tzcShowTime() {
+    const value = tzcId('tzc-time').value;
+    const [h, m] = (value || '--:--').split(':');
+    const box = tzcId('tzc-time-btn');
+    box.classList.remove('bad');
+    if (!tzcTyping(box)) box.value = value;
+    [['tzc-col-h', h], ['tzc-col-m', m]].forEach(([id, val]) => {
+      tzcId(id).querySelectorAll('.tzc-opt').forEach(o => o.classList.toggle('sel', o.textContent === val));
+    });
+  }
+  function tzcSetPart(part, val) {
+    const [h, m] = (tzcId('tzc-time').value || '00:00').split(':');
+    const next = part === 'h' ? `${val}:${m}` : `${h}:${val}`;
+    if (next === tzcId('tzc-time').value) return;
+    tzcId('tzc-time').value = next;
+    tzcShowTime();
+    renderTzConverter();
+  }
+  function tzcBuildWheels() {
+    [['tzc-col-h', 24, 'h'], ['tzc-col-m', 60, 'm']].forEach(([id, count, part]) => {
+      const col = tzcId(id);
+      for (let i = 0; i < count; i++) {
+        const b = document.createElement('button');
+        b.type = 'button';
+        b.className = 'tzc-opt';
+        b.setAttribute('role', 'option');
+        b.textContent = String(i).padStart(2, '0');
+        b.addEventListener('click', () => col.scrollTo({ top: i * TZC_ROW, behavior: 'smooth' }));
+        col.appendChild(b);
+      }
+      // Whatever row sits in the middle band is the value.
+      col.addEventListener('scroll', () => {
+        const i = Math.min(count - 1, Math.max(0, Math.round(col.scrollTop / TZC_ROW)));
+        tzcSetPart(part, String(i).padStart(2, '0'));
+      });
+    });
+  }
+  function tzcCloseWheels() {
+    tzcId('tzc-picker').hidden = true;
+    tzcId('tzc-time-btn').setAttribute('aria-expanded', 'false');
+  }
+  function tzcOpenWheels() {
+    tzcId('tzc-picker').hidden = false;
+    tzcId('tzc-time-btn').setAttribute('aria-expanded', 'true');
+    tzcSyncWheels();
+  }
+  function tzcSyncWheels() {
+    const [h, m] = (tzcId('tzc-time').value || '00:00').split(':').map(Number);
+    tzcId('tzc-col-h').scrollTop = h * TZC_ROW;
+    tzcId('tzc-col-m').scrollTop = m * TZC_ROW;
+  }
+  // Typing: the date takes DD/MM/YYYY (slashes added for you) and applies once
+  // all 8 digits form a real date. The time applies the hour as soon as it has
+  // two digits, and the minutes once it has four.
+  function tzcTypeDate() {
+    const el = tzcId('tzc-date-btn');
+    const digits = el.value.replace(/\D/g, '').slice(0, 8);
+    el.value = [digits.slice(0, 2), digits.slice(2, 4), digits.slice(4)].filter(Boolean).join('/');
+    el.classList.remove('bad');
+    if (digits.length < 8) return;
+    const d = Number(digits.slice(0, 2)), mo = Number(digits.slice(2, 4)), y = Number(digits.slice(4));
+    if (mo < 1 || mo > 12 || d < 1 || d > new Date(Date.UTC(y, mo, 0)).getUTCDate() || y < 1900 || y > 2100) { el.classList.add('bad'); return; }
+    tzcId('tzc-date').value = `${y}-${String(mo).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+    if (!tzcId('tzc-cal').hidden) { tzcCalView = { y, m: mo }; tzcRenderCal(); }
+    renderTzConverter();
+  }
+  function tzcTypeTime() {
+    const el = tzcId('tzc-time-btn');
+    const raw = el.value.replace(/[^\d:]/g, '');
+    let hh, mm;
+    if (raw.includes(':')) {
+      [hh, mm] = raw.split(':').map(s => s.slice(0, 2));
+      mm = mm || '';
+      el.value = `${hh}:${mm}`;
+    } else {
+      const digits = raw.slice(0, 4);
+      hh = digits.slice(0, 2);
+      mm = digits.slice(2);
+      el.value = digits.length > 2 ? `${hh}:${mm}` : digits;
+    }
+    el.classList.remove('bad');
+    const hOk = hh !== '' && (hh.length === 2 || raw.includes(':')) && Number(hh) <= 23;
+    const mOk = mm.length === 2 && Number(mm) <= 59;
+    if ((hh.length === 2 && Number(hh) > 23) || (mm.length === 2 && Number(mm) > 59)) el.classList.add('bad');
+    if (hOk) tzcSetPart('h', hh.padStart(2, '0'));
+    if (hOk && mOk) tzcSetPart('m', mm);
+    if (hOk) tzcSyncWheels();
   }
   let tzcSel = { from: 'Asia/Bangkok', to: 'America/New_York' };
   try {
@@ -7578,11 +7769,25 @@
       });
     });
   }
+  // How long until (or since) the picked moment, to the minute. Ticks every
+  // second so it rolls over exactly on the minute.
+  let tzcTarget = null;
+  function tzcTickLeft() {
+    const el = tzcId('tzc-left');
+    if (!el || tzcTarget === null) return;
+    const mins = Math.floor(Math.abs(tzcTarget - Date.now()) / 60000);
+    const past = tzcTarget <= Date.now();
+    const d = Math.floor(mins / 1440), h = Math.floor(mins / 60) % 24, mm = mins % 60;
+    const span = `${d ? d + 'd ' : ''}${h}h ${mm}m`;
+    el.className = `tzc-left${past ? ' past' : ''}`;
+    el.textContent = !mins ? (past ? 'Right now' : 'Less than 1m left') : past ? `Passed ${span} ago` : `${span} left`;
+  }
+  setInterval(tzcTickLeft, 1000);
   function renderTzConverter() {
     const m = /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})/.exec(tzcGetWhen());
     const result = tzcId('tzc-result');
     const all = tzcId('tzc-all');
-    if (!m) { result.textContent = 'Pick a date and time.'; all.textContent = ''; return; }
+    if (!m) { tzcTarget = null; result.textContent = 'Pick a date and time.'; all.textContent = ''; return; }
     const [y, mo, d, h, mi] = m.slice(1).map(Number);
     const ms = tzcInstant(tzcSel.from, y, mo, d, h, mi);
     const label = (tz) => TZC_ZONES.find(z => z.tz === tz).label;
@@ -7602,7 +7807,11 @@
     const sub = document.createElement('div');
     sub.className = 'tzc-sub';
     sub.textContent = `in ${label(tzcSel.to)} (${tzcOffsetLabel(toOff)}) · ${tzcHours(toOff - fromOff)} · ${dayNote}`;
-    result.append(small, big, sub);
+    const left = document.createElement('div');
+    left.id = 'tzc-left';
+    result.append(small, big, sub, left);
+    tzcTarget = ms;
+    tzcTickLeft();
     all.innerHTML = '';
     timezones.forEach(z => {
       const row = document.createElement('div');
@@ -7620,8 +7829,48 @@
   tzcSetWhen(tzcWall(tzcSel.from, Date.now()));
   tzcId('tzc-from').addEventListener('change', () => { tzcSel.from = tzcId('tzc-from').value; tzcSaveSel(); renderTzConverter(); });
   tzcId('tzc-to').addEventListener('change', () => { tzcSel.to = tzcId('tzc-to').value; tzcSaveSel(); renderTzConverter(); });
-  tzcId('tzc-date').addEventListener('input', renderTzConverter);
-  tzcId('tzc-time').addEventListener('input', renderTzConverter);
+  tzcBuildWheels();
+  tzcShowTime();
+  // Opening one picker closes the other; a tap anywhere else closes both.
+  // The first tap opens the picker without a phone keyboard; tapping the box
+  // again while it is open brings up the number keyboard for typing. Touching
+  // the picker puts the keyboard away again.
+  [['tzc-date-btn', 'tzc-cal', tzcOpenCal, tzcCloseCal, tzcCloseWheels, tzcTypeDate, tzcShowDate],
+   ['tzc-time-btn', 'tzc-picker', tzcOpenWheels, tzcCloseWheels, tzcCloseCal, tzcTypeTime, tzcShowTime]]
+    .forEach(([id, popId, open, close, closeOther, type, show]) => {
+      const el = tzcId(id);
+      let raising = false;
+      el.addEventListener('click', () => {
+        if (tzcId(popId).hidden) {
+          closeOther();
+          open();
+        } else if (el.inputMode === 'none') {
+          raising = true;
+          el.inputMode = 'numeric';
+          el.blur();
+          el.focus();
+          raising = false;
+        }
+      });
+      el.addEventListener('focus', () => el.select());
+      el.addEventListener('input', type);
+      el.addEventListener('blur', () => { if (!raising) { el.inputMode = 'none'; show(); } });
+      el.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' || e.key === 'Escape') { el.blur(); close(); }
+      });
+      tzcId(popId).addEventListener('pointerdown', () => { if (tzcTyping(el)) el.blur(); });
+    });
+  [['tzc-cal-prev', -1], ['tzc-cal-next', 1]].forEach(([id, step]) => {
+    tzcId(id).addEventListener('click', () => {
+      const i = tzcCalView.y * 12 + tzcCalView.m - 1 + step;
+      tzcCalView = { y: Math.floor(i / 12), m: (i % 12) + 1 };
+      tzcRenderCal();
+    });
+  });
+  document.addEventListener('click', (e) => {
+    if (!e.target.closest('#tzc-picker, #tzc-time-btn')) tzcCloseWheels();
+    if (!e.target.closest('#tzc-cal, #tzc-date-btn')) tzcCloseCal();
+  });
   tzcId('tzc-now').addEventListener('click', () => { tzcSetWhen(tzcWall(tzcSel.from, Date.now())); renderTzConverter(); });
   // Swapping keeps the same moment: the boxes are re-read in the new From zone.
   tzcId('tzc-swap').addEventListener('click', () => {
