@@ -934,6 +934,21 @@
   .tzc-row b { font-variant-numeric: tabular-nums; }
   .rd-term { display: block; width: 100%; font-family: ui-monospace, Menlo, Consolas, monospace; font-size: 15px; resize: vertical; }
   .cb-deck-name { display: block; width: 100%; margin-bottom: 10px; font-size: 15px; }
+  .pb-row { display: grid; grid-template-columns: 1fr auto; gap: 2px 8px; align-items: center; margin-top: 8px; padding: 8px 10px; background: linear-gradient(90deg, color-mix(in srgb, var(--team, var(--line)) 14%, transparent), transparent 70%), var(--panel-2); border: 1px solid var(--line); border-left: 4px solid var(--team, var(--line)); border-radius: 10px; }
+  .pb-name { font-size: 14px; font-weight: 700; color: var(--team, var(--text)); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .pb-move { font-size: 14px; font-weight: 700; font-variant-numeric: tabular-nums; text-align: right; }
+  .pb-move .pb-end.hit { color: var(--good); }
+  .pb-days { grid-column: 1 / -1; display: flex; flex-direction: column; gap: 4px; }
+  .pb-day { display: flex; flex-wrap: wrap; gap: 4px; align-items: center; }
+  .pb-day-label { flex: 0 0 44px; font-size: 11px; font-weight: 700; color: var(--text-faint); }
+  .pb-chip { font-size: 12px; font-weight: 700; padding: 2px 8px; border-radius: 999px; border: 1px solid; font-variant-numeric: tabular-nums; }
+  .pb-chip.gain { color: #4fd8d8; border-color: rgba(79, 216, 216, 0.5); background: #102723; }
+  .pb-chip.raid { color: #ffa94d; border-color: rgba(255, 169, 77, 0.5); background: #2f2213; }
+  .pb-chip.move { color: #ff6fb0; border-color: rgba(255, 111, 176, 0.5); background: #2f1521; }
+  .pb-note { font-size: 12px; color: var(--text-faint); }
+  .pb-row .tz-tab { grid-column: 1 / -1; justify-self: end; padding: 4px 12px; font-size: 12px; }
+  .pb-row .tz-tab:disabled { opacity: 0.35; cursor: default; }
+  #pb-apply-all { margin-top: 12px; }
   .vf-row + .vf-row { margin-top: 12px; }
   .vf-fields { display: flex; align-items: center; gap: 8px; margin-top: 4px; }
   .vf-fields .particle-manual-input { text-align: right; font-size: 16px; }
@@ -1542,6 +1557,13 @@
         <button class="particle-btn" type="button" id="particle-manual-last4-btn">Apply to last 4</button>
       </div>
       <div class="particle-manual-list" id="particle-manual-list"></div>
+    </div>
+    <div class="panel panel-theme-gold" id="pb-panel">
+      <div class="particle-actions-label">Max Particle Balancer</div>
+      <div class="sx-hint" id="pb-summary"></div>
+      <div id="pb-list"></div>
+      <button class="check-all-btn" id="pb-apply-all" type="button">Apply today to all</button>
+      <div class="sx-hint">Finds the fewest days for every account to end on the same total, each day gaining 800 or more. A day gains 1080 (300 + 480 + 300); skipping power spots gives 980, 960, 880, 860 or 840. Evening out uses raid &minus;250 / &minus;400 / &minus;800 and Max Move &minus;400 / &minus;600 / &minus;800. Apply does today's step only.</div>
     </div>
   </div>
 
@@ -3426,6 +3448,7 @@
       particleListEl.appendChild(card);
     });
     updateParticleSpendButtons();
+    renderParticleBalancer();
   }
 
   function renderParticleList() {
@@ -3477,6 +3500,241 @@
       particleManualListEl.appendChild(row);
     });
   }
+
+  // --- Max Particle Balancer: plan, for every account, the days of gains and
+  // spends that make all accounts end on the same total, each day gaining 800
+  // or more. A day's gain is 300 + 480 + 300 = 1080 at most; skipping power
+  // spots gives 980 / 960 / 880 / 860 / 840 (the last 300 is always the walk
+  // that crosses the 800 limit). Spends are raid -250/-400/-800 and Max Move
+  // -400/-600/-800 (up to three a day, before or after the gain). Today's
+  // remaining gain counts as day one. Declared with var so renderParticleGrid
+  // can call this before the script reaches here. ---
+  var PB_MAX_DAYS = 14;
+  var PB_FULL_DAY = 1080;
+  var PB_SPENDS = [
+    { kind: 'raid', label: 'Raid', amt: 250 }, { kind: 'raid', label: 'Raid', amt: 400 }, { kind: 'raid', label: 'Raid', amt: 800 },
+    { kind: 'move', label: 'Max Move', amt: 400 }, { kind: 'move', label: 'Max Move', amt: 600 }, { kind: 'move', label: 'Max Move', amt: 800 },
+  ];
+  var PB_GAINS = null;
+  var PB_SPEND_COMBOS = null;
+  var PB_SPEND_AMTS = null;
+  var PB_SPEND_LISTS = null;
+  var pbCache = null;
+
+  function pbInit() {
+    if (PB_GAINS) return;
+    PB_GAINS = [];
+    [0, 100, 200, 300].forEach(a => [0, 120, 240, 360, 480].forEach(b => {
+      const total = a + b + 300;
+      if (total >= PARTICLE_LIMIT) PB_GAINS.push({ total, skip100: (300 - a) / 100, skip120: (480 - b) / 120 });
+    }));
+    PB_GAINS.sort((x, y) => x.total - y.total);
+    PB_SPEND_COMBOS = new Map([[0, [[]]]]);
+    const walk = (start, chosen) => {
+      if (chosen.length) {
+        const amt = chosen.reduce((s, p) => s + p.amt, 0);
+        const combo = chosen.slice().sort((a, b) => b.amt - a.amt);
+        if (!PB_SPEND_COMBOS.has(amt)) PB_SPEND_COMBOS.set(amt, []);
+        PB_SPEND_COMBOS.get(amt).push(combo);
+      }
+      if (chosen.length === 3) return;
+      for (let i = start; i < PB_SPENDS.length; i++) walk(i, chosen.concat(PB_SPENDS[i]));
+    };
+    walk(0, []);
+    // Fewest actions first; the raid version is listed before Max Move.
+    PB_SPEND_COMBOS.forEach(list => list.sort((a, b) => a.length - b.length));
+    PB_SPEND_AMTS = Array.from(PB_SPEND_COMBOS.keys()).sort((a, b) => a - b);
+    PB_SPEND_LISTS = PB_SPEND_AMTS.map(a => PB_SPEND_COMBOS.get(a));
+  }
+
+  // Lowest total a combo can start from: each spend, biggest first, needs the
+  // total above the spend floor and enough to cover it.
+  function pbNeed(combo) {
+    let need = 0;
+    let spent = 0;
+    for (const p of combo) {
+      need = Math.max(need, spent + Math.max(particleSpendFloor + 1, p.amt));
+      spent += p.amt;
+    }
+    return need;
+  }
+
+  function pbPick(combos, start) {
+    for (let i = 0; i < combos.length; i++) if (start >= combos[i].need) return combos[i];
+    return null;
+  }
+
+  function pbRelax(to, cost, from, end, order, combo, amt, gain) {
+    if (cost < to.cost[end]) {
+      to.cost[end] = cost;
+      to.prev[end] = from;
+      to.step[end] = { order, spend: combo, amt, gain };
+    }
+  }
+
+  // One day: spend then gain ('pre') or gain then spend ('post'). A gain
+  // can't take the total past the 1500 cap.
+  function pbExpand(ac, d, size) {
+    const from = ac.layers[d];
+    const to = { cost: new Float64Array(size).fill(Infinity), prev: new Int32Array(size).fill(-1), step: new Array(size) };
+    const gains = d === 0 ? ac.todayGains : ac.dayGains;
+    for (let t = 0; t < size; t++) {
+      const base = from.cost[t];
+      if (base === Infinity) continue;
+      for (const gn of gains) {
+        const delta = gn.delta;
+        for (let i = 0; i < PB_SPEND_AMTS.length; i++) {
+          const amt = PB_SPEND_AMTS[i];
+          const combos = PB_SPEND_LISTS[i];
+          let combo = pbPick(combos, t);
+          if (combo) {
+            const end = t - amt + delta;
+            if (end >= 0 && end < size && !(delta && end > MAX_TOTAL_CAP)) {
+              pbRelax(to, base + amt + combo.length * 30 + gn.loss * 1.5, t, end, 'pre', combo, amt, gn);
+            }
+          }
+          if (amt > 0) {
+            const mid = t + delta;
+            if (!(delta && mid > MAX_TOTAL_CAP)) {
+              combo = pbPick(combos, mid);
+              const end = mid - amt;
+              if (combo && end >= 0 && end < size) pbRelax(to, base + amt + combo.length * 30 + gn.loss * 1.5, t, end, 'post', combo, amt, gn);
+            }
+          }
+        }
+      }
+    }
+    ac.layers.push(to);
+  }
+
+  function pbSolve() {
+    pbInit();
+    PB_SPEND_LISTS.forEach(list => list.forEach(combo => { combo.need = pbNeed(combo); }));
+    const accts = accountNames.map(name => {
+      const acc = state.accounts[name];
+      return { name, cur: acc.currentTotal || 0, gained: acc.particles || 0, layers: [] };
+    });
+    // Gains move totals in multiples of 20 and spends in multiples of 50, so
+    // the last digit never changes: different last digits can never match.
+    if (new Set(accts.map(a => a.cur % 10)).size > 1) return null;
+    const size = Math.max(MAX_TOTAL_CAP, ...accts.map(a => a.cur)) + 1;
+    accts.forEach(ac => {
+      const start = new Float64Array(size).fill(Infinity);
+      start[ac.cur] = 0;
+      ac.layers.push({ cost: start, prev: new Int32Array(size).fill(-1), step: new Array(size) });
+      ac.dayGains = PB_GAINS.map(g => ({ ...g, delta: g.total, loss: PB_FULL_DAY - g.total, done: false }));
+      ac.todayGains = ac.gained >= PARTICLE_LIMIT
+        ? [{ total: ac.gained, skip100: 0, skip120: 0, delta: 0, loss: 0, done: true }]
+        : PB_GAINS.filter(g => g.total >= ac.gained).map(g => ({ ...g, delta: g.total - ac.gained, loss: PB_FULL_DAY - g.total, done: false }));
+    });
+    for (let day = 0; day < PB_MAX_DAYS; day++) {
+      accts.forEach(ac => pbExpand(ac, day, size));
+      let bestT = -1, bestCost = Infinity;
+      for (let t = 0; t < size; t++) {
+        let sum = 0;
+        for (const ac of accts) { sum += ac.layers[day + 1].cost[t]; if (sum === Infinity) break; }
+        if (sum < bestCost || (sum === bestCost && t > bestT)) { bestCost = sum; bestT = t; }
+      }
+      if (bestT >= 0 && bestCost < Infinity) {
+        return {
+          days: day + 1,
+          target: bestT,
+          plans: accts.map(ac => {
+            const steps = [];
+            let t = bestT;
+            for (let d = day + 1; d >= 1; d--) {
+              steps.unshift(ac.layers[d].step[t]);
+              t = ac.layers[d].prev[t];
+            }
+            return { name: ac.name, cur: ac.cur, steps };
+          }),
+        };
+      }
+    }
+    return null;
+  }
+
+  function pbResult() {
+    const key = JSON.stringify([accountNames.map(n => [state.accounts[n].currentTotal || 0, state.accounts[n].particles || 0]), particleSpendFloor]);
+    if (!pbCache || pbCache.key !== key) pbCache = { key, result: pbSolve() };
+    return pbCache.result;
+  }
+
+  function pbApplyStep(name, step) {
+    const acc = state.accounts[name];
+    const spend = () => step.spend.forEach(p => { acc.currentTotal = Math.max(0, (acc.currentTotal || 0) - p.amt); });
+    const gain = () => {
+      if (!step.gain.delta) return;
+      acc.particles = (acc.particles || 0) + step.gain.delta;
+      acc.currentTotal = (acc.currentTotal || 0) + step.gain.delta;
+    };
+    if (step.order === 'pre') { spend(); gain(); } else { gain(); spend(); }
+  }
+
+  const pbStepIsNoop = (step) => !step.spend.length && !step.gain.delta;
+
+  function pbStepHtml(step, day) {
+    const spend = step.spend.map(p => `<span class="pb-chip ${p.kind}">${p.label} −${p.amt}</span>`).join('');
+    const skips = [step.gain.skip100 ? `${step.gain.skip100}×100` : '', step.gain.skip120 ? `${step.gain.skip120}×120` : ''].filter(Boolean).join(' + ');
+    let gain = '';
+    if (step.gain.delta) {
+      gain = `<span class="pb-chip gain">+${step.gain.delta}${day === 0 && step.gain.delta !== step.gain.total ? ` → ${step.gain.total}` : ''}</span>` + (skips ? `<span class="pb-note">skip ${skips}</span>` : '');
+    } else if (day === 0) {
+      gain = '<span class="pb-note">gain done</span>';
+    }
+    const body = step.order === 'pre' ? spend + gain : gain + spend;
+    return `<div class="pb-day"><span class="pb-day-label">${day === 0 ? 'Today' : `Day ${day + 1}`}</span>${body}</div>`;
+  }
+
+  function renderParticleBalancer() {
+    const listEl = document.getElementById('pb-list');
+    if (!listEl || !PB_SPENDS) return;
+    const result = pbResult();
+    const summaryEl = document.getElementById('pb-summary');
+    const applyAll = document.getElementById('pb-apply-all');
+    listEl.innerHTML = '';
+    if (!result) {
+      const sameDigit = new Set(accountNames.map(n => (state.accounts[n].currentTotal || 0) % 10)).size === 1;
+      summaryEl.textContent = sameDigit
+        ? `No way to even them out within ${PB_MAX_DAYS} days.`
+        : 'These totals can never match: gains move in multiples of 20 and spends in multiples of 50, so every account’s total must end in the same last digit.';
+      applyAll.disabled = true;
+      return;
+    }
+    const allNoop = result.plans.every(p => p.steps.every(pbStepIsNoop));
+    const spent = result.plans.reduce((s, p) => s + p.steps.reduce((a, st) => a + st.amt, 0), 0);
+    summaryEl.textContent = allNoop
+      ? `Already balanced at ${result.target}.`
+      : `All ${result.plans.length} accounts end at ${result.target} after ${result.days} day${result.days === 1 ? '' : 's'} • ${spent} spent in total`;
+    result.plans.forEach(({ name, cur, steps }) => {
+      const row = document.createElement('div');
+      row.className = `pb-row ${teamClass(name)}`;
+      const today = steps[0];
+      row.innerHTML = `
+        <div class="pb-name">${name}</div>
+        <div class="pb-move">${cur} → <span class="pb-end hit">${result.target}</span></div>
+        <div class="pb-days">${steps.map((st, d) => pbStepHtml(st, d)).join('')}</div>
+        <button class="tz-tab" type="button"${pbStepIsNoop(today) ? ' disabled' : ''}>Apply today</button>
+      `;
+      row.querySelector('.tz-tab').addEventListener('click', () => {
+        pbApplyStep(name, today);
+        saveState(state);
+        renderParticleGrid();
+        renderParticleManualList();
+      });
+      listEl.appendChild(row);
+    });
+    applyAll.disabled = result.plans.every(p => pbStepIsNoop(p.steps[0]));
+  }
+
+  document.getElementById('pb-apply-all').addEventListener('click', () => {
+    const result = pbResult();
+    if (!result) return;
+    result.plans.forEach(({ name, steps }) => pbApplyStep(name, steps[0]));
+    saveState(state);
+    renderParticleGrid();
+    renderParticleManualList();
+  });
 
   // --- Spend on raid for selected accounts: pick which accounts a -250/
   // -400/-800 deduction applies to, instead of hitting every account. ---
