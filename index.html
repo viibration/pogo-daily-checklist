@@ -937,6 +937,13 @@
   .vf-row + .vf-row { margin-top: 12px; }
   .vf-fields { display: flex; align-items: center; gap: 8px; margin-top: 4px; }
   .vf-fields .particle-manual-input { text-align: right; font-size: 16px; }
+  .vf-item-row + .vf-item-row { margin-top: 8px; }
+  .vf-badge.good { color: var(--good); }
+  .vf-remove { flex: 0 0 34px; height: 34px; font: inherit; font-size: 19px; line-height: 1; color: var(--text-faint); background: var(--panel-2); border: 1px solid var(--line); border-radius: 8px; cursor: pointer; }
+  .vf-remove:hover { color: var(--bad); border-color: var(--bad); }
+  .vf-remove:disabled { visibility: hidden; }
+  .vf-add { display: block; width: 100%; margin-top: 8px; font: inherit; font-size: 14px; font-weight: 700; color: var(--accent); background: var(--panel-2); border: 1px dashed var(--line); border-radius: 8px; padding: 8px; cursor: pointer; }
+  .vf-add:hover { border-color: var(--accent); }
   .vf-ratio { flex: 0 0 62px; text-align: right; font-size: 14px; font-weight: 700; font-variant-numeric: tabular-nums; color: var(--accent); }
   .vf-result { padding: 10px 12px; background: var(--panel-2); border: 1px solid var(--line); border-radius: 10px; }
   .vf-result + .vf-result { margin-top: 10px; }
@@ -946,9 +953,21 @@
   .vf-result.win .vf-result-value { color: var(--good); }
   .vf-result.win { border-color: var(--good); }
   .vf-result-detail { margin-top: 4px; font-size: 12px; color: var(--text-faint); font-variant-numeric: tabular-nums; }
+  /* Item colours: Raid Pass = daily-gain teal, Max Particle = raid-spend
+     violet, Link Charge its neutral grey-blue. */
+  .vf-t-link { --vf-color: #9fb0d1; }
+  .vf-t-raid { --vf-color: #4fd8d8; }
+  .vf-t-particle { --vf-color: #b389ff; }
+  .vf-t-bag { --vf-color: #ffa94d; }
+  .vf-t-storage { --vf-color: #ff6fb0; }
+  .vf-preset[class*="vf-t-"] { border-left: 5px solid var(--vf-color); background: linear-gradient(90deg, color-mix(in srgb, var(--vf-color) 16%, transparent), transparent 70%), var(--panel-2); }
+  .vf-preset[class*="vf-t-"] .tz-tab { color: var(--vf-color); border-color: color-mix(in srgb, var(--vf-color) 45%, var(--line)); }
+  .vf-item-row[class*="vf-t-"] .particle-manual-input { border-color: color-mix(in srgb, var(--vf-color) 55%, var(--line)); }
+  .vf-item-row[class*="vf-t-"] .vf-badge:not(.good) { color: var(--vf-color); }
+  #vf-type-coins[class*="vf-t-"], #vf-type-cash[class*="vf-t-"] { color: var(--vf-color); }
   .vf-preset { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 8px 10px; background: var(--panel-2); border: 1px solid var(--line); border-radius: 10px; }
   .vf-preset + .vf-preset { margin-top: 8px; }
-  .vf-preset-label { font-size: 15px; font-variant-numeric: tabular-nums; }
+  .vf-preset-label { flex: 1; min-width: 0; line-height: 1.35; font-size: 15px; font-variant-numeric: tabular-nums; }
   .vf-preset-label small { margin-left: 6px; font-size: 12px; color: var(--text-faint); }
   .vf-preset .tz-tab { flex: 0 0 auto; padding: 5px 12px; font-size: 12px; }
   .nk-opts { align-items: center; margin-bottom: 12px; }
@@ -2092,18 +2111,14 @@
         </div>
       </div>
       <div class="vf-row">
-        <span class="candy-level-label">Item via Coins</span>
-        <div class="vf-fields">
-          <input class="particle-manual-input" id="vf-item2" type="number" inputmode="numeric" min="0" placeholder="Item amount" value="3" aria-label="Item via coins: item amount">
-          <input class="particle-manual-input" id="vf-coin2" type="number" inputmode="numeric" min="0" placeholder="PokéCoins" value="250" aria-label="Item via coins: PokéCoins">
-        </div>
+        <span class="candy-level-label">Item via Coins<span id="vf-type-coins"></span></span>
+        <div id="vf-rows-coins"></div>
+        <button class="vf-add" id="vf-add-coins" type="button">+ Add row</button>
       </div>
       <div class="vf-row">
-        <span class="candy-level-label">Item via Cash</span>
-        <div class="vf-fields">
-          <input class="particle-manual-input" id="vf-item3" type="number" inputmode="numeric" min="0" placeholder="Item amount" value="3" aria-label="Item via cash: item amount">
-          <input class="particle-manual-input" id="vf-cash3" type="number" inputmode="numeric" min="0" placeholder="Cash" value="59" aria-label="Item via cash: Cash">
-        </div>
+        <span class="candy-level-label">Item via Cash<span id="vf-type-cash"></span></span>
+        <div id="vf-rows-cash"></div>
+        <button class="vf-add" id="vf-add-cash" type="button">+ Add row</button>
       </div>
     </div>
     <div class="panel">
@@ -7683,61 +7698,225 @@
     { coin: 600, cash: 99 },
     { coin: 110, cash: 19 },
   ];
-  const VF_COIN_PRESETS = [{ item: 3, coin: 250 }, { item: 99, coin: 5425 }];
-  const VF_CASH_PRESETS = [{ item: 3, cash: 59 }, { item: 99, cash: 769 }];
+  // Each saved package has a type (the item it buys). Using one clears rows of
+  // any other type and drops in the matching package on the other side, so
+  // coins and cash always compare the same item. `special` marks the big
+  // bundles so Raid Pass 99 pairs with Raid Pass 99.
+  const VF_TYPES = {
+    raid: 'Premium Raid Pass',
+    link: 'Link Charge',
+    particle: 'Max Particle',
+    bag: 'Item Bag',
+    storage: 'Pokémon Storage',
+  };
+  const VF_COIN_PRESETS = [
+    { type: 'raid', item: 3, coin: 250, text: '3 Premium Raid Passes / 250 PokéCoins' },
+    { type: 'raid', special: true, item: 99, coin: 5425, text: '(Special Package) 99 Premium Raid Passes / 5425 PokéCoins' },
+    { type: 'link', item: 200, coin: 100, text: '200 Link Charges / 100 PokéCoins' },
+    { type: 'link', item: 600, coin: 250, text: '600 Link Charges / 250 PokéCoins' },
+    { type: 'particle', item: 800, coin: 150, text: '800 Max Particle / 150 PokéCoins' },
+    { type: 'particle', item: 2400, coin: 425, text: '2400 Max Particle / 425 PokéCoins' },
+    { type: 'bag', item: 1, coin: 200, text: '1 Item Bag / 200 PokéCoins' },
+    { type: 'storage', item: 1, coin: 200, text: '1 Pokémon Storage / 200 PokéCoins' },
+  ];
+  const VF_CASH_PRESETS = [
+    { type: 'raid', item: 3, cash: 59, text: '3 Premium Raid Passes / 59 THB' },
+    { type: 'raid', special: true, item: 99, cash: 769, text: '(Special Package) 99 Premium Raid Passes / 769 THB' },
+    { type: 'link', item: 600, cash: 59, text: '600 Link Charges / 59 THB' },
+    { type: 'particle', item: 4800, cash: 155, text: '4800 Max Particle / 155 THB' },
+    { type: 'bag', item: 1, cash: 39, text: '1 Item Bag / 39 THB' },
+    { type: 'storage', item: 1, cash: 39, text: '1 Pokémon Storage / 39 THB' },
+  ];
+  const VF_PRESETS = { coins: VF_COIN_PRESETS, cash: VF_CASH_PRESETS };
   const vfId = (id) => document.getElementById(id);
   const vfNum = (id) => parseFloat(vfId(id).value);
   const vfFmt = (n) => Number(n.toFixed(4)).toString();
 
+  // Item via Coins / Item via Cash each take any number of rows (e.g. several
+  // bundle sizes, or different items). Every row shows what it would get;
+  // the result cards compare the best coins row against the best cash row.
+  const vfRows = { coins: [], cash: [] };
+  const vfKinds = {
+    coins: { list: 'vf-rows-coins', price: 'PokéCoins' },
+    cash: { list: 'vf-rows-cash', price: 'Cash' },
+  };
+
+  function vfUpdateRemove(kind) {
+    vfRows[kind].forEach(r => { r.remove.disabled = vfRows[kind].length === 1; });
+  }
+
+  function vfAddRow(kind, item, price, type) {
+    const entry = { item: item === undefined ? '' : String(item), price: price === undefined ? '' : String(price), type: type || null };
+    const row = document.createElement('div');
+    row.className = 'vf-fields vf-item-row' + (entry.type ? ` vf-t-${entry.type}` : '');
+    row.innerHTML = `
+      <input class="particle-manual-input vf-in-item" type="number" inputmode="numeric" min="0" placeholder="Items" aria-label="Item amount">
+      <input class="particle-manual-input vf-in-price" type="number" inputmode="numeric" min="0" placeholder="${kind === 'coins' ? 'Coins' : 'Cash'}" aria-label="${vfKinds[kind].price}">
+      <span class="vf-ratio vf-badge">&mdash;</span>
+      <button class="vf-remove" type="button" aria-label="Remove row">&times;</button>
+    `;
+    const itemIn = row.querySelector('.vf-in-item');
+    const priceIn = row.querySelector('.vf-in-price');
+    itemIn.value = entry.item;
+    priceIn.value = entry.price;
+    entry.badge = row.querySelector('.vf-badge');
+    entry.remove = row.querySelector('.vf-remove');
+    entry.row = row;
+    itemIn.addEventListener('input', () => { entry.item = itemIn.value; vfRender(); });
+    priceIn.addEventListener('input', () => { entry.price = priceIn.value; vfRender(); });
+    entry.remove.addEventListener('click', () => {
+      vfRows[kind] = vfRows[kind].filter(r => r !== entry);
+      row.remove();
+      vfUpdateRemove(kind);
+      vfRender();
+    });
+    vfRows[kind].push(entry);
+    vfId(vfKinds[kind].list).appendChild(row);
+    vfUpdateRemove(kind);
+    return entry;
+  }
+
+  // The item type currently being compared: that of the first typed row.
+  function vfCurrentType() {
+    const row = vfRows.coins.concat(vfRows.cash).find(r => r.type);
+    return row ? row.type : null;
+  }
+
+  // A manually added row joins whatever item is being compared.
+  function vfAddBlankRow(kind) {
+    vfAddRow(kind, undefined, undefined, vfCurrentType());
+    vfRender();
+  }
+
+  // Drop every row of a type other than `type`; a list left empty gets one
+  // blank row so there is always somewhere to type.
+  function vfClearOtherTypes(type) {
+    ['coins', 'cash'].forEach(kind => {
+      vfRows[kind].filter(r => r.type && r.type !== type).forEach(r => r.row.remove());
+      vfRows[kind] = vfRows[kind].filter(r => !r.type || r.type === type);
+      if (!vfRows[kind].length) vfAddRow(kind);
+      vfUpdateRemove(kind);
+    });
+  }
+
+  // Put a package into a list: reuse an empty row, skip it if that exact
+  // package is already there, otherwise add a new row.
+  function vfPlace(kind, p) {
+    const price = kind === 'coins' ? p.coin : p.cash;
+    const rows = vfRows[kind];
+    if (rows.some(r => r.type === p.type && parseFloat(r.item) === p.item && parseFloat(r.price) === price)) return;
+    const blank = rows.find(r => r.item === '' && r.price === '');
+    if (blank) {
+      blank.type = p.type;
+      blank.row.className = `vf-fields vf-item-row vf-t-${p.type}`;
+      blank.item = String(p.item);
+      blank.price = String(price);
+      blank.row.querySelector('.vf-in-item').value = blank.item;
+      blank.row.querySelector('.vf-in-price').value = blank.price;
+    } else {
+      vfAddRow(kind, p.item, price, p.type);
+    }
+  }
+
+  // "Use" on a saved package. Switching to a different item clears the old
+  // item's rows on both sides. The other side gets one matching package (the
+  // same size when there are several) unless it already has this item.
+  function vfUse(kind, p) {
+    const other = kind === 'coins' ? 'cash' : 'coins';
+    const current = vfCurrentType();
+    if (current && current !== p.type) vfClearOtherTypes(p.type);
+    vfPlace(kind, p);
+    if (!vfRows[other].some(r => r.type === p.type)) {
+      const options = VF_PRESETS[other].filter(o => o.type === p.type);
+      const match = options.find(o => !!o.special === !!p.special) || options[0];
+      if (match) vfPlace(other, match);
+    }
+    vfRender();
+  }
+
+  // Which item each section is comparing, shown beside its heading.
+  function vfShowTypes() {
+    const type = vfCurrentType();
+    ['coins', 'cash'].forEach(kind => {
+      const el = vfId(`vf-type-${kind}`);
+      el.textContent = type ? ` · ${VF_TYPES[type]}` : '';
+      el.className = type ? `vf-t-${type}` : '';
+    });
+  }
+
   function vfRender() {
     const coin1 = vfNum('vf-coin1'), cash1 = vfNum('vf-cash1');
-    const item2 = vfNum('vf-item2'), coin2 = vfNum('vf-coin2');
-    const item3 = vfNum('vf-item3'), cash3 = vfNum('vf-cash3');
-
     const coinRate = (coin1 > 0 && cash1 > 0) ? coin1 / cash1 : null; // coins per cash
     vfId('vf-ratio1').textContent = coinRate !== null ? vfFmt(coinRate) : '—';
+    vfShowTypes();
 
-    // Via coins: buy the pack, then spend its coins in whole bundles of coin2.
-    const viaCoins = (coin1 > 0 && item2 > 0 && coin2 > 0) ? Math.floor(coin1 / coin2) * item2 : null;
-    // Via cash: spend that same cash budget directly in whole bundles of cash3.
-    const viaCash = (cash1 > 0 && item3 > 0 && cash3 > 0) ? Math.floor(cash1 / cash3) * item3 : null;
+    // Via coins: buy the pack, then spend its coins in whole bundles of the
+    // row's price. Via cash: spend that same cash budget directly the same way.
+    // value = what's left over, in Cash terms, used to break ties.
+    vfRows.coins.forEach(r => {
+      const item = parseFloat(r.item), price = parseFloat(r.price);
+      r.result = null;
+      if (coin1 > 0 && item > 0 && price > 0) {
+        const bundles = Math.floor(coin1 / price);
+        const left = coin1 - bundles * price;
+        r.result = { items: bundles * item, left, value: coinRate !== null ? left / coinRate : null };
+      }
+    });
+    vfRows.cash.forEach(r => {
+      const item = parseFloat(r.item), price = parseFloat(r.price);
+      r.result = null;
+      if (cash1 > 0 && item > 0 && price > 0) {
+        const bundles = Math.floor(cash1 / price);
+        const left = cash1 - bundles * price;
+        r.result = { items: bundles * item, spent: bundles * price, left, value: left };
+      }
+    });
+
+    const best = {};
+    ['coins', 'cash'].forEach(kind => {
+      const valid = vfRows[kind].filter(r => r.result);
+      best[kind] = valid.reduce((b, r) => (!b || r.result.items > b.result.items
+        || (r.result.items === b.result.items && (r.result.value || 0) > (b.result.value || 0)) ? r : b), null);
+      vfRows[kind].forEach(r => {
+        r.badge.textContent = r.result ? `= ${r.result.items}` : '—';
+        r.badge.classList.toggle('good', valid.length > 1 && r === best[kind]);
+      });
+    });
 
     const budget = cash1 > 0 ? ` for ${vfFmt(cash1)} Cash` : '';
+    const several = (kind) => vfRows[kind].filter(r => r.result).length > 1;
+    const which = (kind) => (best[kind] && several(kind) ? ` • best row: ${best[kind].item} : ${best[kind].price}` : '');
     vfId('vf-coins-label').textContent = `Items via Coins${budget}`;
     vfId('vf-cash-label').textContent = `Items via Cash${budget}`;
-    vfId('vf-coins').textContent = viaCoins !== null ? viaCoins : '—';
-    vfId('vf-cash').textContent = viaCash !== null ? viaCash : '—';
+    const viaCoins = best.coins ? best.coins.result : null;
+    const viaCash = best.cash ? best.cash.result : null;
+    vfId('vf-coins').textContent = viaCoins ? viaCoins.items : '—';
+    vfId('vf-cash').textContent = viaCash ? viaCash.items : '—';
 
     // The pack always costs its full price; coins left after the item are
     // converted to cash at the pack's own rate so they can be weighed against
     // the cash route's leftover cash.
-    let leftoverCoinsValue = null;
-    if (viaCoins !== null) {
-      const leftoverCoins = coin1 - Math.floor(coin1 / coin2) * coin2;
-      leftoverCoinsValue = coinRate !== null ? leftoverCoins / coinRate : null;
-      const worth = leftoverCoinsValue !== null ? ` (≈ ${vfFmt(leftoverCoinsValue)} Cash worth)` : '';
-      vfId('vf-coins-detail').textContent = `Spent ${vfFmt(cash1)} Cash • ${vfFmt(leftoverCoins)} Coins left over${worth}`;
+    if (viaCoins) {
+      const worth = viaCoins.value !== null ? ` (≈ ${vfFmt(viaCoins.value)} Cash worth)` : '';
+      vfId('vf-coins-detail').textContent = `Spent ${vfFmt(cash1)} Cash • ${vfFmt(viaCoins.left)} Coins left over${worth}${which('coins')}`;
     } else {
       vfId('vf-coins-detail').textContent = '';
     }
-    let leftoverCash = null;
-    if (viaCash !== null) {
-      const spent = Math.floor(cash1 / cash3) * cash3;
-      leftoverCash = cash1 - spent;
-      vfId('vf-cash-detail').textContent = `Spent ${vfFmt(spent)} Cash • ${vfFmt(leftoverCash)} Cash left over`;
+    if (viaCash) {
+      vfId('vf-cash-detail').textContent = `Spent ${vfFmt(viaCash.spent)} Cash • ${vfFmt(viaCash.left)} Cash left over${which('cash')}`;
     } else {
       vfId('vf-cash-detail').textContent = '';
     }
 
     vfId('vf-coins-row').classList.remove('win');
     vfId('vf-cash-row').classList.remove('win');
-    if (viaCoins !== null && viaCash !== null) {
-      if (viaCoins > viaCash) vfId('vf-coins-row').classList.add('win');
-      else if (viaCash > viaCoins) vfId('vf-cash-row').classList.add('win');
-      else if (leftoverCoinsValue !== null && leftoverCash !== null) {
+    if (viaCoins && viaCash) {
+      if (viaCoins.items > viaCash.items) vfId('vf-coins-row').classList.add('win');
+      else if (viaCash.items > viaCoins.items) vfId('vf-cash-row').classList.add('win');
+      else if (viaCoins.value !== null) {
         // Same item count: whichever leftover is worth more wins.
-        if (leftoverCoinsValue > leftoverCash) vfId('vf-coins-row').classList.add('win');
-        else if (leftoverCash > leftoverCoinsValue) vfId('vf-cash-row').classList.add('win');
+        if (viaCoins.value > viaCash.value) vfId('vf-coins-row').classList.add('win');
+        else if (viaCash.value > viaCoins.value) vfId('vf-cash-row').classList.add('win');
       }
     }
   }
@@ -7747,7 +7926,7 @@
     list.innerHTML = '';
     presets.forEach(p => {
       const row = document.createElement('div');
-      row.className = 'vf-preset';
+      row.className = 'vf-preset' + (p.type ? ` vf-t-${p.type}` : '');
       const text = document.createElement('span');
       text.className = 'vf-preset-label';
       text.innerHTML = label(p);
@@ -7763,11 +7942,13 @@
   vfFillPresets('vf-presets-pack', VF_PACK_PRESETS,
     p => `${p.coin} : ${p.cash}<small>${vfFmt(p.coin / p.cash)} / Cash</small>`,
     p => { vfId('vf-coin1').value = p.coin; vfId('vf-cash1').value = p.cash; });
-  vfFillPresets('vf-presets-coins', VF_COIN_PRESETS, p => `${p.item} : ${p.coin}`,
-    p => { vfId('vf-item2').value = p.item; vfId('vf-coin2').value = p.coin; });
-  vfFillPresets('vf-presets-cash', VF_CASH_PRESETS, p => `${p.item} : ${p.cash}`,
-    p => { vfId('vf-item3').value = p.item; vfId('vf-cash3').value = p.cash; });
-  ['vf-coin1', 'vf-cash1', 'vf-item2', 'vf-coin2', 'vf-item3', 'vf-cash3'].forEach(id => vfId(id).addEventListener('input', vfRender));
+  vfFillPresets('vf-presets-coins', VF_COIN_PRESETS, p => p.text, p => vfUse('coins', p));
+  vfFillPresets('vf-presets-cash', VF_CASH_PRESETS, p => p.text, p => vfUse('cash', p));
+  vfId('vf-add-coins').addEventListener('click', () => vfAddBlankRow('coins'));
+  vfId('vf-add-cash').addEventListener('click', () => vfAddBlankRow('cash'));
+  ['vf-coin1', 'vf-cash1'].forEach(id => vfId(id).addEventListener('input', vfRender));
+  vfAddRow('coins', 3, 250, 'raid');
+  vfAddRow('cash', 3, 59, 'raid');
   vfRender();
 
   renderDashboard();
