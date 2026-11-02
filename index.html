@@ -934,6 +934,31 @@
   .tzc-row b { font-variant-numeric: tabular-nums; }
   .rd-term { display: block; width: 100%; font-family: ui-monospace, Menlo, Consolas, monospace; font-size: 15px; resize: vertical; }
   .cb-deck-name { display: block; width: 100%; margin-bottom: 10px; font-size: 15px; }
+  .nk-opts { align-items: center; margin-bottom: 12px; }
+  .nk-opts-gap { flex: 1; }
+  .nk-opts .tz-tab[aria-pressed="true"] { background: #ffcc33; border-color: #b8860f; color: #2c2200; }
+  .nk-out { display: flex; align-items: center; gap: 10px; padding: 12px; background: var(--panel-2); border: 1px solid var(--line); border-radius: 10px; }
+  .nk-out span { flex: 1; min-width: 0; overflow-x: auto; white-space: nowrap; font-size: 19px; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .nk-copy { flex: 0 0 auto; padding: 8px 14px; }
+  .nk-copy.copied { background: #ffcc33; border-color: #b8860f; color: #2c2200; }
+  .dq-input { display: block; width: 100%; min-height: 96px; resize: vertical; font-size: 15px; }
+  .dq-label { margin: 12px 0 6px; font-size: 12px; font-weight: 700; color: var(--text-faint); }
+  .tz-tab.dq-send { display: block; width: 100%; margin-top: 12px; padding: 10px; font-size: 15px; color: #fff; background: var(--accent); border-color: var(--accent); border-radius: 10px; }
+  .tz-tab.dq-send:disabled { opacity: 0.45; cursor: default; }
+  .tz-tab.dq-send.good { background: var(--good); border-color: var(--good); color: #0e1620; }
+  .tz-tab.dq-send.bad { background: var(--bad); border-color: var(--bad); color: #0e1620; }
+  .dq-hook { display: flex; gap: 8px; align-items: center; margin-top: 8px; }
+  .dq-hook:first-of-type { margin-top: 0; }
+  .dq-hook .tz-tab { flex: 0 0 auto; padding: 8px 14px; }
+  .dq-hook .particle-manual-input { font-size: 15px; }
+  .dq-row { display: flex; align-items: center; gap: 8px; padding: 8px 0; border-top: 1px solid var(--line); }
+  .dq-row:first-child { border-top: none; padding-top: 0; }
+  .dq-row-text { flex: 1; min-width: 0; font-size: 13px; color: var(--text-dim); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .dq-row-time { flex: 0 0 auto; font-size: 12px; font-weight: 700; color: var(--accent); font-variant-numeric: tabular-nums; }
+  .dq-row .tz-tab { flex: 0 0 auto; padding: 5px 10px; font-size: 12px; }
+  .dq-row .tz-tab.dq-del { color: var(--bad); }
+  .dq-ok { color: var(--good); }
+  .dq-err { color: var(--bad); }
   #pt-parties { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
   .pt-party { --team: var(--line); min-width: 0; padding: 8px; background: linear-gradient(180deg, color-mix(in srgb, var(--team) 14%, transparent), transparent 60%), var(--panel-2); border: 1px solid color-mix(in srgb, var(--team) 70%, var(--line)); border-radius: 10px; }
   .pt-valor { --team: #ff4d4d; }
@@ -1671,6 +1696,8 @@
         <button class="tz-tab" data-misc="search-term" type="button">Search Term</button>
         <button class="tz-tab active" data-misc="pokedex" type="button">Pokedex Search</button>
         <button class="tz-tab" data-misc="trade-balancer" type="button">Trade Balancer</button>
+        <button class="tz-tab" data-misc="discord" type="button">Discord</button>
+        <button class="tz-tab" data-misc="iv-nickname" type="button">IV Nickname</button>
       </div>
     </div>
     <div class="panel panel-theme-indigo">
@@ -1853,6 +1880,8 @@
         <button class="tz-tab" data-misc="search-term" type="button">Search Term</button>
         <button class="tz-tab" data-misc="pokedex" type="button">Pokedex Search</button>
         <button class="tz-tab active" data-misc="trade-balancer" type="button">Trade Balancer</button>
+        <button class="tz-tab" data-misc="discord" type="button">Discord</button>
+        <button class="tz-tab" data-misc="iv-nickname" type="button">IV Nickname</button>
       </div>
     </div>
     <div class="panel panel-theme-teal">
@@ -1887,6 +1916,8 @@
         <button class="tz-tab" data-misc="search-term" type="button">Search Term</button>
         <button class="tz-tab" data-misc="pokedex" type="button">Pokedex Search</button>
         <button class="tz-tab" data-misc="trade-balancer" type="button">Trade Balancer</button>
+        <button class="tz-tab" data-misc="discord" type="button">Discord</button>
+        <button class="tz-tab" data-misc="iv-nickname" type="button">IV Nickname</button>
       </div>
     </div>
     <div class="panel panel-theme-teal">
@@ -1906,6 +1937,105 @@
     <div class="panel panel-theme-teal">
       <div class="particle-actions-label">Same moment in your zones</div>
       <div id="tzc-all"></div>
+    </div>
+  </div>
+
+  <div id="view-discord" hidden>
+    <div class="panel">
+      <div class="app-tabs">
+        <button class="app-tab" data-tab="dashboard" type="button">Daily Checklist</button>
+        <button class="app-tab" data-tab="particles" type="button">Max Particle</button>
+        <button class="app-tab" data-tab="party" type="button">Party</button>
+        <button class="app-tab" data-tab="calculator" type="button">Calculator</button>
+        <button class="app-tab" data-tab="tracker" type="button">Tracker</button>
+        <button class="app-tab active" data-tab="misc" type="button">Misc</button>
+      </div>
+      <div class="tz-tabs misc-select" style="margin-top: 10px;">
+        <button class="tz-tab" data-misc="timezone" type="button">Time Zone</button>
+        <button class="tz-tab" data-misc="search-term" type="button">Search Term</button>
+        <button class="tz-tab" data-misc="pokedex" type="button">Pokedex Search</button>
+        <button class="tz-tab" data-misc="trade-balancer" type="button">Trade Balancer</button>
+        <button class="tz-tab active" data-misc="discord" type="button">Discord</button>
+        <button class="tz-tab" data-misc="iv-nickname" type="button">IV Nickname</button>
+      </div>
+    </div>
+    <div class="panel panel-theme-teal">
+      <div class="particle-actions-label">Discord Quick Send</div>
+      <textarea class="particle-manual-input dq-input" id="dq-message" rows="4" placeholder="Type or paste your message&hellip; Enter sends, Shift+Enter for a new line"></textarea>
+      <div class="dq-label">Self-destruct after</div>
+      <div class="tz-tabs dq-durations" id="dq-durations">
+        <button class="tz-tab active" data-seconds="15" type="button">15s</button>
+        <button class="tz-tab" data-seconds="30" type="button">30s</button>
+        <button class="tz-tab" data-seconds="60" type="button">1m</button>
+      </div>
+      <button class="tz-tab dq-send" id="dq-send" type="button">Send</button>
+      <div class="sx-hint" id="dq-status"></div>
+      <div class="sx-hint">Only deletes while this app is open. Tap the selected time again to turn self-destruct off.</div>
+    </div>
+    <div class="panel panel-theme-teal" id="dq-pending-panel" hidden>
+      <div class="particle-actions-label">Self-destructing</div>
+      <div id="dq-pending"></div>
+    </div>
+    <div class="panel panel-theme-teal">
+      <div class="particle-actions-label">Discord webhook URL</div>
+      <div class="dq-hook">
+        <input class="particle-manual-input" id="dq-webhook" type="password" placeholder="https://discord.com/api/webhooks/..." autocomplete="off" autocapitalize="off" spellcheck="false">
+        <button class="tz-tab" id="dq-hook-toggle" type="button">Show</button>
+      </div>
+      <div class="dq-hook">
+        <button class="tz-tab" id="dq-hook-save" type="button">Save</button>
+        <button class="tz-tab" id="dq-hook-clear" type="button">Clear</button>
+      </div>
+      <div class="sx-hint" id="dq-hook-status">Stored only on this device; it goes nowhere except straight to Discord.</div>
+    </div>
+  </div>
+
+  <div id="view-iv-nickname" hidden>
+    <div class="panel">
+      <div class="app-tabs">
+        <button class="app-tab" data-tab="dashboard" type="button">Daily Checklist</button>
+        <button class="app-tab" data-tab="particles" type="button">Max Particle</button>
+        <button class="app-tab" data-tab="party" type="button">Party</button>
+        <button class="app-tab" data-tab="calculator" type="button">Calculator</button>
+        <button class="app-tab" data-tab="tracker" type="button">Tracker</button>
+        <button class="app-tab active" data-tab="misc" type="button">Misc</button>
+      </div>
+      <div class="tz-tabs misc-select" style="margin-top: 10px;">
+        <button class="tz-tab" data-misc="timezone" type="button">Time Zone</button>
+        <button class="tz-tab" data-misc="search-term" type="button">Search Term</button>
+        <button class="tz-tab" data-misc="pokedex" type="button">Pokedex Search</button>
+        <button class="tz-tab" data-misc="trade-balancer" type="button">Trade Balancer</button>
+        <button class="tz-tab" data-misc="discord" type="button">Discord</button>
+        <button class="tz-tab active" data-misc="iv-nickname" type="button">IV Nickname</button>
+      </div>
+    </div>
+    <div class="panel">
+      <div class="sc-stat">
+        <div class="sc-stat-head"><span class="sc-stat-name">Attack</span><span class="sc-stat-num"><input class="sc-iv-input" id="nk-atk-val" type="number" inputmode="numeric" min="0" max="15" value="15" aria-label="Attack IV">/15 <span class="sc-star" id="nk-atk-star">&#9733;</span></span></div>
+        <div class="sc-meter" id="nk-atk" tabindex="0" role="slider" aria-label="Attack IV" aria-valuemin="0" aria-valuemax="15" aria-valuenow="15"></div>
+      </div>
+      <div class="sc-stat">
+        <div class="sc-stat-head"><span class="sc-stat-name">Defense</span><span class="sc-stat-num"><input class="sc-iv-input" id="nk-def-val" type="number" inputmode="numeric" min="0" max="15" value="15" aria-label="Defense IV">/15 <span class="sc-star" id="nk-def-star">&#9733;</span></span></div>
+        <div class="sc-meter" id="nk-def" tabindex="0" role="slider" aria-label="Defense IV" aria-valuemin="0" aria-valuemax="15" aria-valuenow="15"></div>
+      </div>
+      <div class="sc-stat">
+        <div class="sc-stat-head"><span class="sc-stat-name">Stamina</span><span class="sc-stat-num"><input class="sc-iv-input" id="nk-sta-val" type="number" inputmode="numeric" min="0" max="15" value="15" aria-label="Stamina IV">/15 <span class="sc-star" id="nk-sta-star">&#9733;</span></span></div>
+        <div class="sc-meter" id="nk-sta" tabindex="0" role="slider" aria-label="Stamina IV" aria-valuemin="0" aria-valuemax="15" aria-valuenow="15"></div>
+      </div>
+    </div>
+    <div class="panel panel-theme-teal">
+      <div class="particle-actions-label">Nickname to lock it in</div>
+      <div class="tz-tabs nk-opts">
+        <button class="tz-tab" id="nk-shiny" type="button" aria-pressed="false">&#10022; Shiny</button>
+        <span class="nk-opts-gap"></span>
+        <button class="tz-tab active" data-nk-size="" type="button">Normal</button>
+        <button class="tz-tab" data-nk-size="XXS" type="button">XXS</button>
+        <button class="tz-tab" data-nk-size="XXL" type="button">XXL</button>
+      </div>
+      <div class="nk-out">
+        <span id="nk-text"></span>
+        <button class="tz-tab nk-copy" id="nk-copy" type="button">Copy</button>
+      </div>
     </div>
   </div>
 
@@ -1953,6 +2083,8 @@
         <button class="tz-tab active" data-misc="search-term" type="button">Search Term</button>
         <button class="tz-tab" data-misc="pokedex" type="button">Pokedex Search</button>
         <button class="tz-tab" data-misc="trade-balancer" type="button">Trade Balancer</button>
+        <button class="tz-tab" data-misc="discord" type="button">Discord</button>
+        <button class="tz-tab" data-misc="iv-nickname" type="button">IV Nickname</button>
       </div>
     </div>
 
@@ -2563,6 +2695,8 @@
   const viewParty = document.getElementById('view-party');
   const viewRaid = document.getElementById('view-raid');
   const viewTimezone = document.getElementById('view-timezone');
+  const viewDiscord = document.getElementById('view-discord');
+  const viewIvNickname = document.getElementById('view-iv-nickname');
   const viewCombat = document.getElementById('view-combat');
   const customTaskBackdrop = document.getElementById('custom-task-modal-backdrop');
   const customTaskCloseBtn = document.getElementById('custom-task-modal-close');
@@ -3143,6 +3277,12 @@
   function canSpendParticles(name) {
     return (state.accounts[name].currentTotal || 0) > particleSpendFloor;
   }
+  // A daily gain is only processed while the account is under the daily
+  // limit and its total hasn't already reached the max cap.
+  function canGainParticles(name) {
+    const acc = state.accounts[name];
+    return (acc.particles || 0) < PARTICLE_LIMIT && (acc.currentTotal || 0) < MAX_TOTAL_CAP;
+  }
   // The spend / Max Move buttons themselves switch off when no account is
   // over the limit, since there'd be nobody to pick in the dialog.
   function updateParticleSpendButtons() {
@@ -3475,7 +3615,7 @@
   const gainModalIsReset = () => gainModalAmt === 0;
   const gainModalEligible = (name) => {
     const gained = state.accounts[name].particles || 0;
-    return gainModalIsReset() ? gained > 0 : gained < PARTICLE_LIMIT;
+    return gainModalIsReset() ? gained > 0 : canGainParticles(name);
   };
 
   function openGainModal(amt) {
@@ -3612,7 +3752,7 @@
       btn.disabled = !canSpendParticles(name);
     });
     document.querySelectorAll('#view-particle-detail .particle-btn[data-amt]').forEach(btn => {
-      btn.disabled = gained >= PARTICLE_LIMIT;
+      btn.disabled = !canGainParticles(name);
     });
   }
 
@@ -3628,7 +3768,7 @@
   function adjustParticles(amt) {
     const name = currentParticleAccount;
     const gained = state.accounts[name].particles || 0;
-    if (gained >= PARTICLE_LIMIT) return;
+    if (!canGainParticles(name)) return;
     state.accounts[name].particles = gained + amt;
     state.accounts[name].currentTotal = (state.accounts[name].currentTotal || 0) + amt;
     saveState(state);
@@ -3696,8 +3836,8 @@
   // Same idea for the three calculators under one "Calculator" tab.
   const CALC_TABS = ['combat', 'showcase', 'candy'];
   let currentCalc = 'combat';
-  // Misc groups four pages; it always lands on the Time Zone converter.
-  const MISC_TABS = ['timezone', 'search-term', 'pokedex', 'trade-balancer'];
+  // Misc groups six pages; it always lands on the Time Zone converter.
+  const MISC_TABS = ['timezone', 'search-term', 'pokedex', 'trade-balancer', 'discord', 'iv-nickname'];
   // Party has a Max Battle page (always the landing page) and a Raid page.
   const rootKey = (tab) => (TRACKER_TABS.includes(tab) ? 'tracker' : CALC_TABS.includes(tab) ? 'calculator' : tab === 'raid' ? 'party' : MISC_TABS.includes(tab) ? 'misc' : tab);
   const ROOT_TAB_ORDER = ['dashboard', 'particles', 'party', 'calculator', 'tracker', 'misc'];
@@ -3722,6 +3862,8 @@
     viewParty.hidden = tab !== 'party';
     viewRaid.hidden = tab !== 'raid';
     viewTimezone.hidden = tab !== 'timezone';
+    viewDiscord.hidden = tab !== 'discord';
+    viewIvNickname.hidden = tab !== 'iv-nickname';
     document.querySelectorAll('.party-select .tz-tab').forEach(btn => {
       btn.classList.toggle('active', btn.dataset.party === tab);
     });
@@ -3781,6 +3923,8 @@
     if (!viewParty.hidden) return 'party';
     if (!viewRaid.hidden) return 'raid';
     if (!viewTimezone.hidden) return 'timezone';
+    if (!viewDiscord.hidden) return 'discord';
+    if (!viewIvNickname.hidden) return 'iv-nickname';
     return null;
   }
 
@@ -7122,6 +7266,314 @@
     renderTzConverter();
   });
   renderTzConverter();
+
+  // --- Misc > Discord: Quick Send, ported from the standalone Discord
+  // Quick Send app. Posts the message wrapped as a "# `text`" heading to a
+  // saved webhook and can delete it again after 15s / 30s / 1m. The delete
+  // only fires while the app is open; a stored deleteAt lets a later open
+  // catch up instead of losing it. ---
+  const DQ_HOOK_KEY = 'pogo-daily-checklist-discord-webhook';
+  const DQ_PENDING_KEY = 'pogo-daily-checklist-discord-pending';
+  const dqId = (id) => document.getElementById(id);
+  const dqMessage = dqId('dq-message');
+  const dqSendBtn = dqId('dq-send');
+  const dqStatus = dqId('dq-status');
+  const dqHookInput = dqId('dq-webhook');
+  const dqHookStatus = dqId('dq-hook-status');
+  let dqSeconds = 15;
+  let dqPending = [];
+  const dqTimers = new Map();
+  let dqForceBusy = 0;
+
+  const dqLoadHook = () => { try { return localStorage.getItem(DQ_HOOK_KEY) || ''; } catch (e) { return ''; } };
+  function dqSay(el, text, tone) {
+    el.textContent = text;
+    el.className = 'sx-hint' + (tone ? ' dq-' + tone : '');
+  }
+  function dqSavePending() {
+    try { localStorage.setItem(DQ_PENDING_KEY, JSON.stringify(dqPending)); } catch (e) {}
+  }
+
+  if (dqLoadHook()) {
+    dqHookInput.value = dqLoadHook();
+    dqSay(dqHookStatus, 'Webhook saved.', 'ok');
+  }
+  dqId('dq-hook-toggle').addEventListener('click', (e) => {
+    const showing = dqHookInput.type === 'text';
+    dqHookInput.type = showing ? 'password' : 'text';
+    e.currentTarget.textContent = showing ? 'Show' : 'Hide';
+  });
+  dqId('dq-hook-save').addEventListener('click', () => {
+    const url = dqHookInput.value.trim();
+    if (!url) return dqSay(dqHookStatus, 'Paste a webhook URL first.', 'err');
+    if (!/^https:\/\/(discord\.com|discordapp\.com)\/api\/webhooks\//.test(url)) {
+      return dqSay(dqHookStatus, 'That doesn’t look like a Discord webhook URL.', 'err');
+    }
+    try { localStorage.setItem(DQ_HOOK_KEY, url); } catch (e) {}
+    dqSay(dqHookStatus, 'Webhook saved.', 'ok');
+  });
+  dqId('dq-hook-clear').addEventListener('click', () => {
+    try { localStorage.removeItem(DQ_HOOK_KEY); } catch (e) {}
+    dqHookInput.value = '';
+    dqSay(dqHookStatus, 'Webhook cleared.');
+  });
+
+  dqId('dq-durations').querySelectorAll('.tz-tab').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const secs = Number(btn.dataset.seconds);
+      const off = dqSeconds === secs;
+      dqSeconds = off ? null : secs;
+      dqId('dq-durations').querySelectorAll('.tz-tab').forEach(b => b.classList.toggle('active', !off && b === btn));
+    });
+  });
+
+  async function dqDeleteMessage(entry) {
+    const res = await fetch(`${entry.webhookUrl.split('?')[0]}/messages/${entry.messageId}`, { method: 'DELETE' });
+    if (!res.ok && res.status !== 404) throw new Error('Discord returned ' + res.status);
+  }
+  function dqClearTimer(id) {
+    const t = dqTimers.get(id);
+    if (t) { clearTimeout(t); dqTimers.delete(id); }
+  }
+  async function dqFireDelete(entry) {
+    try { await dqDeleteMessage(entry); } catch (e) { return; }
+    dqPending = dqPending.filter(p => p.id !== entry.id);
+    dqSavePending();
+    dqRenderPending();
+  }
+  function dqSchedule(entry) {
+    dqClearTimer(entry.id);
+    dqTimers.set(entry.id, setTimeout(() => dqFireDelete(entry), Math.max(0, entry.deleteAt - Date.now())));
+  }
+  function dqRenderPending() {
+    dqId('dq-pending-panel').hidden = dqPending.length === 0;
+    const list = dqId('dq-pending');
+    list.innerHTML = '';
+    dqPending.forEach(entry => {
+      const row = document.createElement('div');
+      row.className = 'dq-row';
+      const text = document.createElement('div');
+      text.className = 'dq-row-text';
+      text.textContent = entry.text;
+      const time = document.createElement('div');
+      time.className = 'dq-row-time';
+      const left = Math.max(0, Math.round((entry.deleteAt - Date.now()) / 1000));
+      time.textContent = left >= 60 ? Math.ceil(left / 60) + 'm' : left + 's';
+      const delBtn = document.createElement('button');
+      delBtn.type = 'button';
+      delBtn.className = 'tz-tab dq-del';
+      delBtn.textContent = 'Delete now';
+      const keepBtn = document.createElement('button');
+      keepBtn.type = 'button';
+      keepBtn.className = 'tz-tab';
+      keepBtn.textContent = 'Keep it';
+      delBtn.addEventListener('click', async () => {
+        dqClearTimer(entry.id);
+        delBtn.disabled = keepBtn.disabled = true;
+        delBtn.textContent = 'Deleting…';
+        dqForceBusy++;
+        await dqFireDelete(entry);
+        dqForceBusy--;
+        if (dqPending.some(p => p.id === entry.id)) {
+          delBtn.textContent = 'Failed - retry?';
+          delBtn.disabled = keepBtn.disabled = false;
+        }
+      });
+      keepBtn.addEventListener('click', () => {
+        dqClearTimer(entry.id);
+        dqPending = dqPending.filter(p => p.id !== entry.id);
+        dqSavePending();
+        dqRenderPending();
+      });
+      row.append(text, time, delBtn, keepBtn);
+      list.appendChild(row);
+    });
+  }
+  setInterval(() => { if (dqPending.length && !dqForceBusy) dqRenderPending(); }, 1000);
+
+  function dqFlash(tone, text) {
+    dqSendBtn.textContent = text;
+    dqSendBtn.classList.add(tone);
+    setTimeout(() => { dqSendBtn.textContent = 'Send'; dqSendBtn.classList.remove('good', 'bad'); }, 1800);
+  }
+  async function dqSend() {
+    const text = dqMessage.value.trim();
+    if (!text) return dqSay(dqStatus, 'Nothing to send.', 'err');
+    const webhookUrl = dqLoadHook();
+    if (!webhookUrl) return dqSay(dqStatus, 'Save a webhook URL first.', 'err');
+    const content = '# `' + text + '`';
+    if (content.length > 2000) return dqSay(dqStatus, 'Message is too long for Discord once wrapped (2000 char limit).', 'err');
+    dqSendBtn.disabled = true;
+    dqSay(dqStatus, 'Sending…');
+    const selfDestruct = dqSeconds !== null;
+    try {
+      const res = await fetch(selfDestruct ? webhookUrl + '?wait=true' : webhookUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ content }),
+      });
+      if (!res.ok) throw new Error('Discord returned ' + res.status);
+      if (selfDestruct) {
+        const sent = await res.json();
+        const entry = {
+          id: (crypto.randomUUID && crypto.randomUUID()) || `${Date.now()}-${Math.random()}`,
+          webhookUrl,
+          messageId: sent.id,
+          text,
+          deleteAt: Date.now() + dqSeconds * 1000,
+        };
+        dqPending.push(entry);
+        dqSavePending();
+        dqSchedule(entry);
+        dqRenderPending();
+      }
+      dqFlash('good', 'Sent!');
+      dqSay(dqStatus, selfDestruct ? 'Sent — will self-destruct.' : 'Sent.', 'ok');
+      dqMessage.value = '';
+    } catch (err) {
+      dqFlash('bad', 'Failed');
+      dqSay(dqStatus, 'Failed to send — check the webhook URL and your connection.', 'err');
+    } finally {
+      dqSendBtn.disabled = false;
+    }
+  }
+  dqSendBtn.addEventListener('click', dqSend);
+  // Enter sends, Shift+Enter makes a new line; skipped mid-IME composition so
+  // confirming a Thai/CJK candidate doesn't fire a send.
+  dqMessage.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' && !e.shiftKey && !e.isComposing && !dqSendBtn.disabled) {
+      e.preventDefault();
+      dqSend();
+    }
+  });
+  try { dqPending = JSON.parse(localStorage.getItem(DQ_PENDING_KEY) || '[]'); } catch (e) { dqPending = []; }
+  dqPending.forEach(entry => {
+    if (entry.deleteAt <= Date.now()) dqFireDelete(entry);
+    else dqSchedule(entry);
+  });
+  dqRenderPending();
+
+  // --- Misc > IV Nickname: ported from the standalone IV nickname
+  // generator. Builds "<IV%> <atk><def><sta>" with circled digits (a
+  // filled glyph marks a perfect 15), plus optional size tag and a leading
+  // shiny star, ready to paste into the in-game rename box. The meters reuse
+  // the Showcase calculator's pip styling. ---
+  const NK_CIRCLED = ['⓪', '①', '②', '③', '④', '⑤', '⑥', '⑦', '⑧', '⑨', '⑩', '⑪', '⑫', '⑬', '⑭', '⓯'];
+  const nkIv = { atk: 15, def: 15, sta: 15 };
+  let nkShiny = false;
+  let nkSize = '';
+  const nkId = (id) => document.getElementById(id);
+
+  function nkPaint(key) {
+    const value = nkIv[key];
+    const meter = nkId(`nk-${key}`);
+    const tier2 = value >= 6 && value <= 10;
+    const tier3 = value >= 11 && value <= 14;
+    const perfect = value >= 15;
+    meter.querySelectorAll('.sc-pip').forEach((pip, i) => {
+      const on = i < value;
+      pip.classList.toggle('on', on);
+      pip.classList.toggle('tier2', on && tier2);
+      pip.classList.toggle('tier3', on && tier3);
+      pip.classList.toggle('perfect', on && perfect);
+      pip.classList.toggle('current', i === value - 1);
+    });
+    const field = nkId(`nk-${key}-val`);
+    if (!(document.activeElement === field && field.value === '')) field.value = value;
+    nkId(`nk-${key}-star`).classList.toggle('lit', perfect);
+    meter.setAttribute('aria-valuenow', String(value));
+  }
+
+  function nkRender() {
+    const { atk, def, sta } = nkIv;
+    const pct = Math.round(((atk + def + sta) / 45) * 100);
+    let text = `${pct} ${NK_CIRCLED[atk]}${NK_CIRCLED[def]}${NK_CIRCLED[sta]}`;
+    if (nkSize) text += ` ${nkSize}`;
+    if (nkShiny) text = `✦${text}`;
+    nkId('nk-text').textContent = text;
+    nkId('nk-copy').classList.remove('copied');
+    nkId('nk-copy').textContent = 'Copy';
+  }
+
+  function nkSet(key, value) {
+    value = Math.max(0, Math.min(15, value));
+    if (nkIv[key] === value) return;
+    nkIv[key] = value;
+    nkPaint(key);
+    nkRender();
+  }
+
+  function nkAttach(key) {
+    const meter = nkId(`nk-${key}`);
+    let dragging = false;
+    function valueFromPoint(x) {
+      const pips = Array.from(meter.querySelectorAll('.sc-pip'));
+      let best = pips[0], bestDist = Infinity;
+      pips.forEach(p => {
+        const r = p.getBoundingClientRect();
+        const d = Math.abs(x - (r.left + r.width / 2));
+        if (d < bestDist) { bestDist = d; best = p; }
+      });
+      return pips.indexOf(best) + 1;
+    }
+    meter.addEventListener('pointerdown', (e) => {
+      dragging = true;
+      meter.setPointerCapture(e.pointerId);
+      const v = valueFromPoint(e.clientX);
+      // Tapping the lone lit square again is how you get back to 0.
+      nkSet(key, v === 1 && nkIv[key] === 1 ? 0 : v);
+    });
+    meter.addEventListener('pointermove', (e) => { if (dragging) nkSet(key, valueFromPoint(e.clientX)); });
+    meter.addEventListener('pointerup', (e) => { dragging = false; meter.releasePointerCapture(e.pointerId); });
+    meter.addEventListener('pointercancel', () => { dragging = false; });
+    meter.addEventListener('keydown', (e) => {
+      if (e.key === 'ArrowRight' || e.key === 'ArrowUp') { e.preventDefault(); nkSet(key, nkIv[key] + 1); }
+      else if (e.key === 'ArrowLeft' || e.key === 'ArrowDown') { e.preventDefault(); nkSet(key, nkIv[key] - 1); }
+    });
+    // Dragging across the bars must not count as a tab swipe.
+    ['touchstart', 'touchend'].forEach(type => meter.addEventListener(type, (e) => e.stopPropagation(), { passive: true }));
+  }
+
+  ['atk', 'def', 'sta'].forEach(key => {
+    const row = document.createElement('div');
+    row.className = 'sc-row';
+    row.append(scBuildGroup(5), scBuildGroup(5), scBuildGroup(5));
+    nkId(`nk-${key}`).append(row);
+    nkAttach(key);
+    nkPaint(key);
+    const field = nkId(`nk-${key}-val`);
+    field.addEventListener('focus', () => field.select());
+    field.addEventListener('input', () => {
+      const v = parseInt(field.value, 10);
+      if (Number.isNaN(v)) return;
+      const clamped = Math.max(0, Math.min(15, v));
+      if (clamped === nkIv[key]) { nkPaint(key); return; }
+      nkSet(key, clamped);
+      if (String(clamped) !== field.value) field.value = clamped;
+    });
+    field.addEventListener('blur', () => { field.value = nkIv[key]; });
+  });
+
+  nkId('nk-shiny').addEventListener('click', (e) => {
+    nkShiny = !nkShiny;
+    e.currentTarget.setAttribute('aria-pressed', String(nkShiny));
+    nkRender();
+  });
+  document.querySelectorAll('[data-nk-size]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('[data-nk-size]').forEach(b => b.classList.toggle('active', b === btn));
+      nkSize = btn.dataset.nkSize;
+      nkRender();
+    });
+  });
+  nkId('nk-copy').addEventListener('click', (e) => {
+    const btn = e.currentTarget;
+    navigator.clipboard.writeText(nkId('nk-text').textContent).then(() => {
+      btn.textContent = 'Copied';
+      btn.classList.add('copied');
+    }).catch(() => {});
+  });
+  nkRender();
 
   renderDashboard();
 
