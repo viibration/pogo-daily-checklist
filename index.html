@@ -934,6 +934,23 @@
   .tzc-row b { font-variant-numeric: tabular-nums; }
   .rd-term { display: block; width: 100%; font-family: ui-monospace, Menlo, Consolas, monospace; font-size: 15px; resize: vertical; }
   .cb-deck-name { display: block; width: 100%; margin-bottom: 10px; font-size: 15px; }
+  .vf-row + .vf-row { margin-top: 12px; }
+  .vf-fields { display: flex; align-items: center; gap: 8px; margin-top: 4px; }
+  .vf-fields .particle-manual-input { text-align: right; font-size: 16px; }
+  .vf-ratio { flex: 0 0 62px; text-align: right; font-size: 14px; font-weight: 700; font-variant-numeric: tabular-nums; color: var(--accent); }
+  .vf-result { padding: 10px 12px; background: var(--panel-2); border: 1px solid var(--line); border-radius: 10px; }
+  .vf-result + .vf-result { margin-top: 10px; }
+  .vf-result-main { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; }
+  .vf-result-label { font-size: 14px; color: var(--text-dim); }
+  .vf-result-value { font-size: 20px; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .vf-result.win .vf-result-value { color: var(--good); }
+  .vf-result.win { border-color: var(--good); }
+  .vf-result-detail { margin-top: 4px; font-size: 12px; color: var(--text-faint); font-variant-numeric: tabular-nums; }
+  .vf-preset { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 8px 10px; background: var(--panel-2); border: 1px solid var(--line); border-radius: 10px; }
+  .vf-preset + .vf-preset { margin-top: 8px; }
+  .vf-preset-label { font-size: 15px; font-variant-numeric: tabular-nums; }
+  .vf-preset-label small { margin-left: 6px; font-size: 12px; color: var(--text-faint); }
+  .vf-preset .tz-tab { flex: 0 0 auto; padding: 5px 12px; font-size: 12px; }
   .nk-opts { align-items: center; margin-bottom: 12px; }
   .nk-opts-gap { flex: 1; }
   .nk-opts .tz-tab[aria-pressed="true"] { background: #ffcc33; border-color: #b8860f; color: #2c2200; }
@@ -1698,6 +1715,7 @@
         <button class="tz-tab" data-misc="trade-balancer" type="button">Trade Balancer</button>
         <button class="tz-tab" data-misc="discord" type="button">Discord</button>
         <button class="tz-tab" data-misc="iv-nickname" type="button">IV Nickname</button>
+        <button class="tz-tab" data-misc="value-finder" type="button">Value Finder</button>
       </div>
     </div>
     <div class="panel panel-theme-indigo">
@@ -1882,6 +1900,7 @@
         <button class="tz-tab active" data-misc="trade-balancer" type="button">Trade Balancer</button>
         <button class="tz-tab" data-misc="discord" type="button">Discord</button>
         <button class="tz-tab" data-misc="iv-nickname" type="button">IV Nickname</button>
+        <button class="tz-tab" data-misc="value-finder" type="button">Value Finder</button>
       </div>
     </div>
     <div class="panel panel-theme-teal">
@@ -1918,6 +1937,7 @@
         <button class="tz-tab" data-misc="trade-balancer" type="button">Trade Balancer</button>
         <button class="tz-tab" data-misc="discord" type="button">Discord</button>
         <button class="tz-tab" data-misc="iv-nickname" type="button">IV Nickname</button>
+        <button class="tz-tab" data-misc="value-finder" type="button">Value Finder</button>
       </div>
     </div>
     <div class="panel panel-theme-teal">
@@ -1957,6 +1977,7 @@
         <button class="tz-tab" data-misc="trade-balancer" type="button">Trade Balancer</button>
         <button class="tz-tab active" data-misc="discord" type="button">Discord</button>
         <button class="tz-tab" data-misc="iv-nickname" type="button">IV Nickname</button>
+        <button class="tz-tab" data-misc="value-finder" type="button">Value Finder</button>
       </div>
     </div>
     <div class="panel panel-theme-teal">
@@ -2007,6 +2028,7 @@
         <button class="tz-tab" data-misc="trade-balancer" type="button">Trade Balancer</button>
         <button class="tz-tab" data-misc="discord" type="button">Discord</button>
         <button class="tz-tab active" data-misc="iv-nickname" type="button">IV Nickname</button>
+        <button class="tz-tab" data-misc="value-finder" type="button">Value Finder</button>
       </div>
     </div>
     <div class="panel">
@@ -2036,6 +2058,75 @@
         <span id="nk-text"></span>
         <button class="tz-tab nk-copy" id="nk-copy" type="button">Copy</button>
       </div>
+    </div>
+  </div>
+
+  <div id="view-value-finder" hidden>
+    <div class="panel">
+      <div class="app-tabs">
+        <button class="app-tab" data-tab="dashboard" type="button">Daily Checklist</button>
+        <button class="app-tab" data-tab="particles" type="button">Max Particle</button>
+        <button class="app-tab" data-tab="party" type="button">Party</button>
+        <button class="app-tab" data-tab="calculator" type="button">Calculator</button>
+        <button class="app-tab" data-tab="tracker" type="button">Tracker</button>
+        <button class="app-tab active" data-tab="misc" type="button">Misc</button>
+      </div>
+      <div class="tz-tabs misc-select" style="margin-top: 10px;">
+        <button class="tz-tab" data-misc="timezone" type="button">Time Zone</button>
+        <button class="tz-tab" data-misc="search-term" type="button">Search Term</button>
+        <button class="tz-tab" data-misc="pokedex" type="button">Pokedex Search</button>
+        <button class="tz-tab" data-misc="trade-balancer" type="button">Trade Balancer</button>
+        <button class="tz-tab" data-misc="discord" type="button">Discord</button>
+        <button class="tz-tab" data-misc="iv-nickname" type="button">IV Nickname</button>
+        <button class="tz-tab active" data-misc="value-finder" type="button">Value Finder</button>
+      </div>
+    </div>
+    <div class="panel panel-theme-teal">
+      <div class="particle-actions-label">Compare buying an item with coins vs cash</div>
+      <div class="vf-row">
+        <span class="candy-level-label">Best Coin Pack</span>
+        <div class="vf-fields">
+          <input class="particle-manual-input" id="vf-coin1" type="number" inputmode="numeric" min="0" placeholder="PokéCoins" value="15500" aria-label="Best coin pack: PokéCoins">
+          <input class="particle-manual-input" id="vf-cash1" type="number" inputmode="numeric" min="0" placeholder="Cash" value="1920" aria-label="Best coin pack: Cash">
+          <span class="vf-ratio" id="vf-ratio1">&mdash;</span>
+        </div>
+      </div>
+      <div class="vf-row">
+        <span class="candy-level-label">Item via Coins</span>
+        <div class="vf-fields">
+          <input class="particle-manual-input" id="vf-item2" type="number" inputmode="numeric" min="0" placeholder="Item amount" value="3" aria-label="Item via coins: item amount">
+          <input class="particle-manual-input" id="vf-coin2" type="number" inputmode="numeric" min="0" placeholder="PokéCoins" value="250" aria-label="Item via coins: PokéCoins">
+        </div>
+      </div>
+      <div class="vf-row">
+        <span class="candy-level-label">Item via Cash</span>
+        <div class="vf-fields">
+          <input class="particle-manual-input" id="vf-item3" type="number" inputmode="numeric" min="0" placeholder="Item amount" value="3" aria-label="Item via cash: item amount">
+          <input class="particle-manual-input" id="vf-cash3" type="number" inputmode="numeric" min="0" placeholder="Cash" value="59" aria-label="Item via cash: Cash">
+        </div>
+      </div>
+    </div>
+    <div class="panel">
+      <div class="vf-result" id="vf-coins-row">
+        <div class="vf-result-main"><span class="vf-result-label" id="vf-coins-label">Items via Coins</span><span class="vf-result-value" id="vf-coins">&mdash;</span></div>
+        <div class="vf-result-detail" id="vf-coins-detail"></div>
+      </div>
+      <div class="vf-result" id="vf-cash-row">
+        <div class="vf-result-main"><span class="vf-result-label" id="vf-cash-label">Items via Cash</span><span class="vf-result-value" id="vf-cash">&mdash;</span></div>
+        <div class="vf-result-detail" id="vf-cash-detail"></div>
+      </div>
+    </div>
+    <div class="panel panel-theme-teal">
+      <div class="particle-actions-label">PokéCoins / Cash &mdash; saved packages</div>
+      <div id="vf-presets-pack"></div>
+    </div>
+    <div class="panel panel-theme-teal">
+      <div class="particle-actions-label">Item via Coins &mdash; saved packages</div>
+      <div id="vf-presets-coins"></div>
+    </div>
+    <div class="panel panel-theme-teal">
+      <div class="particle-actions-label">Item via Cash &mdash; saved packages</div>
+      <div id="vf-presets-cash"></div>
     </div>
   </div>
 
@@ -2085,6 +2176,7 @@
         <button class="tz-tab" data-misc="trade-balancer" type="button">Trade Balancer</button>
         <button class="tz-tab" data-misc="discord" type="button">Discord</button>
         <button class="tz-tab" data-misc="iv-nickname" type="button">IV Nickname</button>
+        <button class="tz-tab" data-misc="value-finder" type="button">Value Finder</button>
       </div>
     </div>
 
@@ -2697,6 +2789,7 @@
   const viewTimezone = document.getElementById('view-timezone');
   const viewDiscord = document.getElementById('view-discord');
   const viewIvNickname = document.getElementById('view-iv-nickname');
+  const viewValueFinder = document.getElementById('view-value-finder');
   const viewCombat = document.getElementById('view-combat');
   const customTaskBackdrop = document.getElementById('custom-task-modal-backdrop');
   const customTaskCloseBtn = document.getElementById('custom-task-modal-close');
@@ -3836,8 +3929,8 @@
   // Same idea for the three calculators under one "Calculator" tab.
   const CALC_TABS = ['combat', 'showcase', 'candy'];
   let currentCalc = 'combat';
-  // Misc groups six pages; it always lands on the Time Zone converter.
-  const MISC_TABS = ['timezone', 'search-term', 'pokedex', 'trade-balancer', 'discord', 'iv-nickname'];
+  // Misc groups seven pages; it always lands on the Time Zone converter.
+  const MISC_TABS = ['timezone', 'search-term', 'pokedex', 'trade-balancer', 'discord', 'iv-nickname', 'value-finder'];
   // Party has a Max Battle page (always the landing page) and a Raid page.
   const rootKey = (tab) => (TRACKER_TABS.includes(tab) ? 'tracker' : CALC_TABS.includes(tab) ? 'calculator' : tab === 'raid' ? 'party' : MISC_TABS.includes(tab) ? 'misc' : tab);
   const ROOT_TAB_ORDER = ['dashboard', 'particles', 'party', 'calculator', 'tracker', 'misc'];
@@ -3864,6 +3957,7 @@
     viewTimezone.hidden = tab !== 'timezone';
     viewDiscord.hidden = tab !== 'discord';
     viewIvNickname.hidden = tab !== 'iv-nickname';
+    viewValueFinder.hidden = tab !== 'value-finder';
     document.querySelectorAll('.party-select .tz-tab').forEach(btn => {
       btn.classList.toggle('active', btn.dataset.party === tab);
     });
@@ -3925,6 +4019,7 @@
     if (!viewTimezone.hidden) return 'timezone';
     if (!viewDiscord.hidden) return 'discord';
     if (!viewIvNickname.hidden) return 'iv-nickname';
+    if (!viewValueFinder.hidden) return 'value-finder';
     return null;
   }
 
@@ -7574,6 +7669,106 @@
     }).catch(() => {});
   });
   nkRender();
+
+  // --- Misc > Value Finder: ported from the standalone Bundle Value Check
+  // (Value Finder tab only). Spend the same cash budget two ways - buy the
+  // coin pack then spend its coins on an item, or buy the item with cash
+  // directly - and show the whole items each route gets. The saved-package
+  // cards fill the inputs; edit the lists below to add more. ---
+  const VF_PACK_PRESETS = [
+    { coin: 15500, cash: 1920 },
+    { coin: 5600, cash: 769 },
+    { coin: 2700, cash: 379 },
+    { coin: 1300, cash: 189 },
+    { coin: 600, cash: 99 },
+    { coin: 110, cash: 19 },
+  ];
+  const VF_COIN_PRESETS = [{ item: 3, coin: 250 }, { item: 99, coin: 5425 }];
+  const VF_CASH_PRESETS = [{ item: 3, cash: 59 }, { item: 99, cash: 769 }];
+  const vfId = (id) => document.getElementById(id);
+  const vfNum = (id) => parseFloat(vfId(id).value);
+  const vfFmt = (n) => Number(n.toFixed(4)).toString();
+
+  function vfRender() {
+    const coin1 = vfNum('vf-coin1'), cash1 = vfNum('vf-cash1');
+    const item2 = vfNum('vf-item2'), coin2 = vfNum('vf-coin2');
+    const item3 = vfNum('vf-item3'), cash3 = vfNum('vf-cash3');
+
+    const coinRate = (coin1 > 0 && cash1 > 0) ? coin1 / cash1 : null; // coins per cash
+    vfId('vf-ratio1').textContent = coinRate !== null ? vfFmt(coinRate) : '—';
+
+    // Via coins: buy the pack, then spend its coins in whole bundles of coin2.
+    const viaCoins = (coin1 > 0 && item2 > 0 && coin2 > 0) ? Math.floor(coin1 / coin2) * item2 : null;
+    // Via cash: spend that same cash budget directly in whole bundles of cash3.
+    const viaCash = (cash1 > 0 && item3 > 0 && cash3 > 0) ? Math.floor(cash1 / cash3) * item3 : null;
+
+    const budget = cash1 > 0 ? ` for ${vfFmt(cash1)} Cash` : '';
+    vfId('vf-coins-label').textContent = `Items via Coins${budget}`;
+    vfId('vf-cash-label').textContent = `Items via Cash${budget}`;
+    vfId('vf-coins').textContent = viaCoins !== null ? viaCoins : '—';
+    vfId('vf-cash').textContent = viaCash !== null ? viaCash : '—';
+
+    // The pack always costs its full price; coins left after the item are
+    // converted to cash at the pack's own rate so they can be weighed against
+    // the cash route's leftover cash.
+    let leftoverCoinsValue = null;
+    if (viaCoins !== null) {
+      const leftoverCoins = coin1 - Math.floor(coin1 / coin2) * coin2;
+      leftoverCoinsValue = coinRate !== null ? leftoverCoins / coinRate : null;
+      const worth = leftoverCoinsValue !== null ? ` (≈ ${vfFmt(leftoverCoinsValue)} Cash worth)` : '';
+      vfId('vf-coins-detail').textContent = `Spent ${vfFmt(cash1)} Cash • ${vfFmt(leftoverCoins)} Coins left over${worth}`;
+    } else {
+      vfId('vf-coins-detail').textContent = '';
+    }
+    let leftoverCash = null;
+    if (viaCash !== null) {
+      const spent = Math.floor(cash1 / cash3) * cash3;
+      leftoverCash = cash1 - spent;
+      vfId('vf-cash-detail').textContent = `Spent ${vfFmt(spent)} Cash • ${vfFmt(leftoverCash)} Cash left over`;
+    } else {
+      vfId('vf-cash-detail').textContent = '';
+    }
+
+    vfId('vf-coins-row').classList.remove('win');
+    vfId('vf-cash-row').classList.remove('win');
+    if (viaCoins !== null && viaCash !== null) {
+      if (viaCoins > viaCash) vfId('vf-coins-row').classList.add('win');
+      else if (viaCash > viaCoins) vfId('vf-cash-row').classList.add('win');
+      else if (leftoverCoinsValue !== null && leftoverCash !== null) {
+        // Same item count: whichever leftover is worth more wins.
+        if (leftoverCoinsValue > leftoverCash) vfId('vf-coins-row').classList.add('win');
+        else if (leftoverCash > leftoverCoinsValue) vfId('vf-cash-row').classList.add('win');
+      }
+    }
+  }
+
+  function vfFillPresets(listId, presets, label, apply) {
+    const list = vfId(listId);
+    list.innerHTML = '';
+    presets.forEach(p => {
+      const row = document.createElement('div');
+      row.className = 'vf-preset';
+      const text = document.createElement('span');
+      text.className = 'vf-preset-label';
+      text.innerHTML = label(p);
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'tz-tab';
+      btn.textContent = 'Use';
+      btn.addEventListener('click', () => { apply(p); vfRender(); });
+      row.append(text, btn);
+      list.appendChild(row);
+    });
+  }
+  vfFillPresets('vf-presets-pack', VF_PACK_PRESETS,
+    p => `${p.coin} : ${p.cash}<small>${vfFmt(p.coin / p.cash)} / Cash</small>`,
+    p => { vfId('vf-coin1').value = p.coin; vfId('vf-cash1').value = p.cash; });
+  vfFillPresets('vf-presets-coins', VF_COIN_PRESETS, p => `${p.item} : ${p.coin}`,
+    p => { vfId('vf-item2').value = p.item; vfId('vf-coin2').value = p.coin; });
+  vfFillPresets('vf-presets-cash', VF_CASH_PRESETS, p => `${p.item} : ${p.cash}`,
+    p => { vfId('vf-item3').value = p.item; vfId('vf-cash3').value = p.cash; });
+  ['vf-coin1', 'vf-cash1', 'vf-item2', 'vf-coin2', 'vf-item3', 'vf-cash3'].forEach(id => vfId(id).addEventListener('input', vfRender));
+  vfRender();
 
   renderDashboard();
 
