@@ -2440,7 +2440,27 @@
         <button class="particle-btn" id="rd-copy-btn" type="button">Copy text</button>
         <button class="particle-btn" id="rd-copy-code-btn" type="button">Copy `text`</button>
       </div>
-      <div class="sx-hint" style="margin-top: 8px;">A stash for search terms: one deck per raid boss. Build the term on Search Term, paste it here.</div>
+      <div class="dq-label">Self-destruct after</div>
+      <div class="tz-tabs dq-durations" id="rd-dq-durations">
+        <button class="tz-tab active" data-seconds="15" type="button">15s</button>
+        <button class="tz-tab" data-seconds="30" type="button">30s</button>
+        <button class="tz-tab" data-seconds="60" type="button">1m</button>
+      </div>
+      <button class="tz-tab dq-send" id="rd-dq-send" type="button">Send to Discord</button>
+      <div class="sx-hint" id="rd-dq-status"></div>
+      <div class="sx-hint" style="margin-top: 8px;">A stash for search terms: one deck per raid boss. Build the term on Search Term, paste it here. Self-destruct only deletes while this app is open; tap the selected time again to turn it off.</div>
+    </div>
+    <div class="panel panel-theme-indigo">
+      <div class="particle-actions-label">Discord webhook URL</div>
+      <div class="dq-hook">
+        <input class="particle-manual-input" id="rd-dq-webhook" type="password" placeholder="https://discord.com/api/webhooks/..." autocomplete="off" autocapitalize="off" spellcheck="false">
+        <button class="tz-tab" id="rd-dq-hook-toggle" type="button">Show</button>
+      </div>
+      <div class="dq-hook">
+        <button class="tz-tab" id="rd-dq-hook-save" type="button">Save</button>
+        <button class="tz-tab" id="rd-dq-hook-clear" type="button">Clear</button>
+      </div>
+      <div class="sx-hint" id="rd-dq-hook-status">Same webhook as Misc &gt; Discord. Stored only on this device; it goes nowhere except straight to Discord.</div>
     </div>
   </div>
 
@@ -8094,8 +8114,6 @@
   const dqMessage = dqId('dq-message');
   const dqSendBtn = dqId('dq-send');
   const dqStatus = dqId('dq-status');
-  const dqHookInput = dqId('dq-webhook');
-  const dqHookStatus = dqId('dq-hook-status');
   let dqSeconds = 15;
   let dqPending = [];
   const dqTimers = new Map();
@@ -8110,38 +8128,50 @@
     try { localStorage.setItem(DQ_PENDING_KEY, JSON.stringify(dqPending)); } catch (e) {}
   }
 
+  // The same webhook and self-destruct choice serve both places that can
+  // send: Misc > Discord ("dq") and the Party > Raid card ("rd-dq"). Saving or
+  // clearing in one updates the other's box.
+  const DQ_PREFIXES = ['dq', 'rd-dq'];
+  const dqEachHook = (fn) => DQ_PREFIXES.forEach(p => fn(dqId(`${p}-webhook`), dqId(`${p}-hook-status`)));
   if (dqLoadHook()) {
-    dqHookInput.value = dqLoadHook();
-    dqSay(dqHookStatus, 'Webhook saved.', 'ok');
+    dqEachHook((input, status) => { input.value = dqLoadHook(); dqSay(status, 'Webhook saved.', 'ok'); });
   }
-  dqId('dq-hook-toggle').addEventListener('click', (e) => {
-    const showing = dqHookInput.type === 'text';
-    dqHookInput.type = showing ? 'password' : 'text';
-    e.currentTarget.textContent = showing ? 'Show' : 'Hide';
-  });
-  dqId('dq-hook-save').addEventListener('click', () => {
-    const url = dqHookInput.value.trim();
-    if (!url) return dqSay(dqHookStatus, 'Paste a webhook URL first.', 'err');
-    if (!/^https:\/\/(discord\.com|discordapp\.com)\/api\/webhooks\//.test(url)) {
-      return dqSay(dqHookStatus, 'That doesn’t look like a Discord webhook URL.', 'err');
-    }
-    try { localStorage.setItem(DQ_HOOK_KEY, url); } catch (e) {}
-    dqSay(dqHookStatus, 'Webhook saved.', 'ok');
-  });
-  dqId('dq-hook-clear').addEventListener('click', () => {
-    try { localStorage.removeItem(DQ_HOOK_KEY); } catch (e) {}
-    dqHookInput.value = '';
-    dqSay(dqHookStatus, 'Webhook cleared.');
-  });
-
-  dqId('dq-durations').querySelectorAll('.tz-tab').forEach(btn => {
-    btn.addEventListener('click', () => {
-      const secs = Number(btn.dataset.seconds);
-      const off = dqSeconds === secs;
-      dqSeconds = off ? null : secs;
-      dqId('dq-durations').querySelectorAll('.tz-tab').forEach(b => b.classList.toggle('active', !off && b === btn));
+  DQ_PREFIXES.forEach(p => {
+    const input = dqId(`${p}-webhook`);
+    const status = dqId(`${p}-hook-status`);
+    dqId(`${p}-hook-toggle`).addEventListener('click', (e) => {
+      const showing = input.type === 'text';
+      input.type = showing ? 'password' : 'text';
+      e.currentTarget.textContent = showing ? 'Show' : 'Hide';
+    });
+    dqId(`${p}-hook-save`).addEventListener('click', () => {
+      const url = input.value.trim();
+      if (!url) return dqSay(status, 'Paste a webhook URL first.', 'err');
+      if (!/^https:\/\/(discord\.com|discordapp\.com)\/api\/webhooks\//.test(url)) {
+        return dqSay(status, 'That doesn’t look like a Discord webhook URL.', 'err');
+      }
+      try { localStorage.setItem(DQ_HOOK_KEY, url); } catch (e) {}
+      dqEachHook((i, s) => { i.value = url; dqSay(s, 'Webhook saved.', 'ok'); });
+    });
+    dqId(`${p}-hook-clear`).addEventListener('click', () => {
+      try { localStorage.removeItem(DQ_HOOK_KEY); } catch (e) {}
+      dqEachHook((i, s) => { i.value = ''; dqSay(s, 'Webhook cleared.'); });
     });
   });
+
+  const DQ_DURATION_GROUPS = ['dq-durations', 'rd-dq-durations'];
+  function dqPaintDurations() {
+    DQ_DURATION_GROUPS.forEach(id => dqId(id).querySelectorAll('.tz-tab').forEach(b => {
+      b.classList.toggle('active', dqSeconds !== null && Number(b.dataset.seconds) === dqSeconds);
+    }));
+  }
+  DQ_DURATION_GROUPS.forEach(id => dqId(id).querySelectorAll('.tz-tab').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const secs = Number(btn.dataset.seconds);
+      dqSeconds = dqSeconds === secs ? null : secs;
+      dqPaintDurations();
+    });
+  }));
 
   async function dqDeleteMessage(entry) {
     const res = await fetch(`${entry.webhookUrl.split('?')[0]}/messages/${entry.messageId}`, { method: 'DELETE' });
@@ -8207,20 +8237,22 @@
   }
   setInterval(() => { if (dqPending.length && !dqForceBusy) dqRenderPending(); }, 1000);
 
-  function dqFlash(tone, text) {
-    dqSendBtn.textContent = text;
-    dqSendBtn.classList.add(tone);
-    setTimeout(() => { dqSendBtn.textContent = 'Send'; dqSendBtn.classList.remove('good', 'bad'); }, 1800);
+  function dqFlash(btn, label, tone, text) {
+    btn.textContent = text;
+    btn.classList.add(tone);
+    setTimeout(() => { btn.textContent = label; btn.classList.remove('good', 'bad'); }, 1800);
   }
-  async function dqSend() {
-    const text = dqMessage.value.trim();
-    if (!text) return dqSay(dqStatus, 'Nothing to send.', 'err');
+  // One send for both places: `from` says where the text comes from, which
+  // button/status line to drive, and what to do once it has gone.
+  async function dqSendFrom(from) {
+    const { text, btn, label, statusEl, onSent } = from;
+    if (!text) return dqSay(statusEl, 'Nothing to send.', 'err');
     const webhookUrl = dqLoadHook();
-    if (!webhookUrl) return dqSay(dqStatus, 'Save a webhook URL first.', 'err');
+    if (!webhookUrl) return dqSay(statusEl, 'Save a webhook URL first.', 'err');
     const content = '# `' + text + '`';
-    if (content.length > 2000) return dqSay(dqStatus, 'Message is too long for Discord once wrapped (2000 char limit).', 'err');
-    dqSendBtn.disabled = true;
-    dqSay(dqStatus, 'Sending…');
+    if (content.length > 2000) return dqSay(statusEl, 'Message is too long for Discord once wrapped (2000 char limit).', 'err');
+    btn.disabled = true;
+    dqSay(statusEl, 'Sending…');
     const selfDestruct = dqSeconds !== null;
     try {
       const res = await fetch(selfDestruct ? webhookUrl + '?wait=true' : webhookUrl, {
@@ -8243,25 +8275,35 @@
         dqSchedule(entry);
         dqRenderPending();
       }
-      dqFlash('good', 'Sent!');
-      dqSay(dqStatus, selfDestruct ? 'Sent — will self-destruct.' : 'Sent.', 'ok');
-      dqMessage.value = '';
+      dqFlash(btn, label, 'good', 'Sent!');
+      dqSay(statusEl, selfDestruct ? 'Sent — will self-destruct.' : 'Sent.', 'ok');
+      if (onSent) onSent();
     } catch (err) {
-      dqFlash('bad', 'Failed');
-      dqSay(dqStatus, 'Failed to send — check the webhook URL and your connection.', 'err');
+      dqFlash(btn, label, 'bad', 'Failed');
+      dqSay(statusEl, 'Failed to send — check the webhook URL and your connection.', 'err');
     } finally {
-      dqSendBtn.disabled = false;
+      btn.disabled = false;
     }
   }
-  dqSendBtn.addEventListener('click', dqSend);
+  const dqSendMessage = () => dqSendFrom({
+    text: dqMessage.value.trim(), btn: dqSendBtn, label: 'Send', statusEl: dqStatus,
+    onSent: () => { dqMessage.value = ''; },
+  });
+  dqSendBtn.addEventListener('click', dqSendMessage);
   // Enter sends, Shift+Enter makes a new line; skipped mid-IME composition so
   // confirming a Thai/CJK candidate doesn't fire a send.
   dqMessage.addEventListener('keydown', (e) => {
     if (e.key === 'Enter' && !e.shiftKey && !e.isComposing && !dqSendBtn.disabled) {
       e.preventDefault();
-      dqSend();
+      dqSendMessage();
     }
   });
+  // Party > Raid: the deck's search term is the message. It is a saved deck,
+  // so it stays in the box after sending.
+  const rdSendBtn = dqId('rd-dq-send');
+  rdSendBtn.addEventListener('click', () => dqSendFrom({
+    text: rdDeck().text.trim(), btn: rdSendBtn, label: 'Send to Discord', statusEl: dqId('rd-dq-status'),
+  }));
   try { dqPending = JSON.parse(localStorage.getItem(DQ_PENDING_KEY) || '[]'); } catch (e) { dqPending = []; }
   dqPending.forEach(entry => {
     if (entry.deleteAt <= Date.now()) dqFireDelete(entry);
