@@ -515,6 +515,19 @@
   .particle-btn:hover { border-color: var(--accent); }
   .particle-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
   .particle-btn:disabled { opacity: 0.35; cursor: not-allowed; pointer-events: none; }
+  /* Daily-gain buttons, coloured by where the gain comes from. */
+  .particle-btn.pg-spot { --pg: #6fdc8c; }       /* old power spots: 100, 200 */
+  .particle-btn.pg-walk { --pg: #5ab0ff; }       /* walking: 300 */
+  .particle-btn.pg-event-walk { --pg: #b389ff; } /* event walking: 600 */
+  .particle-btn.pg-new { --pg: #ffa94d; }        /* new power spots: 120 - 480 */
+  .particle-btn.pg-event-spot { --pg: #ff6fb0; } /* event power spot: 820 */
+  .particle-btn.pg-full { --pg: #ffd84d; }       /* a full day: 1080 */
+  .panel .particle-btn[class*="pg-"] {
+    color: var(--pg);
+    background: color-mix(in srgb, var(--pg) 12%, #0e1620);
+    border-color: color-mix(in srgb, var(--pg) 45%, transparent);
+  }
+  .panel .particle-btn[class*="pg-"]:hover { border-color: var(--pg); }
 
   .particle-manual-input {
     flex: 1;
@@ -620,6 +633,7 @@
   #bulk-modal-backdrop .modal-accounts,
   #spend-modal-backdrop .modal-accounts,
   #gain-modal-backdrop .modal-accounts,
+  #manual-modal-backdrop .modal-accounts,
   #move-modal-backdrop .modal-accounts,
   #candy-multi-modal-backdrop .modal-accounts { margin-top: 12px; }
 
@@ -1415,6 +1429,22 @@
     </div>
   </div>
 
+  <div class="modal-backdrop" id="manual-modal-backdrop" hidden>
+    <div class="modal-panel">
+      <div class="modal-header">
+        <span class="modal-title" id="manual-modal-title"></span>
+        <button class="modal-close" id="manual-modal-close" type="button" aria-label="Close">&times;</button>
+      </div>
+      <button class="check-all-btn" id="manual-modal-select-all" type="button">Select all accounts</button>
+      <div class="modal-quick-row">
+        <button class="modal-quick-btn" id="manual-first4-btn" type="button">First 4 accounts</button>
+        <button class="modal-quick-btn" id="manual-last4-btn" type="button">Last 4 accounts</button>
+      </div>
+      <button class="sync-action-btn" id="manual-modal-apply" type="button">Apply to selected</button>
+      <div class="modal-accounts" id="manual-modal-accounts"></div>
+    </div>
+  </div>
+
   <div class="modal-backdrop" id="candy-cell-modal-backdrop" hidden>
     <div class="modal-panel">
       <div class="modal-header">
@@ -1543,14 +1573,20 @@
       <div class="particle-actions-label">Daily max particle gained for selected accounts</div>
       <div class="particle-actions">
         <div class="particle-action-row">
-          <button class="particle-btn" type="button" data-pick-amt="100">+100</button>
-          <button class="particle-btn" type="button" data-pick-amt="120">+120</button>
-          <button class="particle-btn" type="button" data-pick-amt="300">+300</button>
+          <button class="particle-btn pg-spot" type="button" data-pick-amt="100">+100</button>
+          <button class="particle-btn pg-spot" type="button" data-pick-amt="200">+200</button>
+          <button class="particle-btn pg-walk" type="button" data-pick-amt="300">+300</button>
         </div>
         <div class="particle-action-row">
-          <button class="particle-btn" type="button" data-pick-amt="480">+480</button>
-          <button class="particle-btn" type="button" data-pick-amt="780">+780</button>
-          <button class="particle-btn" type="button" data-pick-amt="1080">+1080</button>
+          <button class="particle-btn pg-new" type="button" data-pick-amt="120">+120</button>
+          <button class="particle-btn pg-new" type="button" data-pick-amt="240">+240</button>
+          <button class="particle-btn pg-new" type="button" data-pick-amt="360">+360</button>
+          <button class="particle-btn pg-new" type="button" data-pick-amt="480">+480</button>
+        </div>
+        <div class="particle-action-row">
+          <button class="particle-btn pg-event-walk" type="button" data-pick-amt="600">+600</button>
+          <button class="particle-btn pg-event-spot" type="button" data-pick-amt="820">+820</button>
+          <button class="particle-btn pg-full" type="button" data-pick-amt="1080">+1080</button>
         </div>
       </div>
       <button class="reset-btn" id="particle-pick-reset-btn" type="button">Reset daily gain for selected accounts</button>
@@ -1574,12 +1610,8 @@
     <div class="panel panel-theme-gold">
       <div class="particle-actions-label">Manual edit Current Max particle</div>
       <div class="particle-action-row" style="margin-bottom: 12px">
-        <input class="particle-manual-input" id="particle-manual-all-input" type="number" inputmode="numeric" placeholder="+ amount for all accounts">
-        <button class="particle-btn" type="button" id="particle-manual-all-btn">Apply to all</button>
-      </div>
-      <div class="particle-action-row" style="margin-bottom: 12px">
-        <button class="particle-btn" type="button" id="particle-manual-first4-btn">Apply to first 4</button>
-        <button class="particle-btn" type="button" id="particle-manual-last4-btn">Apply to last 4</button>
+        <input class="particle-manual-input" id="particle-manual-all-input" type="number" inputmode="numeric" placeholder="+ / &minus; amount">
+        <button class="particle-btn" type="button" id="particle-manual-all-btn">Apply</button>
       </div>
       <div class="particle-manual-list" id="particle-manual-list"></div>
     </div>
@@ -1608,14 +1640,20 @@
       <div class="particle-actions-label">Daily max particle gained</div>
       <div class="particle-actions">
         <div class="particle-action-row">
-          <button class="particle-btn" type="button" data-amt="100">+100</button>
-          <button class="particle-btn" type="button" data-amt="120">+120</button>
-          <button class="particle-btn" type="button" data-amt="300">+300</button>
+          <button class="particle-btn pg-spot" type="button" data-amt="100">+100</button>
+          <button class="particle-btn pg-spot" type="button" data-amt="200">+200</button>
+          <button class="particle-btn pg-walk" type="button" data-amt="300">+300</button>
         </div>
         <div class="particle-action-row">
-          <button class="particle-btn" type="button" data-amt="480">+480</button>
-          <button class="particle-btn" type="button" data-amt="780">+780</button>
-          <button class="particle-btn" type="button" data-amt="1080">+1080</button>
+          <button class="particle-btn pg-new" type="button" data-amt="120">+120</button>
+          <button class="particle-btn pg-new" type="button" data-amt="240">+240</button>
+          <button class="particle-btn pg-new" type="button" data-amt="360">+360</button>
+          <button class="particle-btn pg-new" type="button" data-amt="480">+480</button>
+        </div>
+        <div class="particle-action-row">
+          <button class="particle-btn pg-event-walk" type="button" data-amt="600">+600</button>
+          <button class="particle-btn pg-event-spot" type="button" data-amt="820">+820</button>
+          <button class="particle-btn pg-full" type="button" data-amt="1080">+1080</button>
         </div>
       </div>
       <button class="reset-btn" id="particle-detail-reset-btn" type="button">Reset today's gain to 0</button>
@@ -3500,22 +3538,111 @@
   const particleManualAllInput = document.getElementById('particle-manual-all-input');
   const particleManualAllBtn = document.getElementById('particle-manual-all-btn');
 
-  function applyParticleManualTo(names) {
+  // --- Manual edit: the amount typed in the box is added to (or, if
+  // negative, taken off) the Current Max particle of whichever accounts are
+  // ticked in this picker. ---
+  const manualModalBackdrop = document.getElementById('manual-modal-backdrop');
+  const manualModalTitleEl = document.getElementById('manual-modal-title');
+  const manualModalAccountsEl = document.getElementById('manual-modal-accounts');
+  const manualModalSelectAllBtn = document.getElementById('manual-modal-select-all');
+  const manualModalApplyBtn = document.getElementById('manual-modal-apply');
+  let manualModalAmt = 0;
+  let manualModalSelected = new Set();
+
+  function openManualModal() {
     const value = parseInt(particleManualAllInput.value, 10);
-    if (Number.isNaN(value)) return;
-    names.forEach(name => {
-      state.accounts[name].currentTotal = Math.max(0, (state.accounts[name].currentTotal || 0) + value);
+    if (Number.isNaN(value) || value === 0) {
+      particleManualAllInput.focus();
+      return;
+    }
+    const label = `${value > 0 ? '+' : '−'}${Math.abs(value)}`;
+    manualModalAmt = value;
+    manualModalSelected = new Set();
+    manualModalTitleEl.textContent = `Edit current by ${label}`;
+    manualModalApplyBtn.textContent = `Apply ${label} to selected`;
+    renderManualModalAccounts();
+    manualModalBackdrop.hidden = false;
+    history.pushState({ view: 'manual-modal' }, '');
+  }
+
+  function closeManualModal() {
+    if (!manualModalBackdrop.hidden) history.back();
+  }
+
+  function renderManualModalAccounts() {
+    manualModalAccountsEl.innerHTML = '';
+    accountNames.forEach(name => {
+      const total = state.accounts[name].currentTotal || 0;
+      const selected = manualModalSelected.has(name);
+      const previewTotal = selected ? Math.max(0, total + manualModalAmt) : total;
+      const row = document.createElement('div');
+      row.className = 'modal-account-row' + (selected ? ' done' : '');
+      row.tabIndex = 0;
+      row.setAttribute('role', 'checkbox');
+      row.setAttribute('aria-checked', String(selected));
+      const previewClass = selected ? (manualModalAmt > 0 ? ' preview' : ' preview-spend') : '';
+      row.innerHTML = `
+        <span class="box">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#0e1620" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="4 12 10 18 20 6"></polyline>
+          </svg>
+        </span>
+        <span class="modal-account-text">
+          <span class="name">${name}</span>
+          <span class="modal-account-total${previewClass}">${previewTotal}</span>
+        </span>
+      `;
+      row.addEventListener('click', () => toggleManualModalAccount(name));
+      row.addEventListener('keydown', (e) => {
+        if (e.key === ' ' || e.key === 'Enter') {
+          e.preventDefault();
+          toggleManualModalAccount(name);
+        }
+      });
+      manualModalAccountsEl.appendChild(row);
+    });
+    const allSelected = accountNames.every(name => manualModalSelected.has(name));
+    manualModalSelectAllBtn.textContent = allSelected ? 'Deselect all accounts' : 'Select all accounts';
+  }
+
+  function toggleManualModalAccount(name) {
+    if (manualModalSelected.has(name)) manualModalSelected.delete(name);
+    else manualModalSelected.add(name);
+    renderManualModalAccounts();
+  }
+
+  particleManualAllBtn.addEventListener('click', openManualModal);
+  particleManualAllInput.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') openManualModal();
+  });
+  document.getElementById('manual-modal-close').addEventListener('click', closeManualModal);
+  manualModalBackdrop.addEventListener('click', (e) => {
+    if (e.target === manualModalBackdrop) closeManualModal();
+  });
+  manualModalSelectAllBtn.addEventListener('click', () => {
+    const allSelected = accountNames.every(name => manualModalSelected.has(name));
+    if (allSelected) manualModalSelected.clear();
+    else accountNames.forEach(name => manualModalSelected.add(name));
+    renderManualModalAccounts();
+  });
+  document.getElementById('manual-first4-btn').addEventListener('click', () => {
+    toggleGroupSelection(manualModalSelected, FIRST_FOUR_ACCOUNTS);
+    renderManualModalAccounts();
+  });
+  document.getElementById('manual-last4-btn').addEventListener('click', () => {
+    toggleGroupSelection(manualModalSelected, LAST_FOUR_ACCOUNTS);
+    renderManualModalAccounts();
+  });
+  manualModalApplyBtn.addEventListener('click', () => {
+    if (manualModalSelected.size === 0) return;
+    manualModalSelected.forEach(name => {
+      state.accounts[name].currentTotal = Math.max(0, (state.accounts[name].currentTotal || 0) + manualModalAmt);
     });
     saveState(state);
     renderParticleGrid();
     renderParticleManualList();
     particleManualAllInput.value = '';
-  }
-  particleManualAllBtn.addEventListener('click', () => applyParticleManualTo(accountNames));
-  document.getElementById('particle-manual-first4-btn').addEventListener('click', () => applyParticleManualTo(FIRST_FOUR_ACCOUNTS));
-  document.getElementById('particle-manual-last4-btn').addEventListener('click', () => applyParticleManualTo(LAST_FOUR_ACCOUNTS));
-  particleManualAllInput.addEventListener('keydown', (e) => {
-    if (e.key === 'Enter') applyParticleManualTo(accountNames);
+    closeManualModal();
   });
 
   function renderParticleManualList() {
@@ -4873,6 +5000,10 @@
     }
     if (!gainModalBackdrop.hidden) {
       gainModalBackdrop.hidden = true;
+      return;
+    }
+    if (!manualModalBackdrop.hidden) {
+      manualModalBackdrop.hidden = true;
       return;
     }
     if (!candyCellModalBackdrop.hidden) {
