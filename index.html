@@ -967,6 +967,7 @@
   .tzc-big { font-size: 20px; font-weight: 800; font-variant-numeric: tabular-nums; }
   .tzc-sub { margin-top: 4px; font-size: 13px; color: var(--text-dim); }
   .tzc-left { margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--line); font-size: 15px; font-weight: 700; font-variant-numeric: tabular-nums; color: #4fd8d8; }
+  .tzr-times { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 10px; }
   .tzc-left.past { color: var(--text-dim); font-weight: 600; }
   .tzc-row { display: flex; justify-content: space-between; gap: 10px; padding: 7px 0; border-top: 1px solid var(--line); font-size: 14px; }
   .tzc-row:first-child { border-top: none; }
@@ -2073,6 +2074,15 @@
         <div class="tzc-col" id="tzc-col-m" role="listbox" aria-label="Minute"></div>
       </div>
       <div class="tzc-result" id="tzc-result"></div>
+    </div>
+    <div class="panel panel-theme-teal">
+      <div class="particle-actions-label">Time left to clock time</div>
+      <label class="tb-field"><span class="candy-level-label">Time zone</span><select class="cb-deck-select tzc-select" id="tzr-zone"></select></label>
+      <div class="tzr-times">
+        <label class="tb-field"><span class="candy-level-label">Hours left</span><input class="particle-manual-input" id="tzr-h" type="number" inputmode="numeric" min="0" placeholder="0"></label>
+        <label class="tb-field"><span class="candy-level-label">Minutes left</span><input class="particle-manual-input" id="tzr-m" type="number" inputmode="numeric" min="0" placeholder="0"></label>
+      </div>
+      <div class="tzc-result" id="tzr-result"></div>
     </div>
     <div class="panel panel-theme-teal">
       <div class="particle-actions-label">Same moment in your zones</div>
@@ -8014,6 +8024,64 @@
     renderTzConverter();
   });
   renderTzConverter();
+
+  // --- Time left -> clock time: the reverse of the countdown. Type how many
+  // hours and minutes are left and it shows what the clock will read in the
+  // chosen zone by then. Counted from now, so it re-renders every second. ---
+  const TZR_KEY = 'pogo-daily-checklist-tz-reverse';
+  let tzrZone = 'America/Mexico_City';
+  try {
+    const saved = localStorage.getItem(TZR_KEY);
+    if (saved && TZC_ZONES.some(z => z.tz === saved)) tzrZone = saved;
+  } catch (e) { /* storage unavailable */ }
+  let tzrShown = '';
+  function tzrRender() {
+    const result = tzcId('tzr-result');
+    const hours = Math.max(0, parseInt(tzcId('tzr-h').value, 10) || 0);
+    const mins = Math.max(0, parseInt(tzcId('tzr-m').value, 10) || 0);
+    const total = hours * 60 + mins;
+    const now = Date.now();
+    const at = tzcParts(tzrZone, now + total * 60000);
+    const dayDiff = Math.round((tzcDayMs(at.dayKey) - tzcDayMs(tzcParts(tzrZone, now).dayKey)) / 86400000);
+    const dayWord = dayDiff === 0 ? 'today' : dayDiff === 1 ? 'tomorrow' : `in ${dayDiff} days`;
+    const zone = TZC_ZONES.find(z => z.tz === tzrZone);
+    const key = total ? `${total}|${tzrZone}|${at.text}|${dayWord}` : 'empty';
+    if (key === tzrShown) return;
+    tzrShown = key;
+    result.innerHTML = '';
+    if (!total) {
+      result.textContent = 'Enter the hours and minutes left.';
+      return;
+    }
+    const small = document.createElement('div');
+    small.className = 'tzc-sub';
+    small.textContent = `${Math.floor(total / 60)}h ${total % 60}m from now it will be`;
+    const big = document.createElement('div');
+    big.className = 'tzc-big';
+    big.textContent = at.text;
+    const sub = document.createElement('div');
+    sub.className = 'tzc-sub';
+    sub.textContent = `in ${zone.label} (${tzcOffsetLabel(tzcOffsetMin(tzrZone, now + total * 60000))}) · ${dayWord}`;
+    result.append(small, big, sub);
+  }
+  (function tzrInit() {
+    const sel = tzcId('tzr-zone');
+    TZC_ZONES.forEach(z => {
+      const o = document.createElement('option');
+      o.value = z.tz;
+      o.textContent = z.label;
+      o.selected = z.tz === tzrZone;
+      sel.appendChild(o);
+    });
+    sel.addEventListener('change', () => {
+      tzrZone = sel.value;
+      try { localStorage.setItem(TZR_KEY, tzrZone); } catch (e) {}
+      tzrRender();
+    });
+    ['tzr-h', 'tzr-m'].forEach(id => tzcId(id).addEventListener('input', tzrRender));
+    setInterval(tzrRender, 1000);
+    tzrRender();
+  })();
 
   // --- Misc > Discord: Quick Send, ported from the standalone Discord
   // Quick Send app. Posts the message wrapped as a "# `text`" heading to a
