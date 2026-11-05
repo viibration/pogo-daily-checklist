@@ -1019,6 +1019,9 @@
   #view-gym[data-team="2"] { --team: #ffd23f; }
   .panel-theme-amber .gy-teams .tz-tab { color: var(--team); border-color: color-mix(in srgb, var(--team) 60%, var(--line)); background: color-mix(in srgb, var(--team) 12%, var(--panel-2)); }
   .panel-theme-amber .gy-teams .tz-tab.active { background: var(--team); border-color: var(--team); color: #1a1200; }
+  .gy-sort { margin-top: 8px; }
+  .gy-sort .tz-tab { padding: 3px 11px; font-size: 12px; }
+  #view-gym .gy-sort .tz-tab.active { background: var(--team); border-color: var(--team); color: #1a1200; }
   .gy-team-head { display: flex; align-items: center; gap: 8px; margin-top: 10px; padding-bottom: 8px; }
   .gy-sec.gy-t1 { --team: #ff4d4d; }
   .gy-sec.gy-t2 { --team: #ffd23f; }
@@ -2707,6 +2710,10 @@
       <div class="tz-tabs gy-teams">
         <button class="tz-tab" data-team="1" type="button">Team 1</button>
         <button class="tz-tab" data-team="2" type="button">Team 2</button>
+      </div>
+      <div class="tz-tabs gy-sort" id="gy-sort" aria-label="Sort stationed Pok&eacute;mon">
+        <button class="tz-tab" data-sort="name" type="button">Name</button>
+        <button class="tz-tab" data-sort="time" type="button">Time</button>
       </div>
       <div id="gy-list"></div>
     </div>
@@ -8919,7 +8926,7 @@
   const GY_STEP_MS = 10 * 60000;
   const GY_MAX = 20; // gyms + power spots stationed together
   const gyId = (id) => document.getElementById(id);
-  const GY_LOCATIONS = 38; // gym numbers 1..38
+  const GY_LOCATIONS = 22; // gym numbers 1..22
   let gyList = [];     // { t: start time (ms), g: gym number } per Pokemon stationed in a gym
   let gyCollected = 0; // coins already paid out by Pokemon that came home
   let gyTargets = { 1: null, 2: null }; // when each team's 50th coin lands (ms), null if none/reached
@@ -9001,6 +9008,36 @@
   const GY_ICON_EDIT = gySvg('<path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/>');
   const GY_ICON_FLAG = gySvg('<path d="M5 21V4"/><path d="M5 4h13l-3 4 3 4H5"/>');
   const GY_ICON_HOME =gySvg('<path d="M3 11 12 3l9 8"/><path d="M5 10v10h14V10"/><path d="M10 20v-6h4v6"/>');
+  // Sort order of the stationed cards (both teams): Name = gym number, Time =
+  // oldest stationed first. Tapping the active button flips it.
+  const GY_SORT_KEY = 'pogo-daily-checklist-gym-sort';
+  const GY_SORT_DIRS = { name: 'asc', time: 'asc' };
+  let gySort = { by: 'name', dir: 'asc' };
+  try {
+    const s = JSON.parse(localStorage.getItem(GY_SORT_KEY));
+    if (s && GY_SORT_DIRS[s.by] && (s.dir === 'asc' || s.dir === 'desc')) gySort = { by: s.by, dir: s.dir };
+  } catch (e) { /* storage unavailable */ }
+  function gySortedIdx(list, now) {
+    const sign = gySort.dir === 'desc' ? -1 : 1;
+    const key = { name: (e) => e.g, time: (e) => e.t }[gySort.by];
+    // Keep each Pokemon's real index: the live coin/ago labels are keyed by it.
+    return list.map((e, i) => i).sort((a, b) => (key(list[a]) - key(list[b])) * sign || list[a].g - list[b].g);
+  }
+  function renderGySort() {
+    Array.from(document.querySelectorAll('#gy-sort .tz-tab')).forEach(b => {
+      const on = b.dataset.sort === gySort.by;
+      b.classList.toggle('active', on);
+      b.setAttribute('aria-pressed', on ? 'true' : 'false');
+      const base = b.dataset.sort.charAt(0).toUpperCase() + b.dataset.sort.slice(1);
+      b.textContent = on ? `${base} ${gySort.dir === 'asc' ? '↑' : '↓'}` : base;
+    });
+  }
+  Array.from(document.querySelectorAll('#gy-sort .tz-tab')).forEach(b => b.addEventListener('click', () => {
+    const by = b.dataset.sort;
+    gySort = by === gySort.by ? { by, dir: gySort.dir === 'asc' ? 'desc' : 'asc' } : { by, dir: GY_SORT_DIRS[by] };
+    try { localStorage.setItem(GY_SORT_KEY, JSON.stringify(gySort)); } catch (e) { /* storage unavailable */ }
+    renderGym();
+  }));
   // Both teams' stationed Pokemon are listed together. gyShown[team] is what
   // was last drawn: the live list for the active team, a stored copy for the other.
   let gyShown = { 1: { list: [], collected: 0 }, 2: { list: [], collected: 0 } };
@@ -9080,6 +9117,7 @@
   function renderGymList() {
     const list = gyId('gy-list');
     list.innerHTML = '';
+    renderGySort();
     const other = gyTeam === 1 ? 2 : 1;
     gyShown = { 1: { list: [], collected: 0 }, 2: { list: [], collected: 0 } };
     gyShown[gyTeam] = { list: gyList, collected: gyCollected };
@@ -9121,7 +9159,8 @@
       const rowsBox = document.createElement('div');
       rowsBox.className = 'gy-rows';
       sec.appendChild(rowsBox);
-      gyShown[t].list.forEach((e, i) => {
+      gySortedIdx(gyShown[t].list, Date.now()).forEach(i => {
+        const e = gyShown[t].list[i];
         const row = document.createElement('div');
         row.className = 'gy-row';
         const name = document.createElement('div');
