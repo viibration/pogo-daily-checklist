@@ -972,7 +972,15 @@
   .panel-theme-amber .check-all-btn { background: #2f2213; color: #ffa94d; border-color: rgba(255, 169, 77, 0.4); }
   .panel-theme-amber .check-all-btn:hover { border-color: #ffa94d; }
   .panel-theme-amber .check-all-btn:disabled { opacity: 0.45; cursor: default; }
-  #gy-count:disabled { opacity: 1; color: var(--text); -webkit-text-fill-color: var(--text); cursor: default; }
+  #gy-count:disabled, #gy-power:disabled { opacity: 1; color: var(--text); -webkit-text-fill-color: var(--text); cursor: default; }
+  .gy-step { display: flex; align-items: center; gap: 6px; }
+  .gy-step .particle-manual-input { flex: 1; min-width: 0; width: 100%; text-align: center; }
+  .gy-step .tz-tab { flex: 0 0 auto; width: 38px; padding: 6px 0; font-size: 18px; line-height: 1.1; }
+  .gy-step .tz-tab:disabled { opacity: 0.35; cursor: default; }
+  .gy-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(42px, 1fr)); gap: 6px; margin-top: 8px; }
+  .gy-grid .tz-tab { padding: 8px 0; font-size: 14px; border-radius: 10px; font-variant-numeric: tabular-nums; }
+  .gy-grid .tz-tab:disabled { opacity: 0.3; cursor: default; text-decoration: line-through; }
+  .panel-theme-amber .gy-grid .tz-tab.active { background: #ffa94d; border-color: #ffa94d; color: #2c1a00; }
   .gy-row { display: flex; align-items: center; gap: 10px; padding: 10px 0; border-top: 1px solid var(--line); }
   .gy-row:first-child { border-top: none; padding-top: 0; }
   .gy-row-main { flex: 1; min-width: 0; }
@@ -2607,11 +2615,19 @@
       <div class="particle-actions-label">Gym Defender</div>
       <div class="tzr-times">
         <label class="tb-field"><span class="candy-level-label">Gyms stationed</span><input class="particle-manual-input" id="gy-count" type="text" value="0" disabled aria-readonly="true"></label>
-        <label class="tb-field"><span class="candy-level-label">Power spot stationed</span><input class="particle-manual-input" id="gy-power" type="number" inputmode="numeric" min="0" max="20" placeholder="0"></label>
+        <div class="tb-field"><span class="candy-level-label">Power spot stationed</span>
+          <div class="gy-step">
+            <button class="tz-tab" id="gy-power-minus" type="button" aria-label="One less power spot">&minus;</button>
+            <input class="particle-manual-input" id="gy-power" type="text" value="0" disabled aria-readonly="true">
+            <button class="tz-tab" id="gy-power-plus" type="button" aria-label="One more power spot">+</button>
+          </div>
+        </div>
       </div>
-      <button class="check-all-btn" id="gy-station" type="button">Stationed (+1 gym)</button>
+      <div class="sx-range-label">Pick the gym (1&ndash;38)</div>
+      <div class="gy-grid" id="gy-grid"></div>
+      <button class="check-all-btn" id="gy-station" type="button">Pick a gym first</button>
       <div class="sx-hint" id="gy-slots"></div>
-      <div class="sx-hint">Press Stationed each time you put a Pok&eacute;mon in a gym; it records the time. Each one earns 1 coin every 10 minutes, up to 50 coins a day, paid out when it comes home. Gyms and power spots share a limit of 20 together, and only gym Pok&eacute;mon count towards coins.</div>
+      <div class="sx-hint">Pick the gym number, then press Stationed; it records the time. Gyms already in use are greyed out. Each one earns 1 coin every 10 minutes, up to 50 coins a day, paid out when it comes home. Gyms and power spots share a limit of 20 together, and only gym Pok&eacute;mon count towards coins.</div>
     </div>
     <div class="panel panel-theme-amber">
       <div class="particle-actions-label">Time to 50 coins</div>
@@ -8832,25 +8848,34 @@
   const GY_STEP_MS = 10 * 60000;
   const GY_MAX = 20; // gyms + power spots stationed together
   const gyId = (id) => document.getElementById(id);
-  let gyList = [];     // start time (ms) of each Pokemon stationed in a gym
+  const GY_LOCATIONS = 38; // gym numbers 1..38
+  let gyList = [];     // { t: start time (ms), g: gym number } per Pokemon stationed in a gym
   let gyCollected = 0; // coins already paid out by Pokemon that came home
   let gyTarget = null; // when the 50th coin lands (ms), null if none/reached
+  let gySelected = null; // gym number picked in the grid, waiting for Stationed
+  let gyPower = 0;     // power spots stationed
   try {
     const s = JSON.parse(localStorage.getItem(GY_LIST_KEY));
     if (s && Array.isArray(s.list)) {
-      gyList = s.list.filter(Number.isFinite).slice(0, GY_MAX);
+      const used = new Set();
+      // Older saves stored just the start time; give those the first free numbers.
+      const raw = s.list.map(x => (typeof x === 'number' ? { t: x, g: null } : x)).filter(x => x && Number.isFinite(x.t)).slice(0, GY_MAX);
+      raw.forEach(x => { if (Number.isInteger(x.g) && x.g >= 1 && x.g <= GY_LOCATIONS && !used.has(x.g)) used.add(x.g); else x.g = null; });
+      let next = 1;
+      raw.forEach(x => { if (x.g === null) { while (used.has(next)) next++; x.g = next; used.add(next); } });
+      gyList = raw;
       gyCollected = Math.min(GY_COINS, Math.max(0, Number(s.collected) || 0));
     }
-    gyId('gy-power').value = localStorage.getItem(GY_POWER_KEY) || '';
+    gyPower = Math.max(0, parseInt(localStorage.getItem(GY_POWER_KEY), 10) || 0);
   } catch (e) { /* storage unavailable */ }
   function gySave() {
     try {
       localStorage.setItem(GY_LIST_KEY, JSON.stringify({ list: gyList, collected: gyCollected }));
-      localStorage.setItem(GY_POWER_KEY, gyId('gy-power').value);
+      localStorage.setItem(GY_POWER_KEY, String(gyPower));
     } catch (e) { /* storage unavailable */ }
   }
   const gyCoinsOf = (start, now = Date.now()) => Math.min(GY_COINS, Math.max(0, Math.floor((now - start) / GY_STEP_MS)));
-  const gyTotal = (now = Date.now()) => Math.min(GY_COINS, gyCollected + gyList.reduce((a, s) => a + gyCoinsOf(s, now), 0));
+  const gyTotal = (now = Date.now()) => Math.min(GY_COINS, gyCollected + gyList.reduce((a, e) => a + gyCoinsOf(e.t, now), 0));
   const gySpan = (mins) => `${Math.floor(mins / 60)}h ${String(mins % 60).padStart(2, '0')}m`;
   const gyAgo = (ms) => (ms < 60000 ? 'just now' : `${gySpan(Math.floor(ms / 60000))} ago`);
   const gyCoinText = (n) => `${n} coin${n === 1 ? '' : 's'}`;
@@ -8860,18 +8885,18 @@
     const need = GY_COINS - gyCollected;
     if (need <= 0 || !gyList.length) return null;
     const events = [];
-    gyList.forEach(s => { for (let k = 1; k <= need; k++) events.push(s + k * GY_STEP_MS); });
+    gyList.forEach(e => { for (let k = 1; k <= need; k++) events.push(e.t + k * GY_STEP_MS); });
     events.sort((a, b) => a - b);
     return events[need - 1];
   }
   // Runs every second: live coins, "ago" and the countdown.
   function gyTick() {
     const now = Date.now();
-    gyList.forEach((s, i) => {
+    gyList.forEach((e, i) => {
       const c = gyId('gy-coin-' + i);
       const a = gyId('gy-ago-' + i);
-      if (c) c.textContent = gyCoinText(gyCoinsOf(s, now));
-      if (a) a.textContent = gyAgo(now - s);
+      if (c) c.textContent = gyCoinText(gyCoinsOf(e.t, now));
+      if (a) a.textContent = gyAgo(now - e.t);
     });
     const sofar = gyId('gy-sofar');
     if (sofar) sofar.textContent = `${gyTotal(now)}/${GY_COINS} coins so far`;
@@ -8891,18 +8916,18 @@
       empty.textContent = 'No Pok\u00e9mon stationed yet. Press Stationed to add one.';
       list.appendChild(empty);
     }
-    gyList.forEach((s, i) => {
+    gyList.forEach((e, i) => {
       const row = document.createElement('div');
       row.className = 'gy-row';
       const main = document.createElement('div');
       main.className = 'gy-row-main';
       const name = document.createElement('div');
       name.className = 'gy-row-name';
-      name.textContent = `Gym ${i + 1}`;
+      name.textContent = `Gym ${e.g}`;
       const time = document.createElement('div');
       time.className = 'gy-row-time';
       const at = document.createElement('span');
-      at.textContent = `Stationed ${tzcParts('Asia/Bangkok', s).text} \u00b7 `;
+      at.textContent = `Stationed ${tzcParts('Asia/Bangkok', e.t).text} \u00b7 `;
       const ago = document.createElement('span');
       ago.id = 'gy-ago-' + i;
       time.append(at, ago);
@@ -8916,7 +8941,7 @@
       back.textContent = 'Returned';
       back.title = 'This Pok\u00e9mon came home: bank its coins and remove it';
       back.addEventListener('click', () => {
-        gyCollected = Math.min(GY_COINS, gyCollected + gyCoinsOf(s));
+        gyCollected = Math.min(GY_COINS, gyCollected + gyCoinsOf(e.t));
         gyList.splice(i, 1);
         renderGym();
       });
@@ -8925,16 +8950,44 @@
     });
     gyId('gy-collected').textContent = gyCollected ? `${gyCoinText(gyCollected)} already banked from Pok\u00e9mon that came home.` : '';
   }
-  function renderGym(edited) {
-    // Gyms + power spots may not go over 20: the power spot box gives way.
-    const box = gyId('gy-power');
-    const allowed = GY_MAX - gyList.length;
-    let pw = Math.min(allowed, Math.max(0, parseInt(box.value, 10) || 0));
-    let capped = false;
-    if (box.value !== '' && parseInt(box.value, 10) > allowed) { box.value = String(pw); capped = true; }
+  // The 1-38 gym picker: taken numbers are greyed out, the chosen one lights up.
+  function renderGyGrid() {
+    const grid = gyId('gy-grid');
+    const taken = new Set(gyList.map(e => e.g));
+    if (taken.has(gySelected)) gySelected = null;
+    if (!grid.children.length) {
+      for (let n = 1; n <= GY_LOCATIONS; n++) {
+        const b = document.createElement('button');
+        b.className = 'tz-tab';
+        b.type = 'button';
+        b.dataset.g = String(n);
+        b.textContent = String(n);
+        b.addEventListener('click', () => { gySelected = gySelected === n ? null : n; renderGym(); });
+        grid.appendChild(b);
+      }
+    }
+    Array.from(grid.children).forEach(b => {
+      const n = Number(b.dataset.g);
+      b.disabled = taken.has(n);
+      b.classList.toggle('active', n === gySelected);
+      b.setAttribute('aria-pressed', n === gySelected ? 'true' : 'false');
+      b.title = taken.has(n) ? `Gym ${n} already has a Pok\u00e9mon stationed` : `Gym ${n}`;
+    });
+  }
+  function renderGym() {
+    // Gyms + power spots may not go over 20: the power spot count gives way.
+    gyPower = Math.min(GY_MAX - gyList.length, Math.max(0, gyPower));
+    const pw = gyPower;
+    const full = gyList.length + pw >= GY_MAX;
+    gyId('gy-power').value = String(pw);
+    gyId('gy-power-minus').disabled = pw <= 0;
+    gyId('gy-power-plus').disabled = full;
     gyId('gy-count').value = String(gyList.length);
-    gyId('gy-slots').textContent = `${gyList.length + pw} of ${GY_MAX} slots used (${GY_MAX - gyList.length - pw} free)${capped ? ` \u00b7 gyms + power spots can't go over ${GY_MAX}` : ''}`;
-    gyId('gy-station').disabled = gyList.length + pw >= GY_MAX;
+    gyId('gy-slots').textContent = `${gyList.length + pw} of ${GY_MAX} slots used (${GY_MAX - gyList.length - pw} free)`;
+    renderGyGrid();
+    const st = gyId('gy-station');
+    st.disabled = full || gySelected === null;
+    st.textContent = full ? `All ${GY_MAX} slots used` : gySelected === null ? 'Pick a gym first' : `Stationed at Gym ${gySelected}`;
     gySave();
     renderGymList();
     gyTarget = gyComputeTarget();
@@ -8975,10 +9028,12 @@
     }
     gyTick();
   }
-  gyId('gy-power').addEventListener('input', renderGym);
+  gyId('gy-power-minus').addEventListener('click', () => { gyPower = Math.max(0, gyPower - 1); renderGym(); });
+  gyId('gy-power-plus').addEventListener('click', () => { gyPower += 1; renderGym(); });
   gyId('gy-station').addEventListener('click', () => {
-    if (gyList.length + (parseInt(gyId('gy-power').value, 10) || 0) >= GY_MAX) return;
-    gyList.push(Date.now());
+    if (gySelected === null || gyList.length + gyPower >= GY_MAX || gyList.some(e => e.g === gySelected)) return;
+    gyList.push({ t: Date.now(), g: gySelected });
+    gySelected = null;
     renderGym();
   });
   gyId('gy-reset').addEventListener('click', () => {
