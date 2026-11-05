@@ -981,7 +981,11 @@
   .gy-grid .tz-tab { padding: 8px 0; font-size: 14px; border-radius: 10px; font-variant-numeric: tabular-nums; }
   .gy-grid .tz-tab:disabled { opacity: 0.3; cursor: default; text-decoration: line-through; }
   .panel-theme-amber .gy-grid .tz-tab.active { background: #ffa94d; border-color: #ffa94d; color: #2c1a00; }
-  .panel-theme-amber .gy-skip .tz-tab.active { background: #c0392b; border-color: #e5604f; color: #fff; text-decoration: line-through; }
+  .panel-theme-amber .gy-skip .tz-tab { background: #3a1c1c; border-color: rgba(229, 96, 79, 0.55); color: #ff8f84; }
+  .panel-theme-amber .gy-skip .tz-tab:hover:not(:disabled) { border-color: #ff6b5b; }
+  .panel-theme-amber .gy-skip .tz-tab.active { background: #d63a2b; border-color: #ff6b5b; color: #fff; text-decoration: line-through; }
+  .panel-theme-amber #gy-unlock-all { background: #3a1c1c; color: #ff8f84; border-color: rgba(229, 96, 79, 0.55); }
+  .panel-theme-amber #gy-unlock-all:hover:not(:disabled) { border-color: #ff6b5b; }
   #gy-skip-label { margin-top: 14px; }
   #gy-unlock-all { margin-top: 10px; }
   .gy-row { display: flex; align-items: center; gap: 10px; padding: 10px 0; border-top: 1px solid var(--line); }
@@ -9065,8 +9069,13 @@
     all.innerHTML = '';
     result.innerHTML = '';
     const n = gyList.length;
+    const skipLine = document.createElement('div');
+    skipLine.className = 'tzc-sub';
+    skipLine.textContent = `${gySkipped.size} gym${gySkipped.size === 1 ? '' : 's'} skipped`;
     if (!n && gyCollected < GY_COINS) {
-      result.textContent = 'Tap a gym number when you put a Pok\u00e9mon in that gym.';
+      const hint = document.createElement('div');
+      hint.textContent = 'Tap a gym number when you put a Pok\u00e9mon in that gym.';
+      result.append(hint, skipLine);
       return;
     }
     const reached = gyTarget === null;
@@ -9081,7 +9090,7 @@
     sub.id = 'gy-sofar';
     const left = document.createElement('div');
     left.id = 'gy-left';
-    result.append(small, big, sub, left);
+    result.append(small, skipLine, big, sub, left);
     if (reached) { left.className = 'tzc-left past'; left.textContent = 'Already there'; }
     if (!reached) {
       timezones.forEach(z => {
