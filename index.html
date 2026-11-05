@@ -107,6 +107,7 @@
   .grp-max { --grp-bg: #44300f; --grp-badge: #583f15; --grp-line: rgba(255, 169, 77, 0.55); --grp-hover: #ffa94d; }
   .grp-league { --grp-bg: #12315a; --grp-badge: #1a4175; --grp-line: rgba(79, 168, 255, 0.55); --grp-hover: #4fa8ff; }
   .grp-trade { --grp-bg: #0f3a36; --grp-badge: #164b46; --grp-line: rgba(79, 216, 216, 0.55); --grp-hover: #4fd8d8; }
+  .grp-coin { --grp-bg: #43390d; --grp-badge: #594a12; --grp-line: rgba(247, 200, 42, 0.55); --grp-hover: #f7c82a; }
   .grp-route { --grp-bg: #2c3446; --grp-badge: #394359; --grp-line: rgba(210, 220, 240, 0.55); --grp-hover: #d6dff2; }
 
   .panel-theme-gold { background: #232a3a; border-color: rgba(138, 148, 173, 0.5); }
@@ -1019,6 +1020,13 @@
   #view-gym[data-team="2"] { --team: #ffd23f; }
   .panel-theme-amber .gy-teams .tz-tab { color: var(--team); border-color: color-mix(in srgb, var(--team) 60%, var(--line)); background: color-mix(in srgb, var(--team) 12%, var(--panel-2)); }
   .panel-theme-amber .gy-teams .tz-tab.active { background: var(--team); border-color: var(--team); color: #1a1200; }
+  .gy-map-tabs .tz-tab { flex: 0 0 auto; padding: 5px 10px; font-size: 12px; }
+  .gy-map-tabs .tz-tab.active { background: var(--accent); border-color: var(--accent); color: #06121f; }
+  .gy-map-img { display: block; width: 100%; height: auto; margin-top: 10px; border-radius: 10px; border: 1px solid var(--line); cursor: zoom-in; }
+  #gym-map-zoom { position: fixed; inset: 0; z-index: 1000; overflow: auto; background: rgba(0, 0, 0, 0.92); -webkit-overflow-scrolling: touch; }
+  #gym-map-zoom[hidden] { display: none; }
+  #gym-map-zoom img { display: block; width: max(100%, 1100px); height: auto; }
+  .gy-map-close { position: fixed; top: 10px; right: 12px; z-index: 1001; width: 40px; height: 40px; border-radius: 50%; border: 1px solid rgba(255, 255, 255, 0.5); background: rgba(20, 28, 48, 0.9); color: #fff; font-size: 26px; line-height: 1; cursor: pointer; }
   .gy-sort { margin-top: 8px; }
   .gy-sort .tz-tab { padding: 3px 11px; font-size: 12px; }
   #view-gym .gy-sort .tz-tab.active { background: var(--team); border-color: var(--team); color: #1a1200; }
@@ -2721,6 +2729,20 @@
       <div class="particle-actions-label" id="gy-all-label">Same moment in your zones</div>
       <div id="gy-all"></div>
     </div>
+    <div class="panel">
+      <div class="particle-actions-label">Gym map</div>
+      <div class="tz-tabs gy-map-tabs" id="gym-map-tabs">
+        <button class="tz-tab" data-map="1-8" type="button">K12 (1-5) &amp; K11 (6-8)</button>
+        <button class="tz-tab" data-map="9-13" type="button">K10 (9-13)</button>
+        <button class="tz-tab" data-map="14-22" type="button">K9 (14-22)</button>
+      </div>
+      <img class="gy-map-img" id="gym-map-img" alt="Gym map" src="gym/1-8.png">
+      <div class="sx-hint">Tap the map to zoom, then scroll to move around.</div>
+    </div>
+    <div id="gym-map-zoom" hidden>
+      <button class="gy-map-close" id="gym-map-close" type="button" aria-label="Close map">&times;</button>
+      <img id="gym-map-zoom-img" alt="Gym map zoomed">
+    </div>
   </div>
   <div id="view-showcase" hidden>
     <div class="panel">
@@ -2873,6 +2895,7 @@
     ['max', MAX_TASK_IDS],
     ['league', WIN_LEAGUE_TASK_IDS],
     ['trade', ['special-trade']],
+    ['coin', ['gym-coins']],
     ['route', ROUTE_TASK_IDS],
   ].forEach(([group, ids]) => {
     tasks.forEach(t => { if (ids.includes(t.id)) t.group = group; });
@@ -9428,6 +9451,40 @@
   }));
   gyId('gy-undo').addEventListener('click', gyUndo);
   renderGym();
+  // Gym map: three area pictures (gym/*.png) behind tabs; tap one to zoom.
+  const GYM_MAP_KEY = 'pogo-daily-checklist-gym-map';
+  const GYM_MAPS = {
+    '1-8': 'K12 (gyms 1-5) and K11 (gyms 6-8)',
+    '9-13': 'K10 (gyms 9-13)',
+    '14-22': 'K9 (gyms 14-22)',
+  };
+  function showGymMap(key) {
+    if (!GYM_MAPS[key]) key = '1-8';
+    const img = gyId('gym-map-img');
+    img.src = `gym/${key}.png`;
+    img.alt = `Gym map: ${GYM_MAPS[key]}`;
+    gyId('gym-map-tabs').querySelectorAll('.tz-tab').forEach(b => b.classList.toggle('active', b.dataset.map === key));
+    try { localStorage.setItem(GYM_MAP_KEY, key); } catch (e) { /* storage unavailable */ }
+  }
+  gyId('gym-map-tabs').addEventListener('click', (e) => {
+    const b = e.target.closest('.tz-tab');
+    if (b) showGymMap(b.dataset.map);
+  });
+  const gymMapZoom = gyId('gym-map-zoom');
+  const closeGymMapZoom = () => { gymMapZoom.hidden = true; document.body.style.overflow = ''; };
+  gyId('gym-map-img').addEventListener('click', () => {
+    const img = gyId('gym-map-img');
+    gyId('gym-map-zoom-img').src = img.src;
+    gyId('gym-map-zoom-img').alt = img.alt;
+    gymMapZoom.hidden = false;
+    gymMapZoom.scrollTo(0, 0);
+    document.body.style.overflow = 'hidden';
+  });
+  gyId('gym-map-close').addEventListener('click', closeGymMapZoom);
+  document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && !gymMapZoom.hidden) closeGymMapZoom(); });
+  let savedGymMap = '1-8';
+  try { savedGymMap = localStorage.getItem(GYM_MAP_KEY) || '1-8'; } catch (e) { /* storage unavailable */ }
+  showGymMap(savedGymMap);
   // --- Reset time zone picker -------------------------------------------
   // Picking a zone whose midnight has already passed today (e.g. it's 08:00
   // in Thailand but the checklist is still on New York's day) asks whether

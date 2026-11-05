@@ -1,10 +1,13 @@
-const CACHE = 'daily-checklist-v196';
+const CACHE = 'daily-checklist-v197';
 const ASSETS = [
   './',
   './index.html',
   './manifest.json',
   './icons/favicon.png',
   './background.jpg',
+  './gym/1-8.png',
+  './gym/9-13.png',
+  './gym/14-22.png',
 ];
 
 self.addEventListener('install', (event) => {
