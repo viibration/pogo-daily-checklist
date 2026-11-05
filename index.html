@@ -107,7 +107,7 @@
   .grp-max { --grp-bg: #44300f; --grp-badge: #583f15; --grp-line: rgba(255, 169, 77, 0.55); --grp-hover: #ffa94d; }
   .grp-league { --grp-bg: #12315a; --grp-badge: #1a4175; --grp-line: rgba(79, 168, 255, 0.55); --grp-hover: #4fa8ff; }
   .grp-trade { --grp-bg: #0f3a36; --grp-badge: #164b46; --grp-line: rgba(79, 216, 216, 0.55); --grp-hover: #4fd8d8; }
-  .grp-coin { --grp-bg: #43390d; --grp-badge: #594a12; --grp-line: rgba(247, 200, 42, 0.55); --grp-hover: #f7c82a; }
+  .grp-coin { --grp-bg: #5a4e05; --grp-badge: #7d6c0a; --grp-line: rgba(255, 210, 63, 0.9); --grp-hover: #ffd23f; }
   .grp-route { --grp-bg: #2c3446; --grp-badge: #394359; --grp-line: rgba(210, 220, 240, 0.55); --grp-hover: #d6dff2; }
 
   .panel-theme-gold { background: #232a3a; border-color: rgba(138, 148, 173, 0.5); }
@@ -1023,9 +1023,10 @@
   .gy-map-tabs .tz-tab { flex: 0 0 auto; padding: 5px 10px; font-size: 12px; }
   .gy-map-tabs .tz-tab.active { background: var(--accent); border-color: var(--accent); color: #06121f; }
   .gy-map-img { display: block; width: 100%; height: auto; margin-top: 10px; border-radius: 10px; border: 1px solid var(--line); cursor: zoom-in; }
-  #gym-map-zoom { position: fixed; inset: 0; z-index: 1000; overflow: auto; background: rgba(0, 0, 0, 0.92); -webkit-overflow-scrolling: touch; }
+  /* The zoomed map sits centred, fitted to about 70% of the screen (see fitGymMapZoom), so the dark margin around it can be tapped to close. */
+  #gym-map-zoom { position: fixed; inset: 0; z-index: 1000; display: flex; align-items: center; justify-content: center; background: rgba(0, 0, 0, 0.8); }
   #gym-map-zoom[hidden] { display: none; }
-  #gym-map-zoom img { display: block; width: max(100%, 1100px); height: auto; }
+  #gym-map-zoom img { display: block; border-radius: 12px; border: 1px solid rgba(255, 255, 255, 0.35); box-shadow: 0 8px 40px rgba(0, 0, 0, 0.6); }
   .gy-map-close { position: fixed; top: 10px; right: 12px; z-index: 1001; width: 40px; height: 40px; border-radius: 50%; border: 1px solid rgba(255, 255, 255, 0.5); background: rgba(20, 28, 48, 0.9); color: #fff; font-size: 26px; line-height: 1; cursor: pointer; }
   .gy-sort { margin-top: 8px; }
   .gy-sort .tz-tab { padding: 3px 11px; font-size: 12px; }
@@ -9472,15 +9473,30 @@
   });
   const gymMapZoom = gyId('gym-map-zoom');
   const closeGymMapZoom = () => { gymMapZoom.hidden = true; document.body.style.overflow = ''; };
+  // Scale the picture, keeping its shape, to fill about 70% of the screen
+  // (92% of the width on narrow phone screens), centred.
+  const zoomImg = gyId('gym-map-zoom-img');
+  function fitGymMapZoom() {
+    if (gymMapZoom.hidden || !zoomImg.naturalWidth) return;
+    const maxW = innerWidth * (innerWidth <= 700 ? 0.92 : 0.7);
+    const maxH = innerHeight * 0.7;
+    const scale = Math.min(maxW / zoomImg.naturalWidth, maxH / zoomImg.naturalHeight);
+    zoomImg.style.width = Math.round(zoomImg.naturalWidth * scale) + 'px';
+    zoomImg.style.height = Math.round(zoomImg.naturalHeight * scale) + 'px';
+  }
+  zoomImg.addEventListener('load', fitGymMapZoom);
+  window.addEventListener('resize', fitGymMapZoom);
   gyId('gym-map-img').addEventListener('click', () => {
     const img = gyId('gym-map-img');
-    gyId('gym-map-zoom-img').src = img.src;
-    gyId('gym-map-zoom-img').alt = img.alt;
+    zoomImg.src = img.src;
+    zoomImg.alt = img.alt;
     gymMapZoom.hidden = false;
-    gymMapZoom.scrollTo(0, 0);
+    fitGymMapZoom();
     document.body.style.overflow = 'hidden';
   });
   gyId('gym-map-close').addEventListener('click', closeGymMapZoom);
+  // Tapping the dark empty space around the map closes it too (tapping the map itself does not).
+  gymMapZoom.addEventListener('click', (e) => { if (e.target === gymMapZoom) closeGymMapZoom(); });
   document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && !gymMapZoom.hidden) closeGymMapZoom(); });
   let savedGymMap = '1-8';
   try { savedGymMap = localStorage.getItem(GYM_MAP_KEY) || '1-8'; } catch (e) { /* storage unavailable */ }
