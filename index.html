@@ -999,6 +999,17 @@
   .gy-grid .tz-tab[hidden] { display: none; }
   #view-gym #gy-grid .tz-tab.active { outline: 2px solid #fff; outline-offset: 1px; }
   #view-gym .gy-tp #gy-grid .tz-tab.active { background: var(--team); border-color: var(--team); color: #1a1200; }
+  .gy-split { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 10px; }
+  .gy-col { --team: var(--line); min-width: 0; padding: 8px 6px; text-align: center; border-radius: 10px; background: linear-gradient(180deg, color-mix(in srgb, var(--team) 16%, transparent), transparent 85%), var(--panel-2); border: 1px solid color-mix(in srgb, var(--team) 55%, var(--line)); }
+  .gy-col.gy-t1 { --team: #ff4d4d; }
+  .gy-col.gy-t2 { --team: #ffd23f; }
+  .gy-col-name { font-size: 14px; font-weight: 800; color: var(--team); }
+  .gy-coins-edit { display: flex; justify-content: center; align-items: baseline; margin: 0 0 2px; font-size: 26px; font-weight: 800; color: var(--team); font-variant-numeric: tabular-nums; }
+  .gy-coins-edit input { width: 2.1ch; box-sizing: content-box; padding: 0 2px; margin: 0; font: inherit; color: inherit; text-align: right; background: transparent; border: 0; border-bottom: 2px dashed color-mix(in srgb, var(--team) 65%, transparent); border-radius: 0; outline: none; }
+  .gy-coins-edit input:focus { border-bottom-style: solid; border-bottom-color: var(--team); }
+  .gy-col .tzc-sub { font-size: 12px; }
+  .gy-col-when { margin-top: 6px; font-size: 13px; font-weight: 700; line-height: 1.3; color: var(--text); }
+  .gy-col .tzc-left { margin-top: 4px; font-size: 15px; }
   .gy-coins-now { margin-bottom: 6px; font-size: 22px; font-weight: 800; text-align: center; color: var(--team, var(--text)); font-variant-numeric: tabular-nums; }
   .gy-teams { margin-top: 8px; }
   /* Team colours match the Party page: Team 1 = Valor red, Team 2 = Instinct yellow. */
@@ -2687,13 +2698,9 @@
       <div class="sx-hint" id="gy-slots"></div>
       <div class="sx-hint">The top grid lists the gyms you haven&rsquo;t visited yet: tap a number to station a Pok&eacute;mon there and record the time, and it moves to the cards below. On the other team&rsquo;s cards the flag takes that gym over: their Pok&eacute;mon is knocked out and its coins are banked for them. Tap a number in the skip row to lock a gym you are skipping, and tap it again to unlock it. Use Edit on a stationed Pok&eacute;mon to move it to another number. Each one earns 1 coin every 10 minutes, up to 50 coins a day, paid out when it comes home. Gyms and power spots share a limit of 20 together, and only gym Pok&eacute;mon count towards coins.</div>
     </div>
-    <div class="panel panel-theme-amber gy-tp">
+    <div class="panel panel-theme-amber">
       <div class="particle-actions-label">Time to 50 coins</div>
-      <div class="tz-tabs gy-teams">
-        <button class="tz-tab" data-team="1" type="button">Team 1</button>
-        <button class="tz-tab" data-team="2" type="button">Team 2</button>
-      </div>
-      <div class="tzc-result" id="gy-result"></div>
+      <div class="gy-split" id="gy-result"></div>
     </div>
     <div class="panel panel-theme-amber gy-tp">
       <div class="particle-actions-label">Stationed Pok&eacute;mon</div>
@@ -2704,7 +2711,7 @@
       <div id="gy-list"></div>
     </div>
     <div class="panel panel-theme-amber">
-      <div class="particle-actions-label">Same moment in your zones</div>
+      <div class="particle-actions-label" id="gy-all-label">Same moment in your zones</div>
       <div id="gy-all"></div>
     </div>
   </div>
@@ -8915,7 +8922,10 @@
   const GY_LOCATIONS = 38; // gym numbers 1..38
   let gyList = [];     // { t: start time (ms), g: gym number } per Pokemon stationed in a gym
   let gyCollected = 0; // coins already paid out by Pokemon that came home
-  let gyTarget = null; // when the 50th coin lands (ms), null if none/reached
+  let gyTargets = { 1: null, 2: null }; // when each team's 50th coin lands (ms), null if none/reached
+  const gyReadSkippedCount = (team) => {
+    try { const a = JSON.parse(localStorage.getItem(gyKey(GY_SKIP_KEY, team))); return Array.isArray(a) ? a.length : 0; } catch (e) { return 0; }
+  };
   let gyEditing = null; // the stationed entry whose gym number is being changed
   let gyPower = 0;     // power spots stationed
   const GY_SKIP_KEY = 'pogo-daily-checklist-gym-skipped';
@@ -8942,7 +8952,7 @@
         let next = 1;
         raw.forEach(x => { if (x.g === null) { while (used.has(next)) next++; x.g = next; used.add(next); } });
         out.list = raw;
-        out.collected = Math.min(GY_COINS, Math.max(0, Number(s.collected) || 0));
+        out.collected = Math.min(GY_COINS, Math.max(-1000, Number(s.collected) || 0)); // negative after a manual coin correction
       }
     } catch (e) { /* storage unavailable */ }
     return out;
@@ -8973,17 +8983,16 @@
     } catch (e) { /* storage unavailable */ }
   }
   const gyCoinsOf = (start, now = Date.now()) => Math.min(GY_COINS, Math.max(0, Math.floor((now - start) / GY_STEP_MS)));
-  const gyTotal = (now = Date.now()) => Math.min(GY_COINS, gyCollected + gyList.reduce((a, e) => a + gyCoinsOf(e.t, now), 0));
   const gySpan = (mins) => `${Math.floor(mins / 60)}h ${String(mins % 60).padStart(2, '0')}m`;
   const gyAgo = (ms) => (ms < 60000 ? 'just now' : `${gySpan(Math.floor(ms / 60000))} ago`);
   const gyCoinText = (n) => `${n} coin${n === 1 ? '' : 's'}`;
   // The moment the running total hits 50: the (50 - banked)th coin to land
   // across every stationed Pokemon.
-  function gyComputeTarget() {
-    const need = GY_COINS - gyCollected;
-    if (need <= 0 || !gyList.length) return null;
+  function gyComputeTarget(list = gyList, collected = gyCollected) {
+    const need = GY_COINS - collected;
+    if (need <= 0 || !list.length) return null;
     const events = [];
-    gyList.forEach(e => { for (let k = 1; k <= need; k++) events.push(e.t + k * GY_STEP_MS); });
+    list.forEach(e => { for (let k = 1; k <= need; k++) events.push(e.t + k * GY_STEP_MS); });
     events.sort((a, b) => a - b);
     return events[need - 1];
   }
@@ -8995,7 +9004,26 @@
   // Both teams' stationed Pokemon are listed together. gyShown[team] is what
   // was last drawn: the live list for the active team, a stored copy for the other.
   let gyShown = { 1: { list: [], collected: 0 }, 2: { list: [], collected: 0 } };
-  const gyTeamTotal = (t, now) => Math.min(GY_COINS, gyShown[t].collected + gyShown[t].list.reduce((a, e) => a + gyCoinsOf(e.t, now), 0));
+  const gyRunning = (list, now) => list.reduce((a, e) => a + gyCoinsOf(e.t, now), 0);
+  const gyTeamTotal = (t, now) => Math.min(GY_COINS, Math.max(0, gyShown[t].collected + gyRunning(gyShown[t].list, now)));
+  // Set a team's current coins to what the game says. The difference goes into
+  // its banked coins (which may be negative: the stationed Pokemon are counted
+  // as still earning, so a corrected lower number offsets them).
+  function gySetCoins(t, value) {
+    const digits = String(value).replace(/[^0-9.]/g, '');
+    const x = Math.floor(Number(digits));
+    if (!digits || !Number.isFinite(x)) { renderGym(); return; } // not a number: put the real value back
+    const want = Math.min(GY_COINS, Math.max(0, x));
+    const now = Date.now();
+    if (t === gyTeam) {
+      gyCollected = want - gyRunning(gyList, now);
+    } else {
+      const s = gyReadStored(t);
+      s.collected = want - gyRunning(s.list, now);
+      try { localStorage.setItem(gyKey(GY_LIST_KEY, t), JSON.stringify({ list: s.list, collected: s.collected })); } catch (e) { /* storage unavailable */ }
+    }
+    renderGym();
+  }
   const gyHeadText = (t, now) => `${gyShown[t].list.length} stationed · ${gyTeamTotal(t, now)}/${GY_COINS} coins`;
   // Runs every second: live coins, "ago" and the countdown.
   function gyTick() {
@@ -9009,14 +9037,16 @@
       });
       const h = gyId('gy-head-' + t);
       if (h) h.textContent = gyHeadText(t, now);
+      // The Time to 50 coins columns, one per team.
+      const sofar = gyId('gy-sofar-' + t);
+      if (sofar && document.activeElement !== sofar) sofar.value = String(gyTeamTotal(t, now));
+      const el = gyId('gy-left-' + t);
+      if (el && gyTargets[t] !== null) {
+        const left = gyTargets[t] - now;
+        el.className = 'tzc-left' + (left <= 0 ? ' past' : '');
+        el.textContent = left <= 0 ? '50 coins reached' : left < 60000 ? 'Less than 1m left' : `${gySpan(Math.floor(left / 60000))} left`;
+      }
     });
-    const sofar = gyId('gy-sofar');
-    if (sofar) sofar.textContent = `Current coins: ${gyTotal(now)}/${GY_COINS}`;
-    const el = gyId('gy-left');
-    if (!el || gyTarget === null) return;
-    const left = gyTarget - now;
-    el.className = 'tzc-left' + (left <= 0 ? ' past' : '');
-    el.textContent = left <= 0 ? '50 coins reached' : left < 60000 ? 'Less than 1m left' : `${gySpan(Math.floor(left / 60000))} left`;
   }
   setInterval(gyTick, 1000);
   // Return: the Pokemon came home, so its coins are banked and it is removed.
@@ -9257,45 +9287,86 @@
     gyId('gy-undo').disabled = !gyHist.some(gyEffective);
     gySave();
     renderGymList();
-    gyTarget = gyComputeTarget();
+    // Time to 50 coins: both teams side by side (Team 1 left, Team 2 right).
     const result = gyId('gy-result');
+    result.innerHTML = '';
+    gyTargets = { 1: null, 2: null };
+    [1, 2].forEach(t => {
+      const s = gyShown[t];
+      const n = s.list.length;
+      const target = gyComputeTarget(s.list, s.collected);
+      gyTargets[t] = target;
+      const skipped = t === gyTeam ? gySkipped.size : gyReadSkippedCount(t);
+      const col = document.createElement('div');
+      col.className = `gy-col gy-t${t}`;
+      const name = document.createElement('div');
+      name.className = 'gy-col-name';
+      name.textContent = `Team ${t}`;
+      const label = document.createElement('div');
+      label.className = 'tzc-sub';
+      label.textContent = 'Current coins';
+      // The coin count is editable: if you were away and a defender fell early,
+      // type the real number and the app corrects itself.
+      const coinsNow = document.createElement('div');
+      coinsNow.className = 'gy-coins-edit';
+      const coinsInput = document.createElement('input');
+      coinsInput.id = 'gy-sofar-' + t;
+      coinsInput.type = 'text';
+      coinsInput.inputMode = 'numeric';
+      coinsInput.autocomplete = 'off';
+      coinsInput.value = String(gyTeamTotal(t, Date.now()));
+      coinsInput.title = 'Tap to correct the coin count';
+      coinsInput.setAttribute('aria-label', `Team ${t} current coins`);
+      coinsInput.addEventListener('focus', () => coinsInput.select());
+      coinsInput.addEventListener('keydown', ev => { if (ev.key === 'Enter') coinsInput.blur(); });
+      coinsInput.addEventListener('change', () => gySetCoins(t, coinsInput.value));
+      const coinsOf = document.createElement('span');
+      coinsOf.textContent = `/${GY_COINS}`;
+      coinsNow.append(coinsInput, coinsOf);
+      const meta = document.createElement('div');
+      meta.className = 'tzc-sub';
+      meta.textContent = `${n} stationed · ${skipped} skipped`;
+      col.append(name, label, coinsNow, meta);
+      const reached = target === null && (n > 0 || s.collected >= GY_COINS);
+      if (!n && !reached) {
+        const none = document.createElement('div');
+        none.className = 'gy-col-when';
+        none.textContent = 'No Pokémon stationed';
+        col.appendChild(none);
+      } else if (reached) {
+        const done = document.createElement('div');
+        done.className = 'gy-col-when';
+        done.textContent = '50 coins reached';
+        col.appendChild(done);
+      } else {
+        const when = document.createElement('div');
+        when.className = 'gy-col-when';
+        when.textContent = tzcParts('Asia/Bangkok', target).text;
+        const left = document.createElement('div');
+        left.id = 'gy-left-' + t;
+        col.append(when, left);
+      }
+      result.appendChild(col);
+    });
+    // "Same moment in your zones" follows the team being viewed.
+    gyId('gy-all-label').textContent = `Same moment in your zones · Team ${gyTeam}`;
     const all = gyId('gy-all');
     all.innerHTML = '';
-    result.innerHTML = '';
-    const n = gyList.length;
-    const skipLine = document.createElement('div');
-    skipLine.className = 'tzc-sub';
-    skipLine.textContent = `${gySkipped.size} gym${gySkipped.size === 1 ? '' : 's'} skipped`;
-    const coinsNow = document.createElement('div');
-    coinsNow.className = 'gy-coins-now';
-    coinsNow.id = 'gy-sofar';
-    coinsNow.textContent = `Current coins: ${gyTotal()}/${GY_COINS}`;
-    if (!n && gyCollected < GY_COINS) {
-      const hint = document.createElement('div');
-      hint.textContent = 'Press Station when you put a Pok\u00e9mon in the current gym.';
-      result.append(coinsNow, hint, skipLine);
-      return;
-    }
-    const reached = gyTarget === null;
-    const small = document.createElement('div');
-    small.className = 'tzc-sub';
-    small.textContent = `${n} gym${n === 1 ? '' : 's'} stationed \u00b7 ${n} coin${n === 1 ? '' : 's'} every 10 min`;
-    const big = document.createElement('div');
-    big.className = 'tzc-big';
-    big.textContent = reached ? '50 coins reached' : tzcParts('Asia/Bangkok', gyTarget).text;
-    const left = document.createElement('div');
-    left.id = 'gy-left';
-    result.append(coinsNow, small, skipLine, big, left);
-    if (reached) { left.className = 'tzc-left past'; left.textContent = 'Already there'; }
-    if (!reached) {
+    const zoneTarget = gyTargets[gyTeam];
+    if (zoneTarget === null) {
+      const none = document.createElement('div');
+      none.className = 'gy-empty';
+      none.textContent = gyShown[gyTeam].list.length || gyShown[gyTeam].collected >= GY_COINS ? '50 coins reached.' : 'Station a Pokémon to see when Team ' + gyTeam + ' reaches 50 coins.';
+      all.appendChild(none);
+    } else {
       timezones.forEach(z => {
         const row = document.createElement('div');
         row.className = 'tzc-row';
         const name = document.createElement('span');
-        name.textContent = `${z.label} (${tzcOffsetLabel(tzcOffsetMin(z.tz, gyTarget))})`;
-        const t = document.createElement('b');
-        t.textContent = tzcParts(z.tz, gyTarget).text;
-        row.append(name, t);
+        name.textContent = `${z.label} (${tzcOffsetLabel(tzcOffsetMin(z.tz, zoneTarget))})`;
+        const tt = document.createElement('b');
+        tt.textContent = tzcParts(z.tz, zoneTarget).text;
+        row.append(name, tt);
         all.appendChild(row);
       });
     }
