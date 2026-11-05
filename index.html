@@ -1718,6 +1718,7 @@
         <button class="tz-tab" data-calc="combat" type="button">Combat Calculator</button>
         <button class="tz-tab" data-calc="showcase" type="button">Showcase Calculator</button>
         <button class="tz-tab" data-calc="candy" type="button">Power Up Calculator</button>
+        <button class="tz-tab" data-calc="gym" type="button">Gym Defending Calculator</button>
       </div>
     </div>
     <div class="panel">
@@ -2501,6 +2502,7 @@
         <button class="tz-tab" data-calc="combat" type="button">Combat Calculator</button>
         <button class="tz-tab" data-calc="showcase" type="button">Showcase Calculator</button>
         <button class="tz-tab" data-calc="candy" type="button">Power Up Calculator</button>
+        <button class="tz-tab" data-calc="gym" type="button">Gym Defending Calculator</button>
       </div>
     </div>
 
@@ -2560,6 +2562,42 @@
     </div>
   </div>
 
+  <div id="view-gym" hidden>
+    <div class="panel">
+      <div class="app-tabs">
+        <button class="app-tab" data-tab="dashboard" type="button">Daily Checklist</button>
+        <button class="app-tab" data-tab="particles" type="button">Max Particle</button>
+        <button class="app-tab" data-tab="party" type="button">Party</button>
+        <button class="app-tab active" data-tab="calculator" type="button">Calculator</button>
+        <button class="app-tab" data-tab="tracker" type="button">Tracker</button>
+        <button class="app-tab" data-tab="misc" type="button">Misc</button>
+      </div>
+      <div class="tz-tabs calc-select" style="margin-top: 10px;">
+        <button class="tz-tab" data-calc="combat" type="button">Combat Calculator</button>
+        <button class="tz-tab" data-calc="showcase" type="button">Showcase Calculator</button>
+        <button class="tz-tab" data-calc="candy" type="button">Power Up Calculator</button>
+        <button class="tz-tab active" data-calc="gym" type="button">Gym Defending Calculator</button>
+      </div>
+    </div>
+    <div class="panel panel-theme-amber">
+      <div class="particle-actions-label">Gym Defending Calculator</div>
+      <label class="tb-field"><span class="candy-level-label">Gyms stationed</span><input class="particle-manual-input" id="gy-count" type="number" inputmode="numeric" min="1" placeholder="e.g. 8"></label>
+      <div class="sx-range-label">Already defending for (optional)</div>
+      <div class="tzr-times">
+        <label class="tb-field"><span class="candy-level-label">Hours</span><input class="particle-manual-input" id="gy-h" type="number" inputmode="numeric" min="0" placeholder="0"></label>
+        <label class="tb-field"><span class="candy-level-label">Minutes</span><input class="particle-manual-input" id="gy-m" type="number" inputmode="numeric" min="0" placeholder="0"></label>
+      </div>
+      <div class="sx-hint">Each stationed Pok&eacute;mon earns 1 coin every 10 minutes, up to 50 coins a day. Coins are paid out when the Pok&eacute;mon comes home.</div>
+    </div>
+    <div class="panel panel-theme-amber">
+      <div class="particle-actions-label">Time to 50 coins</div>
+      <div class="tzc-result" id="gy-result"></div>
+    </div>
+    <div class="panel panel-theme-amber">
+      <div class="particle-actions-label">Same moment in your zones</div>
+      <div id="gy-all"></div>
+    </div>
+  </div>
   <div id="view-showcase" hidden>
     <div class="panel">
       <div class="app-tabs">
@@ -2574,6 +2612,7 @@
         <button class="tz-tab" data-calc="combat" type="button">Combat Calculator</button>
         <button class="tz-tab" data-calc="showcase" type="button">Showcase Calculator</button>
         <button class="tz-tab" data-calc="candy" type="button">Power Up Calculator</button>
+        <button class="tz-tab" data-calc="gym" type="button">Gym Defending Calculator</button>
       </div>
     </div>
 
@@ -2978,6 +3017,7 @@
   const viewDiscord = document.getElementById('view-discord');
   const viewIvNickname = document.getElementById('view-iv-nickname');
   const viewValueFinder = document.getElementById('view-value-finder');
+  const viewGym = document.getElementById('view-gym');
   const viewCombat = document.getElementById('view-combat');
   const customTaskBackdrop = document.getElementById('custom-task-modal-backdrop');
   const customTaskCloseBtn = document.getElementById('custom-task-modal-close');
@@ -4440,7 +4480,7 @@
   const TRACKER_TABS = ['pokemon-tracker', 'mega-tracker', 'shadow-tracker', 'candy-tracker'];
   let currentTracker = 'pokemon-tracker';
   // Same idea for the three calculators under one "Calculator" tab.
-  const CALC_TABS = ['combat', 'showcase', 'candy'];
+  const CALC_TABS = ['combat', 'showcase', 'candy', 'gym'];
   let currentCalc = 'combat';
   // Misc groups seven pages; it always lands on the Time Zone converter.
   const MISC_TABS = ['timezone', 'search-term', 'pokedex', 'trade-balancer', 'discord', 'iv-nickname', 'value-finder'];
@@ -4471,6 +4511,7 @@
     viewDiscord.hidden = tab !== 'discord';
     viewIvNickname.hidden = tab !== 'iv-nickname';
     viewValueFinder.hidden = tab !== 'value-finder';
+    viewGym.hidden = tab !== 'gym';
     document.querySelectorAll('.party-select .tz-tab').forEach(btn => {
       btn.classList.toggle('active', btn.dataset.party === tab);
     });
@@ -4496,6 +4537,7 @@
     else if (tab === 'party') renderParty();
     else if (tab === 'raid') renderRaid();
     else if (tab === 'timezone') renderTzConverter();
+    else if (tab === 'gym') renderGym();
   }
 
   document.querySelectorAll('.app-tab').forEach(btn => {
@@ -4533,6 +4575,7 @@
     if (!viewDiscord.hidden) return 'discord';
     if (!viewIvNickname.hidden) return 'iv-nickname';
     if (!viewValueFinder.hidden) return 'value-finder';
+    if (!viewGym.hidden) return 'gym';
     return null;
   }
 
@@ -8747,6 +8790,73 @@
 
   renderDashboard();
 
+  // --- Gym Defending Calculator ---------------------------------------
+  // Every stationed Pokemon earns 1 coin per 10 minutes, capped at 50 coins
+  // a day, so N gyms need 10 * ceil(50 / N) minutes in total.
+  const GY_KEY = 'pogo-daily-checklist-gym-count';
+  const GY_COINS = 50;
+  const GY_STEP_MIN = 10;
+  const gyId = (id) => document.getElementById(id);
+  let gyTarget = null;
+  const gySpan = (mins) => `${Math.floor(mins / 60)}h ${String(mins % 60).padStart(2, '0')}m`;
+  function gyTick() {
+    const el = gyId('gy-left');
+    if (!el || gyTarget === null) return;
+    const left = gyTarget - Date.now();
+    el.className = 'tzc-left' + (left <= 0 ? ' past' : '');
+    el.textContent = left <= 0 ? '50 coins reached' : left < 60000 ? 'Less than 1m left' : `${gySpan(Math.floor(left / 60000))} left`;
+  }
+  setInterval(gyTick, 1000);
+  function renderGym() {
+    const n = parseInt(gyId('gy-count').value, 10);
+    const result = gyId('gy-result');
+    const all = gyId('gy-all');
+    try { localStorage.setItem(GY_KEY, gyId('gy-count').value); } catch (e) { /* storage unavailable */ }
+    if (!(n >= 1)) {
+      gyTarget = null;
+      result.textContent = 'Enter how many gyms you have stationed.';
+      all.textContent = '';
+      return;
+    }
+    const elapsed = Math.max(0, parseInt(gyId('gy-h').value, 10) || 0) * 60 + Math.max(0, parseInt(gyId('gy-m').value, 10) || 0);
+    const ticks = Math.ceil(GY_COINS / n);
+    const needMin = ticks * GY_STEP_MIN;
+    const coinsNow = Math.min(GY_COINS, n * Math.floor(elapsed / GY_STEP_MIN));
+    const leftMin = Math.max(0, needMin - elapsed);
+    const ms = Date.now() + leftMin * 60000;
+    const earned = n * ticks;
+    result.innerHTML = '';
+    const small = document.createElement('div');
+    small.className = 'tzc-sub';
+    small.textContent = `${n} gym${n === 1 ? '' : 's'} \u00b7 ${n} coin${n === 1 ? '' : 's'} every ${GY_STEP_MIN} min \u00b7 ${gySpan(needMin)} in total`;
+    const big = document.createElement('div');
+    big.className = 'tzc-big';
+    big.textContent = leftMin ? tzcParts('Asia/Bangkok', ms).text : '50 coins reached';
+    const sub = document.createElement('div');
+    sub.className = 'tzc-sub';
+    sub.textContent = `${coinsNow}/${GY_COINS} coins so far${earned > GY_COINS ? ` \u00b7 ${earned} earned, capped at ${GY_COINS}` : ''}`;
+    const left = document.createElement('div');
+    left.id = 'gy-left';
+    result.append(small, big, sub, left);
+    gyTarget = leftMin ? ms : null;
+    if (leftMin) gyTick();
+    else { left.className = 'tzc-left past'; left.textContent = 'Already there'; }
+    all.innerHTML = '';
+    if (!leftMin) return;
+    timezones.forEach(z => {
+      const row = document.createElement('div');
+      row.className = 'tzc-row';
+      const name = document.createElement('span');
+      name.textContent = `${z.label} (${tzcOffsetLabel(tzcOffsetMin(z.tz, ms))})`;
+      const t = document.createElement('b');
+      t.textContent = tzcParts(z.tz, ms).text;
+      row.append(name, t);
+      all.appendChild(row);
+    });
+  }
+  try { gyId('gy-count').value = localStorage.getItem(GY_KEY) || ''; } catch (e) { /* storage unavailable */ }
+  ['gy-count', 'gy-h', 'gy-m'].forEach(id => gyId(id).addEventListener('input', renderGym));
+  renderGym();
   // --- Reset time zone picker -------------------------------------------
   // Picking a zone whose midnight has already passed today (e.g. it's 08:00
   // in Thailand but the checklist is still on New York's day) asks whether
