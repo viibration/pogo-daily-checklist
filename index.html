@@ -988,6 +988,18 @@
   .panel-theme-amber #gy-unlock-all:hover:not(:disabled) { border-color: #ff6b5b; }
   #gy-skip-label { margin-top: 14px; }
   #gy-unlock-all { margin-top: 10px; }
+  #gy-cancel-edit { margin-top: 10px; }
+  .gy-current { margin-top: 12px; text-align: center; font-size: 15px; font-weight: 700; color: var(--text-dim); }
+  .gy-current b { display: block; font-size: 52px; line-height: 1.1; color: #ffa94d; font-variant-numeric: tabular-nums; }
+  .gy-current.done b { font-size: 26px; }
+  .gy-progress { margin-top: 4px; text-align: center; font-size: 12px; color: var(--text-faint); }
+  .gy-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 12px; }
+  .gy-actions .check-all-btn { margin: 0; padding: 14px 0; font-size: 18px; font-weight: 800; }
+  .gy-actions-small { margin-top: 8px; }
+  .gy-actions-small .tz-tab { padding: 7px 8px; font-size: 12px; border-radius: 10px; }
+  .gy-actions-small .tz-tab:disabled { opacity: 0.4; cursor: default; }
+  .panel-theme-amber .gy-actions .gy-skip-btn { background: #3a1c1c; color: #ff8f84; border-color: rgba(229, 96, 79, 0.55); }
+  .panel-theme-amber .gy-actions .gy-skip-btn:hover:not(:disabled) { border-color: #ff6b5b; }
   .gy-row { display: flex; align-items: center; gap: 10px; padding: 10px 0; border-top: 1px solid var(--line); }
   .gy-row:first-child { border-top: none; padding-top: 0; }
   .gy-row-main { flex: 1; min-width: 0; }
@@ -2630,14 +2642,28 @@
           </div>
         </div>
       </div>
-      <div class="sx-range-label" id="gy-pick-label">Tap a gym number to station a Pok&eacute;mon there</div>
-      <div class="gy-grid" id="gy-grid"></div>
-      <button class="check-all-btn" id="gy-cancel-edit" type="button" hidden>Cancel change</button>
-      <div class="sx-range-label" id="gy-skip-label">Skipped gyms: tap to skip, tap again to unlock</div>
-      <div class="gy-grid gy-skip" id="gy-skip-grid"></div>
-      <button class="check-all-btn" id="gy-unlock-all" type="button">Unlock all</button>
+      <div class="gy-current" id="gy-current"><span id="gy-cur-label">Current Gym:</span> <b id="gy-cur-num">1</b></div>
+      <div class="gy-progress" id="gy-progress"></div>
+      <div class="gy-actions">
+        <button class="check-all-btn" id="gy-do-station" type="button">Station</button>
+        <button class="check-all-btn gy-skip-btn" id="gy-do-skip" type="button">Skip</button>
+      </div>
+      <div class="gy-actions gy-actions-small">
+        <button class="tz-tab" id="gy-undo" type="button">Undo last</button>
+        <button class="tz-tab" id="gy-restart" type="button">Restart from Gym 1</button>
+      </div>
+      <div id="gy-edit-area" hidden>
+        <div class="sx-range-label" id="gy-pick-label"></div>
+        <div class="gy-grid" id="gy-grid"></div>
+        <button class="check-all-btn" id="gy-cancel-edit" type="button">Cancel change</button>
+      </div>
+      <div id="gy-skip-area" hidden>
+        <div class="sx-range-label" id="gy-skip-label"></div>
+        <div class="gy-grid gy-skip" id="gy-skip-grid"></div>
+        <button class="check-all-btn" id="gy-unlock-all" type="button">Unlock all</button>
+      </div>
       <div class="sx-hint" id="gy-slots"></div>
-      <div class="sx-hint">Tapping a gym number stations a Pok&eacute;mon there and records the time. Gyms already in use are greyed out; use Edit on a stationed Pok&eacute;mon to move it to another number. Each one earns 1 coin every 10 minutes, up to 50 coins a day, paid out when it comes home. Gyms and power spots share a limit of 20 together, and only gym Pok&eacute;mon count towards coins.</div>
+      <div class="sx-hint">Go through the gyms in order: Station puts a Pok&eacute;mon in the current gym and records the time, Skip passes it by, and the route moves on to the next gym until Gym 38. Use Edit on a stationed Pok&eacute;mon to move it to another number. Each one earns 1 coin every 10 minutes, up to 50 coins a day, paid out when it comes home. Gyms and power spots share a limit of 20 together, and only gym Pok&eacute;mon count towards coins.</div>
     </div>
     <div class="panel panel-theme-amber">
       <div class="particle-actions-label">Time to 50 coins</div>
@@ -8865,7 +8891,10 @@
   let gyEditing = null; // the stationed entry whose gym number is being changed
   let gyPower = 0;     // power spots stationed
   const GY_SKIP_KEY = 'pogo-daily-checklist-gym-skipped';
-  let gySkipped = new Set(); // gym numbers locked as skipped (cannot be stationed)
+  let gySkipped = new Set(); // gym numbers skipped on this run (cannot be moved to)
+  const GY_ROUTE_KEY = 'pogo-daily-checklist-gym-route';
+  let gyCur = 1;      // gym the route is at (39 = finished)
+  let gyHist = [];    // { a: 's' station | 'k' skip, g } for Undo
   try {
     const s = JSON.parse(localStorage.getItem(GY_LIST_KEY));
     if (s && Array.isArray(s.list)) {
@@ -8884,12 +8913,16 @@
       const inUse = new Set(gyList.map(e => e.g));
       gySkipped = new Set(sk.filter(n => Number.isInteger(n) && n >= 1 && n <= GY_LOCATIONS && !inUse.has(n)));
     }
+    const rt = JSON.parse(localStorage.getItem(GY_ROUTE_KEY));
+    if (rt && Number.isInteger(rt.cur) && rt.cur >= 1 && rt.cur <= GY_LOCATIONS + 1) gyCur = rt.cur;
+    if (rt && Array.isArray(rt.hist)) gyHist = rt.hist.filter(h => h && (h.a === 's' || h.a === 'k') && Number.isInteger(h.g)).slice(-GY_LOCATIONS);
   } catch (e) { /* storage unavailable */ }
   function gySave() {
     try {
       localStorage.setItem(GY_LIST_KEY, JSON.stringify({ list: gyList, collected: gyCollected }));
       localStorage.setItem(GY_POWER_KEY, String(gyPower));
       localStorage.setItem(GY_SKIP_KEY, JSON.stringify([...gySkipped].sort((a, b) => a - b)));
+      localStorage.setItem(GY_ROUTE_KEY, JSON.stringify({ cur: gyCur, hist: gyHist }));
     } catch (e) { /* storage unavailable */ }
   }
   const gyCoinsOf = (start, now = Date.now()) => Math.min(GY_COINS, Math.max(0, Math.floor((now - start) / GY_STEP_MS)));
@@ -8931,7 +8964,7 @@
     if (!gyList.length) {
       const empty = document.createElement('div');
       empty.className = 'gy-empty';
-      empty.textContent = 'No Pok\u00e9mon stationed yet. Tap a gym number below to add one.';
+      empty.textContent = 'No Pok\u00e9mon stationed yet. Press Station to add one.';
       list.appendChild(empty);
     }
     gyList.forEach((e, i) => {
@@ -8978,53 +9011,84 @@
     });
     gyId('gy-collected').textContent = gyCollected ? `${gyCoinText(gyCollected)} already banked from Pok\u00e9mon that came home.` : '';
   }
-  // The 1-38 gym picker. Tapping a free number stations a Pokemon there right
-  // away; while a row is being edited, tapping moves that Pokemon instead.
-  // Taken numbers are greyed out.
-  function gyPick(n) {
-    if (gyEditing) {
-      if (n !== gyEditing.g && !gyList.some(e => e.g === n) && !gySkipped.has(n)) gyEditing.g = n;
-      gyEditing = null;
-    } else {
-      if (gyList.length + gyPower >= GY_MAX || gyList.some(e => e.g === n) || gySkipped.has(n)) return;
-      gyList.push({ t: Date.now(), g: n });
-    }
+  // The route: the app walks through the gyms 1..38 in order. Station puts a
+  // Pokemon in the current gym, Skip passes it by; both move on to the next.
+  const gyTaken = () => new Set(gyList.map(e => e.g));
+  function gyAdvance(from) {
+    const taken = gyTaken();
+    let n = from;
+    while (n <= GY_LOCATIONS && taken.has(n)) n++;
+    gyCur = n;
+  }
+  function gyStation() {
+    if (gyCur > GY_LOCATIONS || gyList.length + gyPower >= GY_MAX) return;
+    gyList.push({ t: Date.now(), g: gyCur });
+    gyHist.push({ a: 's', g: gyCur });
+    gyAdvance(gyCur + 1);
     renderGym();
   }
-  // The second 1-38 grid: lock gyms you are skipping so they can't be picked
-  // above. Tap a locked number again (or Unlock all) to free it.
-  function renderGySkip(taken) {
-    const grid = gyId('gy-skip-grid');
-    if (!grid.children.length) {
-      for (let n = 1; n <= GY_LOCATIONS; n++) {
-        const b = document.createElement('button');
-        b.className = 'tz-tab';
-        b.type = 'button';
-        b.dataset.g = String(n);
-        b.textContent = String(n);
-        b.addEventListener('click', () => {
-          if (gySkipped.has(n)) gySkipped.delete(n);
-          else if (!gyList.some(e => e.g === n)) gySkipped.add(n);
-          renderGym();
-        });
-        grid.appendChild(b);
-      }
-    }
-    Array.from(grid.children).forEach(b => {
-      const n = Number(b.dataset.g);
-      const on = gySkipped.has(n);
-      b.disabled = !on && taken.has(n);
-      b.classList.toggle('active', on);
-      b.setAttribute('aria-pressed', on ? 'true' : 'false');
-      b.title = on ? `Gym ${n} is skipped: tap to unlock` : taken.has(n) ? `Gym ${n} has a Pokémon stationed` : `Skip gym ${n}`;
-    });
-    gyId('gy-skip-label').textContent = gySkipped.size ? `Skipped gyms (${gySkipped.size}): tap a number to unlock it` : 'Skipped gyms: tap to skip, tap again to unlock';
-    gyId('gy-unlock-all').disabled = !gySkipped.size;
+  function gySkip() {
+    if (gyCur > GY_LOCATIONS) return;
+    gySkipped.add(gyCur);
+    gyHist.push({ a: 'k', g: gyCur });
+    gyAdvance(gyCur + 1);
+    renderGym();
   }
-  function renderGyGrid(full) {
+  function gyUndo() {
+    const h = gyHist.pop();
+    if (!h) return;
+    if (h.a === 's') { const i = gyList.findIndex(e => e.g === h.g); if (i >= 0) gyList.splice(i, 1); }
+    else gySkipped.delete(h.g);
+    gyCur = h.g;
+    renderGym();
+  }
+  function gyRestart() {
+    gyCur = 1;
+    gyHist = [];
+    gySkipped.clear();
+    gyEditing = null;
+    renderGym();
+  }
+  function renderGyRoute(full) {
+    const done = gyCur > GY_LOCATIONS;
+    gyId('gy-current').classList.toggle('done', done);
+    gyId('gy-cur-label').textContent = done ? 'Route finished:' : 'Current Gym:';
+    gyId('gy-cur-num').textContent = done ? 'All 38 gyms' : String(gyCur);
+    gyId('gy-progress').textContent = `${done ? GY_LOCATIONS : gyCur} of ${GY_LOCATIONS} · ${gyList.length} stationed · ${gySkipped.size} skipped`;
+    const st = gyId('gy-do-station');
+    st.disabled = done || full;
+    st.textContent = !done && full ? `Full (${GY_MAX})` : 'Station';
+    gyId('gy-do-skip').disabled = done;
+    gyId('gy-undo').disabled = !gyHist.length;
+    gyId('gy-restart').disabled = !(gyHist.length || gyCur > 1 || gySkipped.size);
+  }
+  // Skipped gyms show as red chips; tap one to unlock it (Unlock all clears them).
+  function renderGySkip() {
+    const grid = gyId('gy-skip-grid');
+    grid.innerHTML = '';
+    [...gySkipped].sort((a, b) => a - b).forEach(n => {
+      const b = document.createElement('button');
+      b.className = 'tz-tab active';
+      b.type = 'button';
+      b.textContent = String(n);
+      b.title = `Gym ${n} is skipped: tap to unlock`;
+      b.addEventListener('click', () => { gySkipped.delete(n); renderGym(); });
+      grid.appendChild(b);
+    });
+    gyId('gy-skip-area').hidden = !gySkipped.size;
+    gyId('gy-skip-label').textContent = `Skipped gyms (${gySkipped.size}): tap a number to unlock it`;
+  }
+  // The 1-38 picker only appears while Edit is active on a stationed Pokemon.
+  function gyPick(n) {
+    if (gyEditing && n !== gyEditing.g && !gyList.some(e => e.g === n) && !gySkipped.has(n)) gyEditing.g = n;
+    gyEditing = null;
+    renderGym();
+  }
+  function renderGyGrid() {
     const grid = gyId('gy-grid');
     if (gyEditing && !gyList.includes(gyEditing)) gyEditing = null;
-    const taken = new Set(gyList.map(e => e.g));
+    gyId('gy-edit-area').hidden = !gyEditing;
+    const taken = gyTaken();
     if (!grid.children.length) {
       for (let n = 1; n <= GY_LOCATIONS; n++) {
         const b = document.createElement('button');
@@ -9039,16 +9103,12 @@
     Array.from(grid.children).forEach(b => {
       const n = Number(b.dataset.g);
       const own = gyEditing && gyEditing.g === n; // clicking it again cancels the change
-      b.disabled = !own && (taken.has(n) || gySkipped.has(n) || (!gyEditing && full));
+      b.disabled = !own && (taken.has(n) || gySkipped.has(n));
       b.classList.toggle('active', !!own);
       b.setAttribute('aria-pressed', own ? 'true' : 'false');
-      b.title = own ? 'Current gym: tap to keep it' : gySkipped.has(n) ? `Gym ${n} is skipped` : taken.has(n) ? `Gym ${n} already has a Pok\u00e9mon stationed` : `Gym ${n}`;
+      b.title = own ? 'Current gym: tap to keep it' : gySkipped.has(n) ? `Gym ${n} is skipped` : taken.has(n) ? `Gym ${n} already has a Pokémon stationed` : `Gym ${n}`;
     });
-    renderGySkip(taken);
-    gyId('gy-pick-label').textContent = gyEditing
-      ? `Changing Gym ${gyEditing.g}: tap its new number`
-      : full ? `All ${GY_MAX} slots used` : 'Tap a gym number to station a Pok\u00e9mon there';
-    gyId('gy-cancel-edit').hidden = !gyEditing;
+    gyId('gy-pick-label').textContent = gyEditing ? `Changing Gym ${gyEditing.g}: tap its new number` : '';
   }
   function renderGym() {
     // Gyms + power spots may not go over 20: the power spot count gives way.
@@ -9060,7 +9120,10 @@
     gyId('gy-power-plus').disabled = full;
     gyId('gy-count').value = String(gyList.length);
     gyId('gy-slots').textContent = `${gyList.length + pw} of ${GY_MAX} slots used (${GY_MAX - gyList.length - pw} free)`;
-    renderGyGrid(full);
+    gyAdvance(gyCur); // skip gyms that already hold a Pokemon (e.g. after Edit)
+    renderGyRoute(full);
+    renderGyGrid();
+    renderGySkip();
     gySave();
     renderGymList();
     gyTarget = gyComputeTarget();
@@ -9074,7 +9137,7 @@
     skipLine.textContent = `${gySkipped.size} gym${gySkipped.size === 1 ? '' : 's'} skipped`;
     if (!n && gyCollected < GY_COINS) {
       const hint = document.createElement('div');
-      hint.textContent = 'Tap a gym number when you put a Pok\u00e9mon in that gym.';
+      hint.textContent = 'Press Station when you put a Pok\u00e9mon in the current gym.';
       result.append(hint, skipLine);
       return;
     }
@@ -9110,6 +9173,10 @@
   gyId('gy-power-plus').addEventListener('click', () => { gyPower += 1; renderGym(); });
   gyId('gy-cancel-edit').addEventListener('click', () => { gyEditing = null; renderGym(); });
   gyId('gy-unlock-all').addEventListener('click', () => { gySkipped.clear(); renderGym(); });
+  gyId('gy-do-station').addEventListener('click', gyStation);
+  gyId('gy-do-skip').addEventListener('click', gySkip);
+  gyId('gy-undo').addEventListener('click', gyUndo);
+  gyId('gy-restart').addEventListener('click', gyRestart);
   gyId('gy-reset').addEventListener('click', () => {
     gyEditing = null;
     gyList = [];
