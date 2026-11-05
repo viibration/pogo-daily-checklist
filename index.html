@@ -2623,11 +2623,11 @@
           </div>
         </div>
       </div>
-      <div class="sx-range-label">Pick the gym (1&ndash;38)</div>
+      <div class="sx-range-label" id="gy-pick-label">Tap a gym number to station a Pok&eacute;mon there</div>
       <div class="gy-grid" id="gy-grid"></div>
-      <button class="check-all-btn" id="gy-station" type="button">Pick a gym first</button>
+      <button class="check-all-btn" id="gy-cancel-edit" type="button" hidden>Cancel change</button>
       <div class="sx-hint" id="gy-slots"></div>
-      <div class="sx-hint">Pick the gym number, then press Stationed; it records the time. Gyms already in use are greyed out. Each one earns 1 coin every 10 minutes, up to 50 coins a day, paid out when it comes home. Gyms and power spots share a limit of 20 together, and only gym Pok&eacute;mon count towards coins.</div>
+      <div class="sx-hint">Tapping a gym number stations a Pok&eacute;mon there and records the time. Gyms already in use are greyed out; use Edit on a stationed Pok&eacute;mon to move it to another number. Each one earns 1 coin every 10 minutes, up to 50 coins a day, paid out when it comes home. Gyms and power spots share a limit of 20 together, and only gym Pok&eacute;mon count towards coins.</div>
     </div>
     <div class="panel panel-theme-amber">
       <div class="particle-actions-label">Time to 50 coins</div>
@@ -8852,7 +8852,7 @@
   let gyList = [];     // { t: start time (ms), g: gym number } per Pokemon stationed in a gym
   let gyCollected = 0; // coins already paid out by Pokemon that came home
   let gyTarget = null; // when the 50th coin lands (ms), null if none/reached
-  let gySelected = null; // gym number picked in the grid, waiting for Stationed
+  let gyEditing = null; // the stationed entry whose gym number is being changed
   let gyPower = 0;     // power spots stationed
   try {
     const s = JSON.parse(localStorage.getItem(GY_LIST_KEY));
@@ -8913,7 +8913,7 @@
     if (!gyList.length) {
       const empty = document.createElement('div');
       empty.className = 'gy-empty';
-      empty.textContent = 'No Pok\u00e9mon stationed yet. Press Stationed to add one.';
+      empty.textContent = 'No Pok\u00e9mon stationed yet. Tap a gym number below to add one.';
       list.appendChild(empty);
     }
     gyList.forEach((e, i) => {
@@ -8945,16 +8945,38 @@
         gyList.splice(i, 1);
         renderGym();
       });
-      row.append(main, coins, back);
+      const edit = document.createElement('button');
+      edit.className = 'tz-tab' + (gyEditing === e ? ' active' : '');
+      edit.type = 'button';
+      edit.textContent = 'Edit';
+      edit.title = 'Move this Pokémon to another gym number';
+      edit.addEventListener('click', () => {
+        gyEditing = gyEditing === e ? null : e;
+        renderGym();
+        if (gyEditing) gyId('gy-grid').scrollIntoView({ block: 'center', behavior: 'smooth' });
+      });
+      row.append(main, coins, edit, back);
       list.appendChild(row);
     });
     gyId('gy-collected').textContent = gyCollected ? `${gyCoinText(gyCollected)} already banked from Pok\u00e9mon that came home.` : '';
   }
-  // The 1-38 gym picker: taken numbers are greyed out, the chosen one lights up.
-  function renderGyGrid() {
+  // The 1-38 gym picker. Tapping a free number stations a Pokemon there right
+  // away; while a row is being edited, tapping moves that Pokemon instead.
+  // Taken numbers are greyed out.
+  function gyPick(n) {
+    if (gyEditing) {
+      if (n !== gyEditing.g && !gyList.some(e => e.g === n)) gyEditing.g = n;
+      gyEditing = null;
+    } else {
+      if (gyList.length + gyPower >= GY_MAX || gyList.some(e => e.g === n)) return;
+      gyList.push({ t: Date.now(), g: n });
+    }
+    renderGym();
+  }
+  function renderGyGrid(full) {
     const grid = gyId('gy-grid');
+    if (gyEditing && !gyList.includes(gyEditing)) gyEditing = null;
     const taken = new Set(gyList.map(e => e.g));
-    if (taken.has(gySelected)) gySelected = null;
     if (!grid.children.length) {
       for (let n = 1; n <= GY_LOCATIONS; n++) {
         const b = document.createElement('button');
@@ -8962,17 +8984,22 @@
         b.type = 'button';
         b.dataset.g = String(n);
         b.textContent = String(n);
-        b.addEventListener('click', () => { gySelected = gySelected === n ? null : n; renderGym(); });
+        b.addEventListener('click', () => gyPick(n));
         grid.appendChild(b);
       }
     }
     Array.from(grid.children).forEach(b => {
       const n = Number(b.dataset.g);
-      b.disabled = taken.has(n);
-      b.classList.toggle('active', n === gySelected);
-      b.setAttribute('aria-pressed', n === gySelected ? 'true' : 'false');
-      b.title = taken.has(n) ? `Gym ${n} already has a Pok\u00e9mon stationed` : `Gym ${n}`;
+      const own = gyEditing && gyEditing.g === n; // clicking it again cancels the change
+      b.disabled = !own && (taken.has(n) || (!gyEditing && full));
+      b.classList.toggle('active', !!own);
+      b.setAttribute('aria-pressed', own ? 'true' : 'false');
+      b.title = own ? 'Current gym: tap to keep it' : taken.has(n) ? `Gym ${n} already has a Pok\u00e9mon stationed` : `Gym ${n}`;
     });
+    gyId('gy-pick-label').textContent = gyEditing
+      ? `Changing Gym ${gyEditing.g}: tap its new number`
+      : full ? `All ${GY_MAX} slots used` : 'Tap a gym number to station a Pok\u00e9mon there';
+    gyId('gy-cancel-edit').hidden = !gyEditing;
   }
   function renderGym() {
     // Gyms + power spots may not go over 20: the power spot count gives way.
@@ -8984,10 +9011,7 @@
     gyId('gy-power-plus').disabled = full;
     gyId('gy-count').value = String(gyList.length);
     gyId('gy-slots').textContent = `${gyList.length + pw} of ${GY_MAX} slots used (${GY_MAX - gyList.length - pw} free)`;
-    renderGyGrid();
-    const st = gyId('gy-station');
-    st.disabled = full || gySelected === null;
-    st.textContent = full ? `All ${GY_MAX} slots used` : gySelected === null ? 'Pick a gym first' : `Stationed at Gym ${gySelected}`;
+    renderGyGrid(full);
     gySave();
     renderGymList();
     gyTarget = gyComputeTarget();
@@ -8997,7 +9021,7 @@
     result.innerHTML = '';
     const n = gyList.length;
     if (!n && gyCollected < GY_COINS) {
-      result.textContent = 'Press Stationed when you put a Pok\u00e9mon in a gym.';
+      result.textContent = 'Tap a gym number when you put a Pok\u00e9mon in that gym.';
       return;
     }
     const reached = gyTarget === null;
@@ -9030,13 +9054,9 @@
   }
   gyId('gy-power-minus').addEventListener('click', () => { gyPower = Math.max(0, gyPower - 1); renderGym(); });
   gyId('gy-power-plus').addEventListener('click', () => { gyPower += 1; renderGym(); });
-  gyId('gy-station').addEventListener('click', () => {
-    if (gySelected === null || gyList.length + gyPower >= GY_MAX || gyList.some(e => e.g === gySelected)) return;
-    gyList.push({ t: Date.now(), g: gySelected });
-    gySelected = null;
-    renderGym();
-  });
+  gyId('gy-cancel-edit').addEventListener('click', () => { gyEditing = null; renderGym(); });
   gyId('gy-reset').addEventListener('click', () => {
+    gyEditing = null;
     gyList = [];
     gyCollected = 0;
     renderGym();
