@@ -981,11 +981,43 @@
   .gy-grid .tz-tab { padding: 8px 0; font-size: 14px; border-radius: 10px; font-variant-numeric: tabular-nums; }
   .gy-grid .tz-tab:disabled { opacity: 0.3; cursor: default; text-decoration: line-through; }
   .panel-theme-amber .gy-grid .tz-tab.active { background: #ffa94d; border-color: #ffa94d; color: #2c1a00; }
-  .panel-theme-amber .gy-skip .tz-tab { background: #3a1c1c; border-color: rgba(229, 96, 79, 0.55); color: #ff8f84; }
-  .panel-theme-amber .gy-skip .tz-tab:hover:not(:disabled) { border-color: #ff6b5b; }
-  .panel-theme-amber .gy-skip .tz-tab.active { background: #d63a2b; border-color: #ff6b5b; color: #fff; text-decoration: line-through; }
-  .panel-theme-amber #gy-unlock-all { background: #3a1c1c; color: #ff8f84; border-color: rgba(229, 96, 79, 0.55); }
-  .panel-theme-amber #gy-unlock-all:hover:not(:disabled) { border-color: #ff6b5b; }
+  /* Skipped gyms are grey (red is Team 1's colour). */
+  .panel-theme-amber .gy-skip .tz-tab { background: #2b2f3a; border-color: rgba(160, 168, 184, 0.5); color: #b4bccb; }
+  .panel-theme-amber .gy-skip .tz-tab:hover:not(:disabled) { border-color: #c9d0dc; }
+  .panel-theme-amber .gy-skip .tz-tab.active { background: #6b7385; border-color: #9aa3b5; color: #fff; text-decoration: line-through; }
+  .panel-theme-amber #gy-unlock-all { background: #2b2f3a; color: #b4bccb; border-color: rgba(160, 168, 184, 0.5); }
+  .panel-theme-amber #gy-unlock-all:hover:not(:disabled) { border-color: #c9d0dc; }
+  /* Gym Defender, Time to 50 coins and Stationed Pokemon cards take the selected team's colour. */
+  #view-gym .gy-tp { background: color-mix(in srgb, var(--team) 16%, var(--panel)); border-color: color-mix(in srgb, var(--team) 55%, transparent); }
+  #view-gym .gy-tp .particle-actions-label { color: var(--team); }
+  #view-gym .gy-tp .check-all-btn { background: color-mix(in srgb, var(--team) 14%, var(--panel-2)); color: var(--team); border-color: color-mix(in srgb, var(--team) 55%, transparent); }
+  #view-gym .gy-tp .check-all-btn:hover:not(:disabled) { border-color: var(--team); }
+  #view-gym .gy-tp .gy-actions #gy-do-station { background: var(--team); border-color: var(--team); color: #1a1200; }
+  #view-gym .gy-tp .gy-actions .gy-skip-btn { background: #2b2f3a; color: #b4bccb; border-color: rgba(160, 168, 184, 0.5); }
+  #view-gym .gy-tp #gy-unlock-all { background: #2b2f3a; color: #b4bccb; border-color: rgba(160, 168, 184, 0.5); }
+  #view-gym .gy-tp #gy-unlock-all:hover:not(:disabled), #view-gym .gy-tp .gy-actions .gy-skip-btn:hover:not(:disabled) { border-color: #c9d0dc; }
+  #view-gym .gy-tp #gy-grid .tz-tab.active { background: var(--team); border-color: var(--team); color: #1a1200; }
+  .gy-coins-now { margin-bottom: 6px; font-size: 22px; font-weight: 800; text-align: center; color: var(--team, var(--text)); font-variant-numeric: tabular-nums; }
+  .gy-teams { margin-top: 8px; }
+  /* Team colours match the Party page: Team 1 = Valor red, Team 2 = Instinct yellow. */
+  #gy-teams .tz-tab[data-team="1"], .gy-team-box.gy-t1 { --team: #ff4d4d; }
+  #gy-teams .tz-tab[data-team="2"], .gy-team-box.gy-t2 { --team: #ffd23f; }
+  #view-gym[data-team="1"] { --team: #ff4d4d; }
+  #view-gym[data-team="2"] { --team: #ffd23f; }
+  .panel-theme-amber .gy-teams .tz-tab { color: var(--team); border-color: color-mix(in srgb, var(--team) 60%, var(--line)); background: color-mix(in srgb, var(--team) 12%, var(--panel-2)); }
+  .panel-theme-amber .gy-teams .tz-tab.active { background: var(--team); border-color: var(--team); color: #1a1200; }
+  .gy-team-box { margin-top: 10px; padding: 10px; border-radius: 12px; background: linear-gradient(180deg, color-mix(in srgb, var(--team) 16%, transparent), transparent 85%), var(--panel-2); border: 1px solid color-mix(in srgb, var(--team) 55%, var(--line)); }
+  .gy-team-box:first-child { margin-top: 0; }
+  .gy-team-box.on { border-color: var(--team); }
+  .gy-team-head { display: flex; align-items: center; gap: 8px; padding-bottom: 6px; }
+  .gy-team-title { flex: 1; min-width: 0; font-size: 12px; color: var(--text-faint); }
+  .gy-team-title b { display: block; font-size: 15px; font-weight: 800; color: var(--team); }
+  .gy-team-head .tz-tab { flex: 0 0 auto; padding: 4px 10px; font-size: 12px; }
+  .gy-team-head .tz-tab:disabled { opacity: 0.4; cursor: default; }
+  .gy-team-head + .gy-row { border-top: none; padding-top: 4px; }
+  .gy-team-box .gy-coins { color: var(--team); }
+  .gy-team-box .gy-row .tz-tab.active { background: var(--team); border-color: var(--team); color: #1a1200; }
+  #view-gym[data-team] .gy-current b { color: var(--team); }
   #gy-skip-label { margin-top: 14px; }
   #gy-unlock-all { margin-top: 10px; }
   #gy-cancel-edit { margin-top: 10px; }
@@ -998,13 +1030,16 @@
   .gy-actions-small { margin-top: 8px; }
   .gy-actions-small .tz-tab { padding: 7px 8px; font-size: 12px; border-radius: 10px; }
   .gy-actions-small .tz-tab:disabled { opacity: 0.4; cursor: default; }
-  .panel-theme-amber .gy-actions .gy-skip-btn { background: #3a1c1c; color: #ff8f84; border-color: rgba(229, 96, 79, 0.55); }
-  .panel-theme-amber .gy-actions .gy-skip-btn:hover:not(:disabled) { border-color: #ff6b5b; }
-  .gy-row { display: flex; align-items: center; gap: 10px; padding: 10px 0; border-top: 1px solid var(--line); }
+  .panel-theme-amber .gy-actions .gy-skip-btn { background: #2b2f3a; color: #b4bccb; border-color: rgba(160, 168, 184, 0.5); }
+  .panel-theme-amber .gy-actions .gy-skip-btn:hover:not(:disabled) { border-color: #c9d0dc; }
+  /* Two compact lines per Pokemon: "Gym 1  1h 13m ago" / "7 coins  Edit  Returned". */
+  .gy-row { padding: 8px 0; border-top: 1px solid var(--line); }
   .gy-row:first-child { border-top: none; padding-top: 0; }
-  .gy-row-main { flex: 1; min-width: 0; }
+  .gy-row-top { display: flex; align-items: baseline; gap: 8px; }
+  .gy-row-bottom { display: flex; align-items: center; gap: 8px; margin-top: 4px; }
+  .gy-row-bottom .gy-coins { flex: 1; min-width: 0; }
   .gy-row-name { font-size: 14px; font-weight: 700; }
-  .gy-row-time { margin-top: 2px; font-size: 12px; line-height: 1.4; color: var(--text-faint); }
+  .gy-row-time { font-size: 12px; color: var(--text-faint); }
   .gy-coins { flex: 0 0 auto; font-size: 15px; font-weight: 800; color: #ffa94d; font-variant-numeric: tabular-nums; }
   .gy-row .tz-tab { flex: 0 0 auto; padding: 5px 10px; font-size: 12px; }
   .gy-empty { font-size: 13px; color: var(--text-faint); }  .tzc-row { display: flex; justify-content: space-between; gap: 10px; padding: 7px 0; border-top: 1px solid var(--line); font-size: 14px; }
@@ -2630,8 +2665,12 @@
         <button class="app-tab" data-tab="misc" type="button">Misc</button>
       </div>
     </div>
-    <div class="panel panel-theme-amber">
+    <div class="panel panel-theme-amber gy-tp">
       <div class="particle-actions-label">Gym Defender</div>
+      <div class="tz-tabs gy-teams" id="gy-teams">
+        <button class="tz-tab active" data-team="1" type="button">Team 1</button>
+        <button class="tz-tab" data-team="2" type="button">Team 2</button>
+      </div>
       <div class="tzr-times">
         <label class="tb-field"><span class="candy-level-label">Gyms stationed</span><input class="particle-manual-input" id="gy-count" type="text" value="0" disabled aria-readonly="true"></label>
         <div class="tb-field"><span class="candy-level-label">Power spot stationed</span>
@@ -2665,15 +2704,13 @@
       <div class="sx-hint" id="gy-slots"></div>
       <div class="sx-hint">Go through the gyms in order: Station puts a Pok&eacute;mon in the current gym and records the time, Skip passes it by, and the route moves on to the next gym until Gym 38. Use Edit on a stationed Pok&eacute;mon to move it to another number. Each one earns 1 coin every 10 minutes, up to 50 coins a day, paid out when it comes home. Gyms and power spots share a limit of 20 together, and only gym Pok&eacute;mon count towards coins.</div>
     </div>
-    <div class="panel panel-theme-amber">
+    <div class="panel panel-theme-amber gy-tp">
       <div class="particle-actions-label">Time to 50 coins</div>
       <div class="tzc-result" id="gy-result"></div>
     </div>
-    <div class="panel panel-theme-amber">
+    <div class="panel panel-theme-amber gy-tp">
       <div class="particle-actions-label">Stationed Pok&eacute;mon</div>
       <div id="gy-list"></div>
-      <div class="sx-hint" id="gy-collected"></div>
-      <button class="reset-btn" id="gy-reset" type="button">Clear all</button>
     </div>
     <div class="panel panel-theme-amber">
       <div class="particle-actions-label">Same moment in your zones</div>
@@ -8895,34 +8932,55 @@
   const GY_ROUTE_KEY = 'pogo-daily-checklist-gym-route';
   let gyCur = 1;      // gym the route is at (39 = finished)
   let gyHist = [];    // { a: 's' station | 'k' skip, g } for Undo
+  // Two teams (e.g. two accounts) run separately: each has its own stationed
+  // list, banked coins, power spots, skipped gyms and route. Team 1 keeps the
+  // original storage keys; Team 2 uses the same keys with a suffix.
+  const GY_TEAM_KEY = 'pogo-daily-checklist-gym-team';
+  let gyTeam = 1;
+  try { if (localStorage.getItem(GY_TEAM_KEY) === '2') gyTeam = 2; } catch (e) { /* storage unavailable */ }
+  const gyKey = (base, team = gyTeam) => (team === 2 ? base + '-t2' : base);
+  // A team's stationed list and banked coins, straight from storage.
+  function gyReadStored(team) {
+    const out = { list: [], collected: 0 };
+    try {
+      const s = JSON.parse(localStorage.getItem(gyKey(GY_LIST_KEY, team)));
+      if (s && Array.isArray(s.list)) {
+        const used = new Set();
+        // Older saves stored just the start time; give those the first free numbers.
+        const raw = s.list.map(x => (typeof x === 'number' ? { t: x, g: null } : x)).filter(x => x && Number.isFinite(x.t)).slice(0, GY_MAX);
+        raw.forEach(x => { if (Number.isInteger(x.g) && x.g >= 1 && x.g <= GY_LOCATIONS && !used.has(x.g)) used.add(x.g); else x.g = null; });
+        let next = 1;
+        raw.forEach(x => { if (x.g === null) { while (used.has(next)) next++; x.g = next; used.add(next); } });
+        out.list = raw;
+        out.collected = Math.min(GY_COINS, Math.max(0, Number(s.collected) || 0));
+      }
+    } catch (e) { /* storage unavailable */ }
+    return out;
+  }
+  function gyLoad() {
+    gyList = []; gyCollected = 0; gyPower = 0; gySkipped = new Set(); gyCur = 1; gyHist = []; gyEditing = null;
   try {
-    const s = JSON.parse(localStorage.getItem(GY_LIST_KEY));
-    if (s && Array.isArray(s.list)) {
-      const used = new Set();
-      // Older saves stored just the start time; give those the first free numbers.
-      const raw = s.list.map(x => (typeof x === 'number' ? { t: x, g: null } : x)).filter(x => x && Number.isFinite(x.t)).slice(0, GY_MAX);
-      raw.forEach(x => { if (Number.isInteger(x.g) && x.g >= 1 && x.g <= GY_LOCATIONS && !used.has(x.g)) used.add(x.g); else x.g = null; });
-      let next = 1;
-      raw.forEach(x => { if (x.g === null) { while (used.has(next)) next++; x.g = next; used.add(next); } });
-      gyList = raw;
-      gyCollected = Math.min(GY_COINS, Math.max(0, Number(s.collected) || 0));
-    }
-    gyPower = Math.max(0, parseInt(localStorage.getItem(GY_POWER_KEY), 10) || 0);
-    const sk = JSON.parse(localStorage.getItem(GY_SKIP_KEY));
+    const stored = gyReadStored(gyTeam);
+    gyList = stored.list;
+    gyCollected = stored.collected;
+    gyPower = Math.max(0, parseInt(localStorage.getItem(gyKey(GY_POWER_KEY)), 10) || 0);
+    const sk = JSON.parse(localStorage.getItem(gyKey(GY_SKIP_KEY)));
     if (Array.isArray(sk)) {
       const inUse = new Set(gyList.map(e => e.g));
       gySkipped = new Set(sk.filter(n => Number.isInteger(n) && n >= 1 && n <= GY_LOCATIONS && !inUse.has(n)));
     }
-    const rt = JSON.parse(localStorage.getItem(GY_ROUTE_KEY));
+    const rt = JSON.parse(localStorage.getItem(gyKey(GY_ROUTE_KEY)));
     if (rt && Number.isInteger(rt.cur) && rt.cur >= 1 && rt.cur <= GY_LOCATIONS + 1) gyCur = rt.cur;
     if (rt && Array.isArray(rt.hist)) gyHist = rt.hist.filter(h => h && (h.a === 's' || h.a === 'k') && Number.isInteger(h.g)).slice(-GY_LOCATIONS);
   } catch (e) { /* storage unavailable */ }
+  }
+  gyLoad();
   function gySave() {
     try {
-      localStorage.setItem(GY_LIST_KEY, JSON.stringify({ list: gyList, collected: gyCollected }));
-      localStorage.setItem(GY_POWER_KEY, String(gyPower));
-      localStorage.setItem(GY_SKIP_KEY, JSON.stringify([...gySkipped].sort((a, b) => a - b)));
-      localStorage.setItem(GY_ROUTE_KEY, JSON.stringify({ cur: gyCur, hist: gyHist }));
+      localStorage.setItem(gyKey(GY_LIST_KEY), JSON.stringify({ list: gyList, collected: gyCollected }));
+      localStorage.setItem(gyKey(GY_POWER_KEY), String(gyPower));
+      localStorage.setItem(gyKey(GY_SKIP_KEY), JSON.stringify([...gySkipped].sort((a, b) => a - b)));
+      localStorage.setItem(gyKey(GY_ROUTE_KEY), JSON.stringify({ cur: gyCur, hist: gyHist }));
     } catch (e) { /* storage unavailable */ }
   }
   const gyCoinsOf = (start, now = Date.now()) => Math.min(GY_COINS, Math.max(0, Math.floor((now - start) / GY_STEP_MS)));
@@ -8940,17 +8998,26 @@
     events.sort((a, b) => a - b);
     return events[need - 1];
   }
+  // Both teams' stationed Pokemon are listed together. gyShown[team] is what
+  // was last drawn: the live list for the active team, a stored copy for the other.
+  let gyShown = { 1: { list: [], collected: 0 }, 2: { list: [], collected: 0 } };
+  const gyTeamTotal = (t, now) => Math.min(GY_COINS, gyShown[t].collected + gyShown[t].list.reduce((a, e) => a + gyCoinsOf(e.t, now), 0));
+  const gyHeadText = (t, now) => `${gyShown[t].list.length} stationed · ${gyTeamTotal(t, now)}/${GY_COINS} coins`;
   // Runs every second: live coins, "ago" and the countdown.
   function gyTick() {
     const now = Date.now();
-    gyList.forEach((e, i) => {
-      const c = gyId('gy-coin-' + i);
-      const a = gyId('gy-ago-' + i);
-      if (c) c.textContent = gyCoinText(gyCoinsOf(e.t, now));
-      if (a) a.textContent = gyAgo(now - e.t);
+    [1, 2].forEach(t => {
+      gyShown[t].list.forEach((e, i) => {
+        const c = gyId(`gy-coin-${t}-${i}`);
+        const a = gyId(`gy-ago-${t}-${i}`);
+        if (c) c.textContent = gyCoinText(gyCoinsOf(e.t, now));
+        if (a) a.textContent = `· ${gyAgo(now - e.t)}`;
+      });
+      const h = gyId('gy-head-' + t);
+      if (h) h.textContent = gyHeadText(t, now);
     });
     const sofar = gyId('gy-sofar');
-    if (sofar) sofar.textContent = `${gyTotal(now)}/${GY_COINS} coins so far`;
+    if (sofar) sofar.textContent = `Current coins: ${gyTotal(now)}/${GY_COINS}`;
     const el = gyId('gy-left');
     if (!el || gyTarget === null) return;
     const left = gyTarget - now;
@@ -8958,58 +9025,92 @@
     el.textContent = left <= 0 ? '50 coins reached' : left < 60000 ? 'Less than 1m left' : `${gySpan(Math.floor(left / 60000))} left`;
   }
   setInterval(gyTick, 1000);
+  function gyReturned(entry) {
+    const i = gyList.indexOf(entry);
+    if (i < 0) return;
+    gyCollected = Math.min(GY_COINS, gyCollected + gyCoinsOf(entry.t));
+    gyList.splice(i, 1);
+    renderGym();
+  }
+  function gyEdit(entry) {
+    gyEditing = gyEditing === entry ? null : entry;
+    renderGym();
+    if (gyEditing) gyId('gy-grid').scrollIntoView({ block: 'center', behavior: 'smooth' });
+  }
+  function gyClear() {
+    gyEditing = null;
+    gyList = [];
+    gyCollected = 0;
+    renderGym();
+  }
   function renderGymList() {
     const list = gyId('gy-list');
     list.innerHTML = '';
-    if (!gyList.length) {
-      const empty = document.createElement('div');
-      empty.className = 'gy-empty';
-      empty.textContent = 'No Pok\u00e9mon stationed yet. Press Station to add one.';
-      list.appendChild(empty);
-    }
-    gyList.forEach((e, i) => {
-      const row = document.createElement('div');
-      row.className = 'gy-row';
-      const main = document.createElement('div');
-      main.className = 'gy-row-main';
-      const name = document.createElement('div');
-      name.className = 'gy-row-name';
-      name.textContent = `Gym ${e.g}`;
-      const time = document.createElement('div');
-      time.className = 'gy-row-time';
-      const at = document.createElement('span');
-      at.textContent = `Stationed ${tzcParts('Asia/Bangkok', e.t).text} \u00b7 `;
-      const ago = document.createElement('span');
-      ago.id = 'gy-ago-' + i;
-      time.append(at, ago);
-      main.append(name, time);
-      const coins = document.createElement('div');
-      coins.className = 'gy-coins';
-      coins.id = 'gy-coin-' + i;
-      const back = document.createElement('button');
-      back.className = 'tz-tab';
-      back.type = 'button';
-      back.textContent = 'Returned';
-      back.title = 'This Pok\u00e9mon came home: bank its coins and remove it';
-      back.addEventListener('click', () => {
-        gyCollected = Math.min(GY_COINS, gyCollected + gyCoinsOf(e.t));
-        gyList.splice(i, 1);
-        renderGym();
+    // Only the selected team is listed; the other team shows when you switch.
+    gyShown = { 1: { list: [], collected: 0 }, 2: { list: [], collected: 0 } };
+    [gyTeam].forEach(t => {
+      gyShown[t] = { list: gyList, collected: gyCollected };
+      const box = document.createElement('div');
+      box.className = `gy-team-box gy-t${t}` + (t === gyTeam ? ' on' : '');
+      list.appendChild(box);
+      const head = document.createElement('div');
+      head.className = 'gy-team-head';
+      const title = document.createElement('div');
+      title.className = 'gy-team-title';
+      const nm = document.createElement('b');
+      nm.textContent = `Team ${t}`;
+      const stat = document.createElement('span');
+      stat.id = 'gy-head-' + t;
+      title.append(nm, stat);
+      const clr = document.createElement('button');
+      clr.className = 'tz-tab';
+      clr.type = 'button';
+      clr.textContent = 'Clear all';
+      clr.disabled = !gyShown[t].list.length && !gyShown[t].collected;
+      clr.title = `Remove every Pokémon from Team ${t} and reset its banked coins`;
+      clr.addEventListener('click', gyClear);
+      head.append(title, clr);
+      box.appendChild(head);
+      if (!gyShown[t].list.length) {
+        const empty = document.createElement('div');
+        empty.className = 'gy-empty';
+        empty.textContent = 'No Pokémon stationed. Press Station to add one.';
+        box.appendChild(empty);
+      }
+      gyShown[t].list.forEach((e, i) => {
+        const row = document.createElement('div');
+        row.className = 'gy-row';
+        const top = document.createElement('div');
+        top.className = 'gy-row-top';
+        const name = document.createElement('span');
+        name.className = 'gy-row-name';
+        name.textContent = `Gym ${e.g}`;
+        const ago = document.createElement('span');
+        ago.className = 'gy-row-time';
+        ago.id = `gy-ago-${t}-${i}`;
+        top.append(name, ago);
+        const bottom = document.createElement('div');
+        bottom.className = 'gy-row-bottom';
+        const coins = document.createElement('div');
+        coins.className = 'gy-coins';
+        coins.id = `gy-coin-${t}-${i}`;
+        const back = document.createElement('button');
+        back.className = 'tz-tab';
+        back.type = 'button';
+        back.textContent = 'Returned';
+        back.title = 'This Pokémon came home: bank its coins and remove it';
+        back.addEventListener('click', () => gyReturned(e));
+        const edit = document.createElement('button');
+        edit.className = 'tz-tab' + (t === gyTeam && gyEditing === e ? ' active' : '');
+        edit.type = 'button';
+        edit.textContent = 'Edit';
+        edit.title = 'Move this Pokémon to another gym number';
+        edit.addEventListener('click', () => gyEdit(e));
+        bottom.append(coins, edit, back);
+        row.append(top, bottom);
+        box.appendChild(row);
       });
-      const edit = document.createElement('button');
-      edit.className = 'tz-tab' + (gyEditing === e ? ' active' : '');
-      edit.type = 'button';
-      edit.textContent = 'Edit';
-      edit.title = 'Move this Pokémon to another gym number';
-      edit.addEventListener('click', () => {
-        gyEditing = gyEditing === e ? null : e;
-        renderGym();
-        if (gyEditing) gyId('gy-grid').scrollIntoView({ block: 'center', behavior: 'smooth' });
-      });
-      row.append(main, coins, edit, back);
-      list.appendChild(row);
     });
-    gyId('gy-collected').textContent = gyCollected ? `${gyCoinText(gyCollected)} already banked from Pok\u00e9mon that came home.` : '';
   }
   // The route: the app walks through the gyms 1..38 in order. Station puts a
   // Pokemon in the current gym, Skip passes it by; both move on to the next.
@@ -9120,6 +9221,8 @@
     gyId('gy-power-plus').disabled = full;
     gyId('gy-count').value = String(gyList.length);
     gyId('gy-slots').textContent = `${gyList.length + pw} of ${GY_MAX} slots used (${GY_MAX - gyList.length - pw} free)`;
+    gyId('view-gym').dataset.team = String(gyTeam);
+    Array.from(document.querySelectorAll('#gy-teams .tz-tab')).forEach(b => b.classList.toggle('active', Number(b.dataset.team) === gyTeam));
     gyAdvance(gyCur); // skip gyms that already hold a Pokemon (e.g. after Edit)
     renderGyRoute(full);
     renderGyGrid();
@@ -9135,10 +9238,14 @@
     const skipLine = document.createElement('div');
     skipLine.className = 'tzc-sub';
     skipLine.textContent = `${gySkipped.size} gym${gySkipped.size === 1 ? '' : 's'} skipped`;
+    const coinsNow = document.createElement('div');
+    coinsNow.className = 'gy-coins-now';
+    coinsNow.id = 'gy-sofar';
+    coinsNow.textContent = `Current coins: ${gyTotal()}/${GY_COINS}`;
     if (!n && gyCollected < GY_COINS) {
       const hint = document.createElement('div');
       hint.textContent = 'Press Station when you put a Pok\u00e9mon in the current gym.';
-      result.append(hint, skipLine);
+      result.append(coinsNow, hint, skipLine);
       return;
     }
     const reached = gyTarget === null;
@@ -9148,12 +9255,9 @@
     const big = document.createElement('div');
     big.className = 'tzc-big';
     big.textContent = reached ? '50 coins reached' : tzcParts('Asia/Bangkok', gyTarget).text;
-    const sub = document.createElement('div');
-    sub.className = 'tzc-sub';
-    sub.id = 'gy-sofar';
     const left = document.createElement('div');
     left.id = 'gy-left';
-    result.append(small, skipLine, big, sub, left);
+    result.append(coinsNow, small, skipLine, big, left);
     if (reached) { left.className = 'tzc-left past'; left.textContent = 'Already there'; }
     if (!reached) {
       timezones.forEach(z => {
@@ -9173,16 +9277,20 @@
   gyId('gy-power-plus').addEventListener('click', () => { gyPower += 1; renderGym(); });
   gyId('gy-cancel-edit').addEventListener('click', () => { gyEditing = null; renderGym(); });
   gyId('gy-unlock-all').addEventListener('click', () => { gySkipped.clear(); renderGym(); });
+  // Team switch: save this team, load the other one, redraw everything.
+  Array.from(document.querySelectorAll('#gy-teams .tz-tab')).forEach(b => b.addEventListener('click', () => {
+    const t = Number(b.dataset.team);
+    if (t === gyTeam) return;
+    gySave();
+    gyTeam = t;
+    try { localStorage.setItem(GY_TEAM_KEY, String(t)); } catch (e) { /* storage unavailable */ }
+    gyLoad();
+    renderGym();
+  }));
   gyId('gy-do-station').addEventListener('click', gyStation);
   gyId('gy-do-skip').addEventListener('click', gySkip);
   gyId('gy-undo').addEventListener('click', gyUndo);
   gyId('gy-restart').addEventListener('click', gyRestart);
-  gyId('gy-reset').addEventListener('click', () => {
-    gyEditing = null;
-    gyList = [];
-    gyCollected = 0;
-    renderGym();
-  });
   renderGym();
   // --- Reset time zone picker -------------------------------------------
   // Picking a zone whose midnight has already passed today (e.g. it's 08:00
