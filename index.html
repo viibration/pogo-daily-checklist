@@ -877,11 +877,20 @@
   .re-per { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 10px; margin-top: 12px; }
   .re-per .particle-manual-input { display: block; width: 100%; }
   .re-row { padding: 12px 0 12px 10px; margin-top: 4px; border-left: 3px solid var(--re); }
-  .re-name { font-size: 15px; font-weight: 600; color: var(--re); }
-  .re-unit { margin-left: 6px; font-size: 12px; font-weight: 400; color: var(--text-faint); }
+  .re-head { display: flex; align-items: center; gap: 8px; }
+  .re-head .re-name { flex: 1; min-width: 0; padding: 6px 10px; font-size: 15px; }
+  .re-del { flex: 0 0 auto; padding: 2px 9px; font-size: 16px; line-height: 1.2; }
+  .re-clear { display: flex; gap: 6px; margin-top: 8px; }
+  .re-clear .tz-tab { flex: 0 0 auto; padding: 4px 10px; font-size: 12px; }
+  .re-add { display: flex; gap: 6px; align-items: center; margin-top: 12px; }
+  .re-add .tz-tab { flex: 0 0 auto; padding: 6px 10px; font-size: 13px; }
   .re-fields { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 10px; margin-top: 8px; }
   .re-fields .particle-manual-input { display: block; width: 100%; }
-  .re-result { margin-top: 8px; font-size: 14px; }
+  .re-make { width: calc(50% - 5px); margin-top: 8px; }
+  .re-make .particle-manual-input { display: block; width: 100%; }
+  .re-slot { min-width: 0; }
+  .re-fields { row-gap: 14px; }
+  .re-result { margin-top: 6px; font-size: 13px; line-height: 1.35; }
   .re-result b { font-size: 16px; font-variant-numeric: tabular-nums; }
   .re-result.ready b { color: var(--good); }
   .re-result span { color: var(--text-faint); }
@@ -2854,19 +2863,20 @@
       </div>
       <div class="re-per">
         <div class="candy-level-field">
-          <label class="candy-level-label" for="re-per-crowned">Zacian / Zamazenta</label>
-          <input class="particle-manual-input" id="re-per-crowned" type="number" inputmode="numeric" min="1" step="1">
-        </div>
-        <div class="candy-level-field">
-          <label class="candy-level-label" for="re-per-kyurem">Kyurem</label>
-          <input class="particle-manual-input" id="re-per-kyurem" type="number" inputmode="numeric" min="1" step="1">
+          <label class="candy-level-label" for="re-per">Or type your own</label>
+          <input class="particle-manual-input" id="re-per" type="number" inputmode="numeric" min="1" step="1">
         </div>
       </div>
     </div>
     <div class="panel">
       <div class="particle-actions-label">Raids until you can make them (1,000 energy each)</div>
+      <datalist id="re-names"></datalist>
       <div id="re-rows"></div>
-      <div class="sx-hint">An estimate only. Each raid gives at least 80 energy and up to about 140, depending on how fast you win and how much damage you deal, and community guides put the usual amount near 100&ndash;110. Kyurem raids are reported to give the same range, but that is unconfirmed: once you win a Kyurem raid, type the amount you actually got into the Kyurem box above.</div>
+      <div class="sx-hint" id="re-empty" hidden>Nothing here yet. Tap + Add row.</div>
+      <div class="re-add">
+        <button class="tz-tab" id="re-add-btn" type="button">+ Add row</button>
+      </div>
+      <div class="sx-hint">An estimate only. Each raid gives at least 80 energy and up to about 140, depending on how fast you win and how much damage you deal, and community guides put the usual amount near 100&ndash;110. If you find the energy you really get per raid (for example from a Kyurem raid), type it into the Energy per raid box above.</div>
     </div>
   </div>
   <div id="view-showcase" hidden>
@@ -4750,116 +4760,154 @@
   });
 
   // --- Raid Energy Calculator ---------------------------------------------
-  // Rough number of raids until there is enough Crowned Sword/Shield or
-  // Volt/Blaze Fusion energy to make N Pokemon (1,000 energy each). Raids
-  // give at least 80 and up to about 140 energy; 105 is the typical default.
+  // Rough number of raids until there is enough transform energy (Crowned
+  // Sword/Shield, Fusion energy and so on) to make N Pokemon (1,000 energy
+  // each). Raids give at least 80 and up to about 140 energy; 105 is the
+  // typical default. Each Pokemon row has one "Pokemon to make" and 4
+  // Transform energy boxes (for example 4 accounts), each with its own answer.
+  // The name is only a label you pick.
   const RE_KEY = 'pogo-daily-checklist-raid-energy';
   const RE_COST = 1000, RE_MIN = 80, RE_MAX = 140, RE_TYPICAL = 105;
-  const RE_DEFAULT_COUNT = 6; // Pokemon to make, until changed
-  const RE_ITEMS = [
-    { id: 'zacian', name: 'Crowned Sword Zacian', unit: 'Crowned Sword Energy', kind: 'crowned', color: '#4fa8ff' },
-    { id: 'zamazenta', name: 'Crowned Shield Zamazenta', unit: 'Crowned Shield Energy', kind: 'crowned', color: '#ff7a7a' },
-    { id: 'white-kyurem', name: 'White Kyurem', unit: 'Blaze Fusion Energy', kind: 'kyurem', color: '#e6ecf7' },
-    { id: 'black-kyurem', name: 'Black Kyurem', unit: 'Volt Fusion Energy', kind: 'kyurem', color: '#a99cff' },
-  ];
+  const RE_MAX_ROWS = 12, RE_SLOTS = 4;
+  const RE_COLORS = ['#4fa8ff', '#ff7a7a', '#e6ecf7', '#a99cff', '#ffd23f', '#5ee6a8'];
   const reInt = (v, lo, hi, fallback) => {
     const n = parseInt(v, 10);
     return Number.isFinite(n) ? Math.min(hi, Math.max(lo, n)) : fallback;
   };
-  let reState = { per: { crowned: RE_TYPICAL, kyurem: RE_TYPICAL }, cur: {}, count: {} };
+  let reUid = 0;
+  const reNewRow = (name, cur, count) => ({
+    uid: ++reUid,
+    name: name || '',
+    cur: Array.from({ length: RE_SLOTS }, (_, i) => (cur && cur[i]) || 0),
+    count: count === undefined ? 1 : count,
+  });
+  let reState = { per: RE_TYPICAL, rows: [reNewRow()] };
   try {
     const s = JSON.parse(localStorage.getItem(RE_KEY));
     if (s) {
-      ['crowned', 'kyurem'].forEach(k => { reState.per[k] = reInt(s.per && s.per[k], 1, 1000, RE_TYPICAL); });
-      RE_ITEMS.forEach(it => {
-        reState.cur[it.id] = reInt(s.cur && s.cur[it.id], 0, 99999, 0);
-        reState.count[it.id] = reInt(s.count && s.count[it.id], 0, 99, RE_DEFAULT_COUNT);
-      });
+      // Older saves: one value per Zacian/Zamazenta group and Kyurem group, then one energy box per row.
+      reState.per = reInt(s.per && typeof s.per === 'object' ? s.per.crowned : s.per, 1, 1000, RE_TYPICAL);
+      if (Array.isArray(s.rows)) {
+        const rows = s.rows.filter(r => r && typeof r === 'object').slice(0, RE_MAX_ROWS);
+        if (rows.every(r => Array.isArray(r.cur))) {
+          reState.rows = rows.map(r => reNewRow(String(r.name || '').slice(0, 60), r.cur.slice(0, RE_SLOTS).map(v => reInt(v, 0, 99999, 0)), reInt(r.count, 0, 99, 1)));
+        } else {
+          reState.rows = [reNewRow('', rows.map(r => reInt(r.cur, 0, 99999, 0)), 1)];
+        }
+      } else if (s.cur && typeof s.cur === 'object') {
+        reState.rows = [reNewRow('', ['zacian', 'zamazenta', 'white-kyurem', 'black-kyurem'].map(id => reInt(s.cur[id], 0, 99999, 0)), 1)];
+      }
     }
   } catch (e) { /* storage unavailable or corrupt */ }
-  RE_ITEMS.forEach(it => {
-    if (reState.cur[it.id] === undefined) reState.cur[it.id] = 0;
-    if (reState.count[it.id] === undefined) reState.count[it.id] = RE_DEFAULT_COUNT;
-  });
-  const reSave = () => { try { localStorage.setItem(RE_KEY, JSON.stringify(reState)); } catch (e) { /* storage unavailable */ } };
-  const reSet = (obj, key, input, lo, hi, fallback) => {
-    // An empty or invalid box counts as the fallback without rewriting what the user is typing.
-    obj[key] = reInt(input.value, lo, hi, fallback);
+  const reSave = () => {
+    try { localStorage.setItem(RE_KEY, JSON.stringify({ per: reState.per, rows: reState.rows.map(({ name, cur, count }) => ({ name, cur, count })) })); } catch (e) { /* storage unavailable */ }
   };
   function updateRaidEnergy() {
-    RE_ITEMS.forEach(it => {
-      const out = document.getElementById('re-out-' + it.id);
-      const need = reState.count[it.id] * RE_COST - reState.cur[it.id];
-      out.classList.remove('ready');
-      if (reState.count[it.id] === 0) {
-        out.innerHTML = '<span>Set how many Pok&eacute;mon you want to make.</span>';
-      } else if (need <= 0) {
-        out.classList.add('ready');
-        out.innerHTML = reState.count[it.id] === 1 ? '<b>Ready</b> <span>you have enough energy</span>' : `<b>Ready</b> <span>enough energy for ${reState.count[it.id]}</span>`;
-      } else {
-        const per = reState.per[it.kind];
-        const typical = Math.ceil(need / per);
-        const fewest = Math.ceil(need / RE_MAX);
-        const most = Math.ceil(need / RE_MIN);
-        const range = fewest === most ? '' : ` <span>(${fewest} if all fast, ${most} if all slow)</span>`;
-        out.innerHTML = `<b>About ${typical} raid${typical === 1 ? '' : 's'}</b>${range}<br><span>${need.toLocaleString()} more energy needed</span>`;
-      }
+    reState.rows.forEach(r => {
+      r.cur.forEach((cur, i) => {
+        const out = document.getElementById(`re-out-${r.uid}-${i}`);
+        if (!out) return;
+        const need = r.count * RE_COST - cur;
+        out.classList.remove('ready');
+        if (r.count === 0) {
+          out.innerHTML = '<span>Set how many to make</span>';
+        } else if (need <= 0) {
+          out.classList.add('ready');
+          out.innerHTML = '<b>Ready</b>';
+        } else {
+          const typical = Math.ceil(need / reState.per);
+          const fewest = Math.ceil(need / RE_MAX);
+          const most = Math.ceil(need / RE_MIN);
+          const range = fewest === most ? '' : `<br><span>${fewest} fast &middot; ${most} slow</span>`;
+          out.innerHTML = `<b>About ${typical} raid${typical === 1 ? '' : 's'}</b>${range}<br><span>${need.toLocaleString()} more energy</span>`;
+        }
+      });
     });
   }
-  function renderRaidEnergy() {
-    const rows = document.getElementById('re-rows');
-    if (!rows.children.length) {
-      RE_ITEMS.forEach(it => {
-        const row = document.createElement('div');
-        row.className = 're-row';
-        row.style.setProperty('--re', it.color);
-        row.innerHTML = `<div class="re-name">${it.name}<span class="re-unit">${it.unit}</span></div>
-          <div class="re-fields">
-            <div class="candy-level-field"><label class="candy-level-label" for="re-cur-${it.id}">Current energy</label>
-              <input class="particle-manual-input" id="re-cur-${it.id}" type="number" inputmode="numeric" min="0" step="1"></div>
-            <div class="candy-level-field"><label class="candy-level-label" for="re-count-${it.id}">Pok&eacute;mon to make</label>
-              <input class="particle-manual-input" id="re-count-${it.id}" type="number" inputmode="numeric" min="0" max="99" step="1"></div>
-          </div>
-          <div class="re-result" id="re-out-${it.id}"></div>`;
-        rows.appendChild(row);
-        document.getElementById('re-cur-' + it.id).addEventListener('input', (e) => {
-          reSet(reState.cur, it.id, e.target, 0, 99999, 0);
-          reSave(); updateRaidEnergy();
-        });
-        document.getElementById('re-count-' + it.id).addEventListener('input', (e) => {
-          reSet(reState.count, it.id, e.target, 0, 99, 0);
-          reSave(); updateRaidEnergy();
-        });
-      });
-      ['crowned', 'kyurem'].forEach(k => {
-        document.getElementById('re-per-' + k).addEventListener('input', (e) => {
-          reSet(reState.per, k, e.target, 1, 1000, RE_TYPICAL);
-          reSave(); updateRaidEnergy(); markRePreset();
-        });
-      });
-      document.getElementById('re-presets').addEventListener('click', (e) => {
-        const b = e.target.closest('.tz-tab');
-        if (!b) return;
-        reState.per.crowned = reState.per.kyurem = Number(b.dataset.per);
-        document.getElementById('re-per-crowned').value = reState.per.crowned;
-        document.getElementById('re-per-kyurem').value = reState.per.kyurem;
-        reSave(); updateRaidEnergy(); markRePreset();
-      });
-    }
-    document.getElementById('re-per-crowned').value = reState.per.crowned;
-    document.getElementById('re-per-kyurem').value = reState.per.kyurem;
-    RE_ITEMS.forEach(it => {
-      document.getElementById('re-cur-' + it.id).value = reState.cur[it.id] || '';
-      document.getElementById('re-count-' + it.id).value = reState.count[it.id];
+  function reBuildRow(r, i) {
+    const row = document.createElement('div');
+    row.className = 're-row';
+    row.style.setProperty('--re', RE_COLORS[i % RE_COLORS.length]);
+    const slots = r.cur.map((_, k) => `<div class="re-slot">
+          <label class="candy-level-label" for="re-cur-${r.uid}-${k}">Transform energy ${k + 1}</label>
+          <input class="particle-manual-input" id="re-cur-${r.uid}-${k}" type="number" inputmode="numeric" min="0" step="1">
+          <div class="re-result" id="re-out-${r.uid}-${k}"></div></div>`).join('');
+    row.innerHTML = `<div class="re-head">
+        <input class="particle-manual-input re-name" id="re-name-${r.uid}" list="re-names" type="text" placeholder="Pok&eacute;mon (optional)" autocomplete="off" autocapitalize="off" spellcheck="false" aria-label="Pok&eacute;mon">
+        <button class="tz-tab re-del" type="button" aria-label="Remove this Pok&eacute;mon">&times;</button></div>
+      <div class="re-make candy-level-field"><label class="candy-level-label" for="re-count-${r.uid}">Pok&eacute;mon to make</label>
+        <input class="particle-manual-input" id="re-count-${r.uid}" type="number" inputmode="numeric" min="0" max="99" step="1"></div>
+      <div class="re-fields">${slots}</div>
+      <div class="re-clear">
+        <button class="tz-tab re-clear-energy" type="button">Clear energy</button>
+        <button class="tz-tab re-clear-all" type="button">Clear all</button>
+      </div>`;
+    const name = row.querySelector('.re-name');
+    const count = row.querySelector('#re-count-' + r.uid);
+    const curs = r.cur.map((_, k) => row.querySelector(`#re-cur-${r.uid}-${k}`));
+    name.value = r.name;
+    count.value = r.count;
+    curs.forEach((el, k) => {
+      el.value = r.cur[k] || '';
+      // An empty or invalid box counts as 0 without rewriting what the user is typing.
+      el.addEventListener('input', () => { r.cur[k] = reInt(el.value, 0, 99999, 0); reSave(); updateRaidEnergy(); });
     });
+    name.addEventListener('input', () => { r.name = name.value; reSave(); });
+    count.addEventListener('input', () => { r.count = reInt(count.value, 0, 99, 0); reSave(); updateRaidEnergy(); });
+    // Clear energy: all 4 energy boxes back to 0. Clear all: energy and Pokemon to make all 0.
+    row.querySelector('.re-clear-energy').addEventListener('click', () => {
+      r.cur.fill(0); curs.forEach(el => { el.value = ''; });
+      reSave(); updateRaidEnergy();
+    });
+    row.querySelector('.re-clear-all').addEventListener('click', () => {
+      r.cur.fill(0); r.count = 0; curs.forEach(el => { el.value = ''; }); count.value = 0;
+      reSave(); updateRaidEnergy();
+    });
+    row.querySelector('.re-del').addEventListener('click', () => {
+      reState.rows = reState.rows.filter(x => x !== r);
+      reSave(); renderRaidEnergy();
+    });
+    return row;
+  }
+  function renderRaidEnergy() {
+    const dl = document.getElementById('re-names');
+    if (!dl.children.length) {
+      dl.innerHTML = [...CB_MON.values()].filter(m => !/^(Mega|Primal)\b/.test(m.name)).map(m => `<option value="${m.name}"></option>`).join('');
+    }
+    const list = document.getElementById('re-rows');
+    list.innerHTML = '';
+    reState.rows.forEach((r, i) => list.appendChild(reBuildRow(r, i)));
+    document.getElementById('re-empty').hidden = reState.rows.length > 0;
+    document.getElementById('re-add-btn').disabled = reState.rows.length >= RE_MAX_ROWS;
+    document.getElementById('re-per').value = reState.per;
     markRePreset();
     updateRaidEnergy();
   }
-  // Highlight a preset button only while both boxes hold exactly that number.
+  document.getElementById('re-per').addEventListener('input', (e) => {
+    reState.per = reInt(e.target.value, 1, 1000, RE_TYPICAL);
+    reSave(); updateRaidEnergy(); markRePreset();
+  });
+  document.getElementById('re-presets').addEventListener('click', (e) => {
+    const b = e.target.closest('.tz-tab');
+    if (!b) return;
+    reState.per = Number(b.dataset.per);
+    document.getElementById('re-per').value = reState.per;
+    reSave(); updateRaidEnergy(); markRePreset();
+  });
+  document.getElementById('re-add-btn').addEventListener('click', () => {
+    if (reState.rows.length >= RE_MAX_ROWS) return;
+    const row = reNewRow();
+    reState.rows.push(row);
+    reSave();
+    renderRaidEnergy();
+    const input = document.getElementById('re-name-' + row.uid);
+    input.focus();
+    input.scrollIntoView({ block: 'center' });
+  });
+  // Highlight a preset button only while the box holds exactly that number.
   function markRePreset() {
     document.querySelectorAll('#re-presets .tz-tab').forEach(b => {
-      const v = Number(b.dataset.per);
-      b.classList.toggle('active', reState.per.crowned === v && reState.per.kyurem === v);
+      b.classList.toggle('active', reState.per === Number(b.dataset.per));
     });
   }
 
