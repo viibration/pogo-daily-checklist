@@ -852,6 +852,39 @@
   .sx-family { margin-top: 10px; }
   .sx-range-label { margin: 14px 0 6px; font-size: 13px; font-weight: 700; color: var(--text-dim); }
   .sx-hint { margin-top: 8px; font-size: 12px; color: var(--text-faint); }
+  .md-row { padding: 8px 0 8px 10px; margin-top: 6px; border-left: 3px solid var(--line); }
+  .md-row.top { border-left-color: var(--accent); }
+  .md-head { display: flex; align-items: center; gap: 8px; }
+  .md-rank { flex: 0 0 auto; min-width: 30px; text-align: center; font-size: 12px; font-weight: 700; padding: 2px 6px; border-radius: 999px; background: var(--panel-2); border: 1px solid var(--line); font-variant-numeric: tabular-nums; }
+  .md-row.top .md-rank { background: var(--accent); border-color: var(--accent); color: #06121f; }
+  .md-name { flex: 1; min-width: 0; padding: 6px 10px; font-size: 15px; }
+  .md-opts { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; margin-top: 8px; }
+  .md-form .tz-tab { flex: 0 0 auto; padding: 4px 10px; font-size: 12px; }
+  .md-form .tz-tab.active { background: var(--accent); border-color: var(--accent); color: #06121f; }
+  .md-stab { display: flex; align-items: center; gap: 6px; font-size: 13px; color: var(--text-faint); }
+  .md-del { flex: 0 0 auto; padding: 2px 9px; font-size: 16px; line-height: 1.2; }
+  .md-fields { display: grid; grid-template-columns: 74px 74px minmax(0, 1fr); gap: 10px; align-items: end; margin-top: 6px; }
+  .md-fields .particle-manual-input { display: block; width: 100%; padding: 6px 8px; text-align: center; }
+  .md-result { text-align: right; line-height: 1.2; }
+  .md-result b { font-size: 20px; font-variant-numeric: tabular-nums; }
+  .md-result span { font-size: 12px; color: var(--text-faint); }
+  .md-add { display: flex; gap: 6px; align-items: center; margin-top: 12px; }
+  .md-add select { flex: 1; min-width: 0; }
+  .md-add .tz-tab { flex: 0 0 auto; padding: 6px 10px; font-size: 13px; }
+  .re-presets { margin-top: 8px; }
+  .re-presets .tz-tab { flex: 0 0 auto; padding: 5px 12px; font-size: 13px; }
+  .re-presets .tz-tab.active { background: var(--accent); border-color: var(--accent); color: #06121f; }
+  .re-per { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 10px; margin-top: 12px; }
+  .re-per .particle-manual-input { display: block; width: 100%; }
+  .re-row { padding: 12px 0 12px 10px; margin-top: 4px; border-left: 3px solid var(--re); }
+  .re-name { font-size: 15px; font-weight: 600; color: var(--re); }
+  .re-unit { margin-left: 6px; font-size: 12px; font-weight: 400; color: var(--text-faint); }
+  .re-fields { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 10px; margin-top: 8px; }
+  .re-fields .particle-manual-input { display: block; width: 100%; }
+  .re-result { margin-top: 8px; font-size: 14px; }
+  .re-result b { font-size: 16px; font-variant-numeric: tabular-nums; }
+  .re-result.ready b { color: var(--good); }
+  .re-result span { color: var(--text-faint); }
   .sx-chips { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 4px; }
   .sx-chip {
     font: inherit;
@@ -1814,6 +1847,8 @@
         <button class="tz-tab" data-calc="combat" type="button">Combat Calculator</button>
         <button class="tz-tab" data-calc="showcase" type="button">Showcase Calculator</button>
         <button class="tz-tab" data-calc="candy" type="button">Power Up Calculator</button>
+        <button class="tz-tab" data-calc="raid-energy" type="button">Raid Energy Calculator</button>
+        <button class="tz-tab" data-calc="max-damage" type="button">Max Battle Damage Calculator</button>
       </div>
     </div>
     <div class="panel">
@@ -2610,6 +2645,8 @@
         <button class="tz-tab" data-calc="combat" type="button">Combat Calculator</button>
         <button class="tz-tab" data-calc="showcase" type="button">Showcase Calculator</button>
         <button class="tz-tab" data-calc="candy" type="button">Power Up Calculator</button>
+        <button class="tz-tab" data-calc="raid-energy" type="button">Raid Energy Calculator</button>
+        <button class="tz-tab" data-calc="max-damage" type="button">Max Battle Damage Calculator</button>
       </div>
     </div>
 
@@ -2745,6 +2782,86 @@
       <img id="gym-map-zoom-img" alt="Gym map zoomed">
     </div>
   </div>
+  <div id="view-max-damage" hidden>
+    <div class="panel">
+      <div class="app-tabs">
+        <button class="app-tab" data-tab="dashboard" type="button">Daily Checklist</button>
+        <button class="app-tab" data-tab="particles" type="button">Max Particle</button>
+        <button class="app-tab" data-tab="party" type="button">Party</button>
+        <button class="app-tab active" data-tab="calculator" type="button">Calculator</button>
+        <button class="app-tab" data-tab="gym" type="button">Gym Defender</button>
+        <button class="app-tab" data-tab="discord" type="button">Discord</button>
+        <button class="app-tab" data-tab="tracker" type="button">Tracker</button>
+        <button class="app-tab" data-tab="misc" type="button">Misc</button>
+      </div>
+      <div class="tz-tabs calc-select" style="margin-top: 10px;">
+        <button class="tz-tab" data-calc="combat" type="button">Combat Calculator</button>
+        <button class="tz-tab" data-calc="showcase" type="button">Showcase Calculator</button>
+        <button class="tz-tab" data-calc="candy" type="button">Power Up Calculator</button>
+        <button class="tz-tab" data-calc="raid-energy" type="button">Raid Energy Calculator</button>
+        <button class="tz-tab" data-calc="max-damage" type="button">Max Battle Damage Calculator</button>
+      </div>
+    </div>
+    <div class="panel panel-theme-gold">
+      <div class="particle-actions-label">Max Move ranking</div>
+      <div class="sx-hint" style="margin-top: 0;">Add the Pok&eacute;mon you want to compare, then set each one&rsquo;s Attack IV and Max Move level. The list ranks them by estimated Max Move damage.</div>
+      <datalist id="md-names"></datalist>
+      <div id="md-rows"></div>
+      <div class="sx-hint" id="md-empty" hidden>Nothing to compare yet. Tap + Add row.</div>
+      <div class="md-add">
+        <button class="tz-tab" id="md-add-btn" type="button">+ Add row</button>
+        <button class="tz-tab" id="md-sort-btn" type="button">Sort</button>
+        <button class="tz-tab" id="md-reset-btn" type="button">Reset</button>
+      </div>
+    </div>
+    <div class="panel">
+      <div class="sx-hint" style="margin-top: 0;">Damage = Attack stat &times; Max Move power &times; 1.2 if the Pok&eacute;mon shares the Max Move&rsquo;s type (STAB). Attack stat = (base Attack + Attack IV) &times; level multiplier. Max Move power is 250 / 300 / 350 for Dynamax and 350 / 400 / 450 for Gigantamax at Max Move level 1 / 2 / 3, so a G-Max move can make up for a lower base Attack (G-Max Duraludon, base 239, beats Dynamax Palkia, base 280, because 450 is about 29% more power than 350). Eternatus uses G-Max-level power for its Dynamax Cannon, and its levels 1&ndash;2 are assumed. Numbers are scaled to match Dittobase&rsquo;s published Dragon Max Battle ranking (level 50 attacker, neutral boss, IV 15, Max Move level 3), so they are estimates, not Niantic&rsquo;s exact values. They ignore the boss&rsquo;s weaknesses, so only compare Pok&eacute;mon whose Max Moves hit the boss equally well.</div>
+    </div>
+  </div>
+  <div id="view-raid-energy" hidden>
+    <div class="panel">
+      <div class="app-tabs">
+        <button class="app-tab" data-tab="dashboard" type="button">Daily Checklist</button>
+        <button class="app-tab" data-tab="particles" type="button">Max Particle</button>
+        <button class="app-tab" data-tab="party" type="button">Party</button>
+        <button class="app-tab active" data-tab="calculator" type="button">Calculator</button>
+        <button class="app-tab" data-tab="gym" type="button">Gym Defender</button>
+        <button class="app-tab" data-tab="discord" type="button">Discord</button>
+        <button class="app-tab" data-tab="tracker" type="button">Tracker</button>
+        <button class="app-tab" data-tab="misc" type="button">Misc</button>
+      </div>
+      <div class="tz-tabs calc-select" style="margin-top: 10px;">
+        <button class="tz-tab" data-calc="combat" type="button">Combat Calculator</button>
+        <button class="tz-tab" data-calc="showcase" type="button">Showcase Calculator</button>
+        <button class="tz-tab" data-calc="candy" type="button">Power Up Calculator</button>
+        <button class="tz-tab" data-calc="raid-energy" type="button">Raid Energy Calculator</button>
+        <button class="tz-tab" data-calc="max-damage" type="button">Max Battle Damage Calculator</button>
+      </div>
+    </div>
+    <div class="panel">
+      <div class="particle-actions-label">Energy per raid</div>
+      <div class="tz-tabs re-presets" id="re-presets">
+        <button class="tz-tab" data-per="80" type="button">Slow 80</button>
+        <button class="tz-tab" data-per="105" type="button">Typical 105</button>
+        <button class="tz-tab" data-per="140" type="button">Fast 140</button>
+      </div>
+      <div class="re-per">
+        <div class="candy-level-field">
+          <label class="candy-level-label" for="re-per-crowned">Zacian / Zamazenta</label>
+          <input class="particle-manual-input" id="re-per-crowned" type="number" inputmode="numeric" min="1" step="1">
+        </div>
+        <div class="candy-level-field">
+          <label class="candy-level-label" for="re-per-kyurem">Kyurem</label>
+          <input class="particle-manual-input" id="re-per-kyurem" type="number" inputmode="numeric" min="1" step="1">
+        </div>
+      </div>
+    </div>
+    <div class="panel">
+      <div class="particle-actions-label">Raids until you can make them (1,000 energy each)</div>
+      <div id="re-rows"></div>
+      <div class="sx-hint">An estimate only. Each raid gives at least 80 energy and up to about 140, depending on how fast you win and how much damage you deal, and community guides put the usual amount near 100&ndash;110. Kyurem raids are reported to give the same range, but that is unconfirmed: once you win a Kyurem raid, type the amount you actually got into the Kyurem box above.</div>
+    </div>
+  </div>
   <div id="view-showcase" hidden>
     <div class="panel">
       <div class="app-tabs">
@@ -2761,6 +2878,8 @@
         <button class="tz-tab" data-calc="combat" type="button">Combat Calculator</button>
         <button class="tz-tab" data-calc="showcase" type="button">Showcase Calculator</button>
         <button class="tz-tab" data-calc="candy" type="button">Power Up Calculator</button>
+        <button class="tz-tab" data-calc="raid-energy" type="button">Raid Energy Calculator</button>
+        <button class="tz-tab" data-calc="max-damage" type="button">Max Battle Damage Calculator</button>
       </div>
     </div>
 
@@ -3161,6 +3280,8 @@
   const viewTradeBalancer = document.getElementById('view-trade-balancer');
   const viewSearchTerm = document.getElementById('view-search-term');
   const viewShowcase = document.getElementById('view-showcase');
+  const viewRaidEnergy = document.getElementById('view-raid-energy');
+  const viewMaxDamage = document.getElementById('view-max-damage');
   const viewParty = document.getElementById('view-party');
   const viewRaid = document.getElementById('view-raid');
   const viewTimezone = document.getElementById('view-timezone');
@@ -4621,6 +4742,262 @@
     updateParticleDetailDisplays();
   });
 
+  // --- Raid Energy Calculator ---------------------------------------------
+  // Rough number of raids until there is enough Crowned Sword/Shield or
+  // Volt/Blaze Fusion energy to make N Pokemon (1,000 energy each). Raids
+  // give at least 80 and up to about 140 energy; 105 is the typical default.
+  const RE_KEY = 'pogo-daily-checklist-raid-energy';
+  const RE_COST = 1000, RE_MIN = 80, RE_MAX = 140, RE_TYPICAL = 105;
+  const RE_DEFAULT_COUNT = 6; // Pokemon to make, until changed
+  const RE_ITEMS = [
+    { id: 'zacian', name: 'Crowned Sword Zacian', unit: 'Crowned Sword Energy', kind: 'crowned', color: '#4fa8ff' },
+    { id: 'zamazenta', name: 'Crowned Shield Zamazenta', unit: 'Crowned Shield Energy', kind: 'crowned', color: '#ff7a7a' },
+    { id: 'white-kyurem', name: 'White Kyurem', unit: 'Blaze Fusion Energy', kind: 'kyurem', color: '#e6ecf7' },
+    { id: 'black-kyurem', name: 'Black Kyurem', unit: 'Volt Fusion Energy', kind: 'kyurem', color: '#a99cff' },
+  ];
+  const reInt = (v, lo, hi, fallback) => {
+    const n = parseInt(v, 10);
+    return Number.isFinite(n) ? Math.min(hi, Math.max(lo, n)) : fallback;
+  };
+  let reState = { per: { crowned: RE_TYPICAL, kyurem: RE_TYPICAL }, cur: {}, count: {} };
+  try {
+    const s = JSON.parse(localStorage.getItem(RE_KEY));
+    if (s) {
+      ['crowned', 'kyurem'].forEach(k => { reState.per[k] = reInt(s.per && s.per[k], 1, 1000, RE_TYPICAL); });
+      RE_ITEMS.forEach(it => {
+        reState.cur[it.id] = reInt(s.cur && s.cur[it.id], 0, 99999, 0);
+        reState.count[it.id] = reInt(s.count && s.count[it.id], 0, 99, RE_DEFAULT_COUNT);
+      });
+    }
+  } catch (e) { /* storage unavailable or corrupt */ }
+  RE_ITEMS.forEach(it => {
+    if (reState.cur[it.id] === undefined) reState.cur[it.id] = 0;
+    if (reState.count[it.id] === undefined) reState.count[it.id] = RE_DEFAULT_COUNT;
+  });
+  const reSave = () => { try { localStorage.setItem(RE_KEY, JSON.stringify(reState)); } catch (e) { /* storage unavailable */ } };
+  const reSet = (obj, key, input, lo, hi, fallback) => {
+    // An empty or invalid box counts as the fallback without rewriting what the user is typing.
+    obj[key] = reInt(input.value, lo, hi, fallback);
+  };
+  function updateRaidEnergy() {
+    RE_ITEMS.forEach(it => {
+      const out = document.getElementById('re-out-' + it.id);
+      const need = reState.count[it.id] * RE_COST - reState.cur[it.id];
+      out.classList.remove('ready');
+      if (reState.count[it.id] === 0) {
+        out.innerHTML = '<span>Set how many Pok&eacute;mon you want to make.</span>';
+      } else if (need <= 0) {
+        out.classList.add('ready');
+        out.innerHTML = reState.count[it.id] === 1 ? '<b>Ready</b> <span>you have enough energy</span>' : `<b>Ready</b> <span>enough energy for ${reState.count[it.id]}</span>`;
+      } else {
+        const per = reState.per[it.kind];
+        const typical = Math.ceil(need / per);
+        const fewest = Math.ceil(need / RE_MAX);
+        const most = Math.ceil(need / RE_MIN);
+        const range = fewest === most ? '' : ` <span>(${fewest} if all fast, ${most} if all slow)</span>`;
+        out.innerHTML = `<b>About ${typical} raid${typical === 1 ? '' : 's'}</b>${range}<br><span>${need.toLocaleString()} more energy needed</span>`;
+      }
+    });
+  }
+  function renderRaidEnergy() {
+    const rows = document.getElementById('re-rows');
+    if (!rows.children.length) {
+      RE_ITEMS.forEach(it => {
+        const row = document.createElement('div');
+        row.className = 're-row';
+        row.style.setProperty('--re', it.color);
+        row.innerHTML = `<div class="re-name">${it.name}<span class="re-unit">${it.unit}</span></div>
+          <div class="re-fields">
+            <div class="candy-level-field"><label class="candy-level-label" for="re-cur-${it.id}">Current energy</label>
+              <input class="particle-manual-input" id="re-cur-${it.id}" type="number" inputmode="numeric" min="0" step="1"></div>
+            <div class="candy-level-field"><label class="candy-level-label" for="re-count-${it.id}">Pok&eacute;mon to make</label>
+              <input class="particle-manual-input" id="re-count-${it.id}" type="number" inputmode="numeric" min="0" max="99" step="1"></div>
+          </div>
+          <div class="re-result" id="re-out-${it.id}"></div>`;
+        rows.appendChild(row);
+        document.getElementById('re-cur-' + it.id).addEventListener('input', (e) => {
+          reSet(reState.cur, it.id, e.target, 0, 99999, 0);
+          reSave(); updateRaidEnergy();
+        });
+        document.getElementById('re-count-' + it.id).addEventListener('input', (e) => {
+          reSet(reState.count, it.id, e.target, 0, 99, 0);
+          reSave(); updateRaidEnergy();
+        });
+      });
+      ['crowned', 'kyurem'].forEach(k => {
+        document.getElementById('re-per-' + k).addEventListener('input', (e) => {
+          reSet(reState.per, k, e.target, 1, 1000, RE_TYPICAL);
+          reSave(); updateRaidEnergy(); markRePreset();
+        });
+      });
+      document.getElementById('re-presets').addEventListener('click', (e) => {
+        const b = e.target.closest('.tz-tab');
+        if (!b) return;
+        reState.per.crowned = reState.per.kyurem = Number(b.dataset.per);
+        document.getElementById('re-per-crowned').value = reState.per.crowned;
+        document.getElementById('re-per-kyurem').value = reState.per.kyurem;
+        reSave(); updateRaidEnergy(); markRePreset();
+      });
+    }
+    document.getElementById('re-per-crowned').value = reState.per.crowned;
+    document.getElementById('re-per-kyurem').value = reState.per.kyurem;
+    RE_ITEMS.forEach(it => {
+      document.getElementById('re-cur-' + it.id).value = reState.cur[it.id] || '';
+      document.getElementById('re-count-' + it.id).value = reState.count[it.id];
+    });
+    markRePreset();
+    updateRaidEnergy();
+  }
+  // Highlight a preset button only while both boxes hold exactly that number.
+  function markRePreset() {
+    document.querySelectorAll('#re-presets .tz-tab').forEach(b => {
+      const v = Number(b.dataset.per);
+      b.classList.toggle('active', reState.per.crowned === v && reState.per.kyurem === v);
+    });
+  }
+
+  // --- Max Battle Damage Calculator ---------------------------------------
+  // Compare any Pokemon's Max Move damage. Damage is proportional to
+  // (base Attack + IV) x level multiplier x Max Move power x STAB, scaled to
+  // match Dittobase's published Dragon ranking (level 50, IV 15, Max Move
+  // level 3 reproduces all 17 of its numbers to within 1 point).
+  const MD_KEY = 'pogo-daily-checklist-max-damage';
+  const MD_CPM = 0.8453;   // level 50 multiplier; every Pokemon shares it, so it never changes the ranking
+  const MD_SCALE = 0.004975;
+  const MD_STAB = 1.2;
+  const mdPower = (gmax, lvl) => (gmax ? 350 : 250) + (lvl - 1) * 50; // G-Max 350/400/450, Dynamax 250/300/350
+  const mdMon = (name) => CB_MON.get(String(name).trim().toLowerCase());
+  let mdUid = 0;
+  const mdNewRow = (name, gmax) => ({ uid: ++mdUid, name, gmax, stab: true, iv: 15, lvl: 3 });
+  const mdDefaults = () => [mdNewRow('Duraludon', true), mdNewRow('Eternatus', true), mdNewRow('Palkia', false)];
+  let mdRows = mdDefaults();
+  try {
+    const saved = JSON.parse(localStorage.getItem(MD_KEY));
+    if (Array.isArray(saved)) {
+      const rows = saved.filter(r => r && typeof r.name === 'string').slice(0, 60)
+        .map(r => ({ uid: ++mdUid, name: r.name.slice(0, 60), gmax: !!r.gmax, stab: r.stab !== false, iv: reInt(r.iv, 0, 15, 15), lvl: reInt(r.lvl, 1, 3, 3) }));
+      if (rows.length || saved.length === 0) mdRows = rows;
+    }
+  } catch (e) { /* storage unavailable or corrupt */ }
+  const mdSave = () => {
+    try { localStorage.setItem(MD_KEY, JSON.stringify(mdRows.map(({ name, gmax, stab, iv, lvl }) => ({ name, gmax, stab, iv, lvl })))); } catch (e) { /* storage unavailable */ }
+  };
+  // Returns null until the name matches a Pokemon in the list.
+  function mdCalc(row) {
+    const mon = mdMon(row.name);
+    if (!mon) return null;
+    const atk = (mon.base[0] + row.iv) * MD_CPM;
+    const power = mdPower(row.gmax, row.lvl);
+    return { mon, atk, power, dmg: MD_SCALE * atk * power * (row.stab ? MD_STAB : 1) };
+  }
+  let mdDirty = false;
+  function updateMaxDamage() {
+    const calc = mdRows.map(r => ({ r, c: mdCalc(r) }));
+    const order = calc.filter(x => x.c).sort((a, b) => b.c.dmg - a.c.dmg);
+    const best = order.length ? order[0].c.dmg : 1;
+    calc.forEach(({ r, c }) => {
+      const row = document.getElementById('md-row-' + r.uid);
+      if (!row) return;
+      const rank = c ? order.findIndex(x => x.r === r) + 1 : 0;
+      row.classList.toggle('top', rank === 1 && order.length > 1);
+      document.getElementById('md-rank-' + r.uid).textContent = rank ? '#' + rank : '?';
+      const out = document.getElementById('md-out-' + r.uid);
+      if (!c) {
+        out.innerHTML = '<span>Pick a Pok&eacute;mon from the list</span>';
+        out.title = '';
+        return;
+      }
+      out.innerHTML = `<b>${Math.round(c.dmg)}</b><br><span>${(c.dmg / best * 100).toFixed(1)}% &middot; power ${c.power}</span>`;
+      out.title = `Base Attack ${c.mon.base[0]}: Attack ${c.atk.toFixed(1)} x power ${c.power}${r.stab ? ' x 1.2 STAB' : ' (no STAB)'}`;
+    });
+  }
+  function mdBuildRow(r) {
+    const row = document.createElement('div');
+    row.className = 'md-row';
+    row.id = 'md-row-' + r.uid;
+    row.innerHTML = `<div class="md-head"><span class="md-rank" id="md-rank-${r.uid}"></span>
+        <input class="particle-manual-input md-name" id="md-name-${r.uid}" list="md-names" type="text" placeholder="Pok&eacute;mon, e.g. duraludon" autocomplete="off" autocapitalize="off" spellcheck="false" aria-label="Pok&eacute;mon">
+        <button class="tz-tab md-del" type="button" aria-label="Remove this row">&times;</button></div>
+      <div class="md-opts">
+        <div class="tz-tabs md-form" role="group" aria-label="Max Move kind">
+          <button class="tz-tab" data-gmax="0" type="button">Dynamax</button>
+          <button class="tz-tab" data-gmax="1" type="button">G-Max</button>
+        </div>
+        <label class="md-stab"><input type="checkbox" id="md-stab-${r.uid}"> Same type (STAB)</label>
+      </div>
+      <div class="md-fields">
+        <div class="candy-level-field"><label class="candy-level-label" for="md-iv-${r.uid}">Attack IV</label>
+          <input class="particle-manual-input" id="md-iv-${r.uid}" type="number" inputmode="numeric" min="0" max="15" step="1" title="Attack IV, 0 to 15"></div>
+        <div class="candy-level-field"><label class="candy-level-label" for="md-lvl-${r.uid}">Move level</label>
+          <input class="particle-manual-input" id="md-lvl-${r.uid}" type="number" inputmode="numeric" min="1" max="3" step="1" title="Max Move level, 1 to 3"></div>
+        <div class="md-result" id="md-out-${r.uid}"></div>
+      </div>`;
+    const name = row.querySelector('.md-name');
+    const iv = row.querySelector('#md-iv-' + r.uid), lvl = row.querySelector('#md-lvl-' + r.uid);
+    const stab = row.querySelector('#md-stab-' + r.uid);
+    const formBtns = row.querySelectorAll('.md-form .tz-tab');
+    const showForm = () => formBtns.forEach(b => b.classList.toggle('active', (b.dataset.gmax === '1') === r.gmax));
+    name.value = r.name; iv.value = r.iv; lvl.value = r.lvl; stab.checked = r.stab;
+    showForm();
+    name.addEventListener('input', () => {
+      r.name = name.value;
+      // Eternatus's Dynamax Cannon is a signature move with G-Max-level power.
+      if (r.name.trim().toLowerCase() === 'eternatus' && !r.gmax) { r.gmax = true; showForm(); }
+      mdDirty = true; mdSave(); updateMaxDamage();
+    });
+    iv.addEventListener('input', () => { r.iv = reInt(iv.value, 0, 15, 0); mdDirty = true; mdSave(); updateMaxDamage(); });
+    lvl.addEventListener('input', () => { r.lvl = reInt(lvl.value, 1, 3, 3); mdDirty = true; mdSave(); updateMaxDamage(); });
+    stab.addEventListener('change', () => { r.stab = stab.checked; mdDirty = true; mdSave(); updateMaxDamage(); });
+    formBtns.forEach(b => b.addEventListener('click', () => { r.gmax = b.dataset.gmax === '1'; showForm(); mdDirty = true; mdSave(); updateMaxDamage(); }));
+    row.querySelector('.md-del').addEventListener('click', () => {
+      mdRows = mdRows.filter(x => x !== r);
+      mdSave(); renderMaxDamage();
+    });
+    return row;
+  }
+  let mdInitSorted = false;
+  function renderMaxDamage() {
+    if (!mdInitSorted) { // first visit: rank them (needs the Pokemon list, which loads later in the script)
+      mdInitSorted = true;
+      const dmg0 = (r) => { const c = mdCalc(r); return c ? c.dmg : -1; };
+      mdRows.sort((a, b) => dmg0(b) - dmg0(a));
+    }
+    const dl = document.getElementById('md-names');
+    if (!dl.children.length) {
+      dl.innerHTML = [...CB_MON.values()].filter(m => !/^(Mega|Primal)\b/.test(m.name)).map(m => `<option value="${m.name}"></option>`).join('');
+    }
+    const list = document.getElementById('md-rows');
+    list.innerHTML = '';
+    mdRows.forEach(r => list.appendChild(mdBuildRow(r)));
+    document.getElementById('md-empty').hidden = mdRows.length > 0;
+    updateMaxDamage();
+  }
+  function sortMaxDamage() {
+    const dmg = (r) => { const c = mdCalc(r); return c ? c.dmg : -1; };
+    mdRows.sort((a, b) => dmg(b) - dmg(a));
+    mdDirty = false;
+    mdSave();
+    renderMaxDamage();
+  }
+  document.getElementById('md-sort-btn').addEventListener('click', sortMaxDamage);
+  document.getElementById('md-add-btn').addEventListener('click', () => {
+    const row = mdNewRow('', false);
+    mdRows.push(row);
+    mdSave();
+    renderMaxDamage();
+    const input = document.getElementById('md-name-' + row.uid);
+    input.focus();
+    input.scrollIntoView({ block: 'center' });
+  });
+  document.getElementById('md-reset-btn').addEventListener('click', () => {
+    mdRows = mdDefaults();
+    sortMaxDamage();
+  });
+  // Re-sort once focus leaves the list after an edit (not on every keystroke, which would jump rows around).
+  document.getElementById('md-rows').addEventListener('focusout', (e) => {
+    if (mdDirty && !document.getElementById('md-rows').contains(e.relatedTarget)) sortMaxDamage();
+  });
+
   // Checklist, Particles and Power Up Calculator are peer top-level tabs
   // (equal priority), not a parent/child pair, so switching between them
   // doesn't push a history entry - only genuine sub-views (account
@@ -4630,8 +5007,8 @@
   const TRACKER_TABS = ['pokemon-tracker', 'mega-tracker', 'shadow-tracker', 'candy-tracker'];
   let currentTracker = 'pokemon-tracker';
   // Same idea for the three calculators under one "Calculator" tab.
-  const CALC_TABS = ['combat', 'showcase', 'candy'];
-  let currentCalc = 'combat';
+  const CALC_TABS = ['combat', 'showcase', 'candy', 'raid-energy', 'max-damage'];
+  let currentCalc = 'raid-energy';
   // Misc groups six pages (Discord and Gym Defender are root tabs of their own); it always lands on the Time Zone converter.
   const MISC_TABS = ['timezone', 'search-term', 'pokedex', 'trade-balancer', 'iv-nickname', 'value-finder'];
   // Party has a Max Battle page (always the landing page) and a Raid page.
@@ -4655,6 +5032,8 @@
     viewTradeBalancer.hidden = tab !== 'trade-balancer';
     viewSearchTerm.hidden = tab !== 'search-term';
     viewShowcase.hidden = tab !== 'showcase';
+    viewRaidEnergy.hidden = tab !== 'raid-energy';
+    viewMaxDamage.hidden = tab !== 'max-damage';
     viewParty.hidden = tab !== 'party';
     viewRaid.hidden = tab !== 'raid';
     viewTimezone.hidden = tab !== 'timezone';
@@ -4680,6 +5059,8 @@
     if (tab === 'dashboard') renderDashboard();
     else if (tab === 'particles') renderParticleList();
     else if (tab === 'candy') renderCandyCalculator();
+    else if (tab === 'raid-energy') renderRaidEnergy();
+    else if (tab === 'max-damage') renderMaxDamage();
     else if (tab === 'candy-tracker') renderCandyTrackerGrid();
     else if (tab === 'pokemon-tracker') renderPokemonTrackerGrid();
     else if (tab === 'shadow-tracker') renderShadowTrackerGrid();
@@ -4718,6 +5099,8 @@
     if (!viewTradeBalancer.hidden) return 'trade-balancer';
     if (!viewSearchTerm.hidden) return 'search-term';
     if (!viewShowcase.hidden) return 'showcase';
+    if (!viewRaidEnergy.hidden) return 'raid-energy';
+    if (!viewMaxDamage.hidden) return 'max-damage';
     if (!viewCombat.hidden) return 'combat';
     if (!viewParty.hidden) return 'party';
     if (!viewRaid.hidden) return 'raid';
