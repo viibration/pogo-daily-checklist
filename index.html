@@ -105,7 +105,7 @@
   .grp-gift { --grp-bg: #4a1a35; --grp-badge: #5e2144; --grp-line: rgba(255, 120, 175, 0.55); --grp-hover: #ff78af; }
   .grp-raid { --grp-bg: #411818; --grp-badge: #542020; --grp-line: rgba(255, 90, 90, 0.55); --grp-hover: #ff5a5a; }
   .grp-max { --grp-bg: #44300f; --grp-badge: #583f15; --grp-line: rgba(255, 169, 77, 0.55); --grp-hover: #ffa94d; }
-  .grp-league { --grp-bg: #12315a; --grp-badge: #1a4175; --grp-line: rgba(79, 168, 255, 0.55); --grp-hover: #4fa8ff; }
+  .grp-friend { --grp-bg: #12315a; --grp-badge: #1a4175; --grp-line: rgba(79, 168, 255, 0.55); --grp-hover: #4fa8ff; }
   .grp-trade { --grp-bg: #0f3a36; --grp-badge: #164b46; --grp-line: rgba(79, 216, 216, 0.55); --grp-hover: #4fd8d8; }
   .grp-coin { --grp-bg: #5a4e05; --grp-badge: #7d6c0a; --grp-line: rgba(255, 210, 63, 0.9); --grp-hover: #ffd23f; }
   .grp-route { --grp-bg: #2c3446; --grp-badge: #394359; --grp-line: rgba(210, 220, 240, 0.55); --grp-hover: #d6dff2; }
@@ -1432,8 +1432,7 @@
         <button class="modal-quick-btn grp-max" id="max-open-btn" type="button">Check Max</button>
       </div>
       <div class="modal-quick-row">
-        <button class="modal-quick-btn grp-route" id="route-open-btn" type="button">Check route task</button>
-        <button class="modal-quick-btn grp-league" id="pvp-open-btn" type="button">Check win pvp all leagues</button>
+        <button class="modal-quick-btn grp-friend" id="friend-open-btn" type="button">Check friend activity</button>
       </div>
       <div class="modal-quick-row">
         <button class="modal-quick-btn" id="custom-add-open-btn" type="button">Add custom task</button>
@@ -1668,8 +1667,7 @@
         <button class="modal-quick-btn grp-max" id="checklist-max-btn" type="button">Check Max</button>
       </div>
       <div class="modal-quick-row">
-        <button class="modal-quick-btn grp-route" id="checklist-route-btn" type="button">Check route task</button>
-        <button class="modal-quick-btn grp-league" id="checklist-pvp-btn" type="button">Check win pvp all leagues</button>
+        <button class="modal-quick-btn grp-friend" id="checklist-friend-btn" type="button">Check friend activity</button>
       </div>
       <div class="items" id="items"></div>
       <button class="reset-btn" id="reset-btn" type="button">Reset today's checklist</button>
@@ -2980,6 +2978,7 @@
   const tasks = [
     { id: 'special-trade', label: 'Daily Trade' },
     { id: 'gym-coins', label: 'Gym Defender Coin(s)' },
+    { id: 'friend-battle', label: 'Friend Battle' },
     { id: 'showcase', label: 'Showcase' },
     { id: 'first-catch', label: 'First catch' },
     { id: 'first-spin', label: 'First spin' },
@@ -2991,15 +2990,7 @@
     { id: 'raid-boss', label: 'Raid Boss' },
     { id: 'max-particle', label: 'Max Particle' },
     { id: 'max-raid', label: 'Max Battle' },
-    { id: 'route-1', label: 'Route 1', detail: 'Route 1 - Zygarde' },
-    { id: 'route-2', label: 'Route 2', detail: 'Route 2 - Bryant Park small loop' },
-    { id: 'route-3', label: 'Route 3', detail: 'Route 3 - Bryant park one' },
-    { id: 'route-4', label: 'Route 4', detail: 'Route 4 - Around Bryant Park' },
-    { id: 'route-5', label: 'Route 5', detail: 'Route 5 - Yep pokemongo' },
-    { id: 'route-6', label: 'Route 6', detail: 'Route 6 - BP Inside Lap' },
-    { id: 'league-master', label: 'Win Master League' },
-    { id: 'league-ultra', label: 'Win Ultra League' },
-    { id: 'league-great', label: 'Win Great League' },
+    { id: 'daily-route', label: 'Daily Route' },
   ];
 
   // A leading "F-"/"M-" in a task name renders as a pink female / blue male
@@ -3019,8 +3010,7 @@
   }
 
   const FARM_TASK_IDS = ['first-catch', 'first-spin', 'first-research', 'daily-incense'];
-  const ROUTE_TASK_IDS = ['route-1', 'route-2', 'route-3', 'route-4', 'route-5', 'route-6'];
-  const WIN_LEAGUE_TASK_IDS = ['league-master', 'league-ultra', 'league-great'];
+  const FRIEND_TASK_IDS = ['special-trade', 'friend-battle'];
   const DAILY_BOSS_TASK_IDS = ['daily-raid-pass', 'raid-boss'];
   const GIFT_TASK_IDS = ['send-gifts', 'open-gift'];
   const MAX_TASK_IDS = ['max-particle', 'max-raid'];
@@ -3031,10 +3021,10 @@
     ['gift', GIFT_TASK_IDS],
     ['raid', DAILY_BOSS_TASK_IDS],
     ['max', MAX_TASK_IDS],
-    ['league', WIN_LEAGUE_TASK_IDS],
+    ['friend', ['friend-battle']],
     ['trade', ['special-trade']],
     ['coin', ['gym-coins']],
-    ['route', ROUTE_TASK_IDS],
+    ['route', ['daily-route']],
   ].forEach(([group, ids]) => {
     tasks.forEach(t => { if (ids.includes(t.id)) t.group = group; });
   });
@@ -3113,7 +3103,7 @@
   // The first four accounts are Team Valor (red), the last four Team Instinct (yellow).
   const teamClass = (name) => (FIRST_FOUR_ACCOUNTS.includes(name) ? 'team-valor' : 'team-instinct');
 
-  // PvP league bulk-check duos, paired for the "Check win pvp all leagues" modal.
+  // Friend activity bulk-check duos (friends paired for Daily Trade + Friend Battle), used by the "Check friend activity" modal.
   const DUO_1_ACCOUNTS = ['Viibration', 'ViisitorXY'];
   const DUO_2_ACCOUNTS = ['ViictoriaZA', 'ViitaminEV'];
   const DUO_3_ACCOUNTS = ['ViineyardistEX', 'ViiperGX'];
@@ -3619,8 +3609,7 @@
     'gift-open-btn': GIFT_TASK_IDS,
     'boss-open-btn': DAILY_BOSS_TASK_IDS,
     'max-open-btn': MAX_TASK_IDS,
-    'route-open-btn': ROUTE_TASK_IDS,
-    'pvp-open-btn': WIN_LEAGUE_TASK_IDS,
+    'friend-open-btn': FRIEND_TASK_IDS,
   };
   function renderMultiCheckMarks() {
     Object.entries(MULTI_CHECK_BUTTONS).forEach(([btnId, ids]) => {
@@ -3824,8 +3813,7 @@
 
   bulkOpenBtn.addEventListener('click', () => openBulkModal(null, 'Check all tasks'));
   document.getElementById('farm-open-btn').addEventListener('click', () => openBulkModal(FARM_TASK_IDS, 'Check farm task - Catch + Spin + Research + Daily Incense'));
-  document.getElementById('route-open-btn').addEventListener('click', () => openBulkModal(ROUTE_TASK_IDS, 'Check route task: Route 1 (Zygarde) - Route 6 (BP Inside Lap)'));
-  document.getElementById('pvp-open-btn').addEventListener('click', () => openBulkModal(WIN_LEAGUE_TASK_IDS, 'Check win PvP league task', 'duo'));
+  document.getElementById('friend-open-btn').addEventListener('click', () => openBulkModal(FRIEND_TASK_IDS, 'Check friend activity - Daily Trade + Friend Battle', 'duo'));
   document.getElementById('boss-open-btn').addEventListener('click', () => openBulkModal(DAILY_BOSS_TASK_IDS, 'Check daily boss - Free Pass + Boss battle'));
   document.getElementById('gift-open-btn').addEventListener('click', () => openBulkModal(GIFT_TASK_IDS, 'Check gift - Send gift + Open gift'));
   document.getElementById('max-open-btn').addEventListener('click', () => openBulkModal(MAX_TASK_IDS, 'Check Max - Max Particle + Max Battle'));
@@ -5831,8 +5819,7 @@
     renderChecklist();
   }
   document.getElementById('checklist-farm-btn').addEventListener('click', () => toggleChecklistTasks(FARM_TASK_IDS));
-  document.getElementById('checklist-route-btn').addEventListener('click', () => toggleChecklistTasks(ROUTE_TASK_IDS));
-  document.getElementById('checklist-pvp-btn').addEventListener('click', () => toggleChecklistTasks(WIN_LEAGUE_TASK_IDS));
+  document.getElementById('checklist-friend-btn').addEventListener('click', () => toggleChecklistTasks(FRIEND_TASK_IDS));
   document.getElementById('checklist-gift-btn').addEventListener('click', () => toggleChecklistTasks(GIFT_TASK_IDS));
   document.getElementById('checklist-max-btn').addEventListener('click', () => toggleChecklistTasks(MAX_TASK_IDS));
   document.getElementById('checklist-boss-btn').addEventListener('click', () => toggleChecklistTasks(DAILY_BOSS_TASK_IDS));
