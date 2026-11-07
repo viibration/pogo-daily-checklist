@@ -2265,6 +2265,18 @@
       <div class="tzc-result" id="tzr-result"></div>
     </div>
     <div class="panel panel-theme-teal">
+      <div class="particle-actions-label">Add time to clock time</div>
+      <div class="tzr-times">
+        <label class="tb-field"><span class="candy-level-label">Start hour</span><input class="particle-manual-input" id="tza-sh" type="number" inputmode="numeric" min="0" max="23" placeholder="HH"></label>
+        <label class="tb-field"><span class="candy-level-label">Start minute</span><input class="particle-manual-input" id="tza-sm" type="number" inputmode="numeric" min="0" max="59" placeholder="MM"></label>
+      </div>
+      <div class="tzr-times">
+        <label class="tb-field"><span class="candy-level-label">Hours to add</span><input class="particle-manual-input" id="tza-h" type="number" inputmode="numeric" min="0" placeholder="0"></label>
+        <label class="tb-field"><span class="candy-level-label">Minutes to add</span><input class="particle-manual-input" id="tza-m" type="number" inputmode="numeric" min="0" placeholder="0"></label>
+      </div>
+      <div class="tzc-result" id="tza-result"></div>
+    </div>
+    <div class="panel panel-theme-teal">
       <div class="particle-actions-label">Same moment in your zones</div>
       <div id="tzc-all"></div>
     </div>
@@ -8774,6 +8786,42 @@
     setInterval(tzrRender, 1000);
     tzrRender();
   })();
+
+  // --- Add time to a clock time: plain clock arithmetic (no time zone), e.g.
+  // 21:04 + 2h 24m = 23:28. Past midnight it says how many days ahead. ---
+  function tzaRender() {
+    const result = tzcId('tza-result');
+    const hasStart = tzcId('tza-sh').value !== '' || tzcId('tza-sm').value !== '';
+    const sh = parseInt(tzcId('tza-sh').value, 10) || 0;
+    const sm = parseInt(tzcId('tza-sm').value, 10) || 0;
+    const ah = Math.max(0, parseInt(tzcId('tza-h').value, 10) || 0);
+    const am = Math.max(0, parseInt(tzcId('tza-m').value, 10) || 0);
+    result.innerHTML = '';
+    if (!hasStart) {
+      result.textContent = 'Enter the start time and how much to add.';
+      return;
+    }
+    if (sh > 23 || sm > 59) {
+      result.textContent = 'Start time must be 00:00 to 23:59.';
+      return;
+    }
+    const pad = (n) => String(n).padStart(2, '0');
+    const total = sh * 60 + sm + ah * 60 + am;
+    const days = Math.floor(total / 1440);
+    const dayWord = days === 0 ? 'same day' : days === 1 ? 'next day' : `+${days} days`;
+    const small = document.createElement('div');
+    small.className = 'tzc-sub';
+    small.textContent = `${pad(sh)}:${pad(sm)} + ${ah}h ${am}m =`;
+    const big = document.createElement('div');
+    big.className = 'tzc-big';
+    big.textContent = `${pad(Math.floor(total / 60) % 24)}:${pad(total % 60)}`;
+    const sub = document.createElement('div');
+    sub.className = 'tzc-sub';
+    sub.textContent = dayWord;
+    result.append(small, big, sub);
+  }
+  ['tza-sh', 'tza-sm', 'tza-h', 'tza-m'].forEach(id => tzcId(id).addEventListener('input', tzaRender));
+  tzaRender();
 
   // --- Discord tab: Quick Send, ported from the standalone Discord
   // Quick Send app. Posts the message wrapped as a "# `text`" heading to a
