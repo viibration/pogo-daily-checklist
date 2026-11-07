@@ -1435,6 +1435,9 @@
         <button class="modal-quick-btn grp-friend" id="friend-open-btn" type="button">Check friend activity</button>
       </div>
       <div class="modal-quick-row">
+        <button class="modal-quick-btn grp-route" id="activity-open-btn" type="button">Check daily account activity</button>
+      </div>
+      <div class="modal-quick-row">
         <button class="modal-quick-btn" id="custom-add-open-btn" type="button">Add custom task</button>
         <button class="modal-quick-btn" id="custom-remove-open-btn" type="button">Remove custom task</button>
       </div>
@@ -1668,6 +1671,9 @@
       </div>
       <div class="modal-quick-row">
         <button class="modal-quick-btn grp-friend" id="checklist-friend-btn" type="button">Check friend activity</button>
+      </div>
+      <div class="modal-quick-row">
+        <button class="modal-quick-btn grp-route" id="checklist-activity-btn" type="button">Check daily account activity</button>
       </div>
       <div class="items" id="items"></div>
       <button class="reset-btn" id="reset-btn" type="button">Reset today's checklist</button>
@@ -2991,6 +2997,7 @@
     { id: 'max-particle', label: 'Max Particle' },
     { id: 'max-raid', label: 'Max Battle' },
     { id: 'daily-route', label: 'Daily Route' },
+    { id: 'send-postcard', label: 'Send Postcard' },
   ];
 
   // A leading "F-"/"M-" in a task name renders as a pink female / blue male
@@ -3014,6 +3021,9 @@
   const DAILY_BOSS_TASK_IDS = ['daily-raid-pass', 'raid-boss'];
   const GIFT_TASK_IDS = ['send-gifts', 'open-gift'];
   const MAX_TASK_IDS = ['max-particle', 'max-raid'];
+  // Daily Route + Send Postcard + Showcase. Showcase is Tuesday-only, so it is
+  // left out on other days (a locked task can't be checked).
+  const ACTIVITY_TASK_IDS = () => ['daily-route', 'send-postcard', 'showcase'].filter(id => !isTaskLocked({ id }));
 
   // Tasks in the same group share one button colour (grp-* classes below).
   [
@@ -3024,7 +3034,7 @@
     ['friend', ['friend-battle']],
     ['trade', ['special-trade']],
     ['coin', ['gym-coins']],
-    ['route', ['daily-route']],
+    ['route', ['daily-route', 'send-postcard']],
   ].forEach(([group, ids]) => {
     tasks.forEach(t => { if (ids.includes(t.id)) t.group = group; });
   });
@@ -3611,9 +3621,11 @@
     'boss-open-btn': DAILY_BOSS_TASK_IDS,
     'max-open-btn': MAX_TASK_IDS,
     'friend-open-btn': FRIEND_TASK_IDS,
+    'activity-open-btn': ACTIVITY_TASK_IDS,
   };
   function renderMultiCheckMarks() {
-    Object.entries(MULTI_CHECK_BUTTONS).forEach(([btnId, ids]) => {
+    Object.entries(MULTI_CHECK_BUTTONS).forEach(([btnId, idList]) => {
+      const ids = typeof idList === 'function' ? idList() : idList;
       const allDone = accountNames.every(name => ids.every(id => !!state.accounts[name].done[id]));
       document.getElementById(btnId).classList.toggle('all-done', allDone);
     });
@@ -3744,6 +3756,7 @@
   let bulkTaskIds = null;
 
   function bulkIds() {
+    if (typeof bulkTaskIds === 'function') return bulkTaskIds();
     return bulkTaskIds || countableTasks().map(t => t.id);
   }
 
@@ -3815,6 +3828,7 @@
   bulkOpenBtn.addEventListener('click', () => openBulkModal(null, 'Check all tasks'));
   document.getElementById('farm-open-btn').addEventListener('click', () => openBulkModal(FARM_TASK_IDS, 'Check farm task - Catch + Spin + Research + Daily Incense'));
   document.getElementById('friend-open-btn').addEventListener('click', () => openBulkModal(FRIEND_TASK_IDS, 'Check friend activity - Daily Trade + Friend Battle', 'duo'));
+  document.getElementById('activity-open-btn').addEventListener('click', () => openBulkModal(ACTIVITY_TASK_IDS, 'Check daily account activity - Daily Route + Send Postcard + Showcase (Tuesday)'));
   document.getElementById('boss-open-btn').addEventListener('click', () => openBulkModal(DAILY_BOSS_TASK_IDS, 'Check daily boss - Free Pass + Boss battle'));
   document.getElementById('gift-open-btn').addEventListener('click', () => openBulkModal(GIFT_TASK_IDS, 'Check gift - Send gift + Open gift'));
   document.getElementById('max-open-btn').addEventListener('click', () => openBulkModal(MAX_TASK_IDS, 'Check Max - Max Particle + Max Battle'));
@@ -5821,6 +5835,7 @@
   }
   document.getElementById('checklist-farm-btn').addEventListener('click', () => toggleChecklistTasks(FARM_TASK_IDS));
   document.getElementById('checklist-friend-btn').addEventListener('click', () => toggleChecklistTasks(FRIEND_TASK_IDS));
+  document.getElementById('checklist-activity-btn').addEventListener('click', () => toggleChecklistTasks(ACTIVITY_TASK_IDS()));
   document.getElementById('checklist-gift-btn').addEventListener('click', () => toggleChecklistTasks(GIFT_TASK_IDS));
   document.getElementById('checklist-max-btn').addEventListener('click', () => toggleChecklistTasks(MAX_TASK_IDS));
   document.getElementById('checklist-boss-btn').addEventListener('click', () => toggleChecklistTasks(DAILY_BOSS_TASK_IDS));
