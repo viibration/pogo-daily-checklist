@@ -7893,21 +7893,30 @@
     }
     return best;
   };
-  // Each saved card also gets a number in the order it was created (shown
-  // after the name, e.g. "Excadrill - 2"). A deck counts up and never reuses
-  // a number, so deleting a card does not renumber the others.
-  const cbNextNum = () => {
+  // Each saved card records which account it belongs to and how many cards
+  // that account has had added so far (`an`: 1st, 2nd, 3rd...). Each account
+  // counts up separately and never reuses a number, so deleting a card does
+  // not renumber the others.
+  const cbNextAccNum = (acc) => {
     const d = cbDeck();
-    const n = Math.max(d.seq || 0, ...cbList.map(e => e.n || 0)) + 1;
-    d.seq = n;
+    if (!d.seqs) d.seqs = {};
+    const n = Math.max(d.seqs[acc] || 0, ...cbList.filter(e => e.acc === acc).map(e => e.an || 0)) + 1;
+    d.seqs[acc] = n;
     return n;
   };
-  // Cards saved before numbers existed get theirs in list (creation) order.
+  // Cards saved before this existed get theirs in list (creation) order.
   function cbEnsureNums() {
     let changed = false;
-    cbList.forEach(e => { if (typeof e.n !== 'number') { e.n = cbNextNum(); changed = true; } });
+    cbList.forEach(e => { if (e.acc && typeof e.an !== 'number') { e.an = cbNextAccNum(e.acc); changed = true; } });
     if (changed) cbSaveList();
   }
+  // "Viibration - T1/1": Team 1 is the first four accounts, Team 2 the last
+  // four, and the number is the account's place in its team.
+  const cbTeamLabel = (acc) => {
+    const i = accountNames.indexOf(acc);
+    return `T${i < FIRST_FOUR_ACCOUNTS.length ? 1 : 2}/${(i % FIRST_FOUR_ACCOUNTS.length) + 1}`;
+  };
+  const cbCardTitle = (e) => (e.acc ? `${e.name} - ${e.acc} - ${cbTeamLabel(e.acc)} - ${e.an}` : e.name);
   // Cards saved before colours existed get theirs here.
   function cbEnsureHues() {
     let changed = false;
@@ -7927,11 +7936,8 @@
     // Compared as shown (attack/defense to 2 decimals), so equal values tie.
     const key = (r) => Math.round(r[cbSort] * 100);
     const sorted = [...cbCards].sort((a, b) => key(b.r) - key(a.r) || b.r.cp - a.r.cp);
-    // Entries tied on the sorted stat share a rank (1, 1, 1, 4).
-    let rank = 0;
     sorted.forEach((c, i) => {
-      rank = i > 0 && key(c.r) === key(sorted[i - 1].r) ? rank : i + 1;
-      c.titleEl.textContent = `#${rank} ${c.e.name} (${c.e.n})${c.e.acc ? ' - ' + c.e.acc : ''}`;
+      c.titleEl.textContent = cbCardTitle(c.e);
       c.scoreEl.textContent = cbSort === 'atk' || cbSort === 'def' ? cbFmt(c.r[cbSort]) : c.r[cbSort];
       c.subEl.textContent = `${cbFmt(c.r.atk)} atk · ${cbFmt(c.r.def)} def · ${c.r.hp} HP`;
       // Keep every box in step with the card (e.g. Level after a CP edit),
@@ -8070,7 +8076,7 @@
   // original stays as it was while the copy gets changed.
   cbId('cb-deck-copy').addEventListener('click', () => {
     const id = cbNewDeckId();
-    cbDecks.decks.push({ id, name: `${cbDeck().name} copy`.slice(0, 40), list: JSON.parse(JSON.stringify(cbList)), seq: cbDeck().seq });
+    cbDecks.decks.push({ id, name: `${cbDeck().name} copy`.slice(0, 40), list: JSON.parse(JSON.stringify(cbList)), seqs: { ...cbDeck().seqs } });
     cbSwitchDeck(id);
   });
   cbId('cb-deck-del').addEventListener('click', () => {
@@ -8144,7 +8150,7 @@
     btn.addEventListener('click', () => {
       const e = cbReadEntry();
       if (!e) return;
-      cbList.push({ name: e.name, iv: e.iv, level: e.level, hue: cbNextHue(), n: cbNextNum(), acc });
+      cbList.push({ name: e.name, iv: e.iv, level: e.level, hue: cbNextHue(), acc, an: cbNextAccNum(acc) });
       cbSaveList();
       renderCbList();
     });
