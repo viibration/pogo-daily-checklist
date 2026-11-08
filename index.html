@@ -899,6 +899,16 @@
   .re-result { margin-top: 4px; font-size: 12px; line-height: 1.3; }
   .re-result b { font-size: 13px; font-variant-numeric: tabular-nums; }
   .re-result.ready b { color: var(--good); }
+  .mp-row { padding: 8px 0 8px 10px; margin-top: 6px; border-left: 3px solid var(--mp); }
+  .mp-fields { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) auto; gap: 8px; align-items: end; }
+  .mp-fields .particle-manual-input { display: block; width: 100%; padding: 6px 8px; font-size: 15px; }
+  .mp-del { flex: 0 0 auto; padding: 2px 9px; font-size: 16px; line-height: 1.2; margin-bottom: 3px; }
+  .mp-result { margin-top: 6px; font-size: 12px; line-height: 1.3; color: var(--text-dim); font-variant-numeric: tabular-nums; }
+  .mp-result b { font-size: 13px; color: var(--text); }
+  .mp-result.used b { color: var(--good); }
+  .mp-steps { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
+  .mp-step { padding: 4px 10px; border: 1px solid var(--line); border-radius: 999px; font-size: 13px; font-variant-numeric: tabular-nums; }
+  .mp-step.last { border-color: var(--good); color: var(--good); }
   .re-result span { color: var(--text-faint); }
   .sx-chips { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 4px; }
   .sx-chip {
@@ -1866,6 +1876,7 @@
         <button class="tz-tab" data-calc="showcase" type="button">Showcase Calculator</button>
         <button class="tz-tab" data-calc="candy" type="button">Power Up Calculator</button>
         <button class="tz-tab" data-calc="raid-energy" type="button">Raid Energy Calculator</button>
+        <button class="tz-tab" data-calc="max-particle" type="button">Max Particle Calculator</button>
         <button class="tz-tab" data-calc="max-damage" type="button">Max Battle Damage Calculator</button>
       </div>
     </div>
@@ -2006,6 +2017,10 @@
       <label class="maxmove-check" id="pokedex-go-label" style="margin-bottom: 10px;">
         <input type="checkbox" id="pokedex-go-toggle">
         Only Pok&eacute;mon released in GO &mdash; hides the rest of the Pok&eacute;dex
+      </label>
+      <label class="maxmove-check" id="pokedex-checked-label" style="margin-bottom: 10px;">
+        <input type="checkbox" id="pokedex-checked-toggle">
+        Only checked Pok&eacute;mon &mdash; shows just the ones you have selected
       </label>
       <div class="particle-actions-label" style="margin-bottom: 6px;">Search term</div>
       <textarea class="particle-manual-input sync-textarea" id="pokedex-result" readonly placeholder="Select Pok&eacute;mon below to build a search term"></textarea>
@@ -2680,6 +2695,7 @@
         <button class="tz-tab" data-calc="showcase" type="button">Showcase Calculator</button>
         <button class="tz-tab" data-calc="candy" type="button">Power Up Calculator</button>
         <button class="tz-tab" data-calc="raid-energy" type="button">Raid Energy Calculator</button>
+        <button class="tz-tab" data-calc="max-particle" type="button">Max Particle Calculator</button>
         <button class="tz-tab" data-calc="max-damage" type="button">Max Battle Damage Calculator</button>
       </div>
     </div>
@@ -2833,6 +2849,7 @@
         <button class="tz-tab" data-calc="showcase" type="button">Showcase Calculator</button>
         <button class="tz-tab" data-calc="candy" type="button">Power Up Calculator</button>
         <button class="tz-tab" data-calc="raid-energy" type="button">Raid Energy Calculator</button>
+        <button class="tz-tab" data-calc="max-particle" type="button">Max Particle Calculator</button>
         <button class="tz-tab" data-calc="max-damage" type="button">Max Battle Damage Calculator</button>
       </div>
     </div>
@@ -2869,6 +2886,7 @@
         <button class="tz-tab" data-calc="showcase" type="button">Showcase Calculator</button>
         <button class="tz-tab" data-calc="candy" type="button">Power Up Calculator</button>
         <button class="tz-tab" data-calc="raid-energy" type="button">Raid Energy Calculator</button>
+        <button class="tz-tab" data-calc="max-particle" type="button">Max Particle Calculator</button>
         <button class="tz-tab" data-calc="max-damage" type="button">Max Battle Damage Calculator</button>
       </div>
     </div>
@@ -2897,6 +2915,53 @@
       <div class="sx-hint">An estimate only. Each raid gives at least 80 energy and up to about 140, depending on how fast you win and how much damage you deal, and community guides put the usual amount near 100&ndash;110. If you find the energy you really get per raid (for example from a Kyurem raid), type it into the Energy per raid box above.</div>
     </div>
   </div>
+  <div id="view-max-particle" hidden>
+    <div class="panel">
+      <div class="app-tabs">
+        <button class="app-tab" data-tab="dashboard" type="button">Daily Checklist</button>
+        <button class="app-tab" data-tab="particles" type="button">Max Particle</button>
+        <button class="app-tab" data-tab="party" type="button">Party</button>
+        <button class="app-tab active" data-tab="calculator" type="button">Calculator</button>
+        <button class="app-tab" data-tab="gym" type="button">Gym Defender</button>
+        <button class="app-tab" data-tab="discord" type="button">Discord</button>
+        <button class="app-tab" data-tab="tracker" type="button">Tracker</button>
+        <button class="app-tab" data-tab="misc" type="button">Misc</button>
+      </div>
+      <div class="tz-tabs calc-select" style="margin-top: 10px;">
+        <button class="tz-tab" data-calc="combat" type="button">Combat Calculator</button>
+        <button class="tz-tab" data-calc="showcase" type="button">Showcase Calculator</button>
+        <button class="tz-tab" data-calc="candy" type="button">Power Up Calculator</button>
+        <button class="tz-tab" data-calc="raid-energy" type="button">Raid Energy Calculator</button>
+        <button class="tz-tab" data-calc="max-particle" type="button">Max Particle Calculator</button>
+        <button class="tz-tab" data-calc="max-damage" type="button">Max Battle Damage Calculator</button>
+      </div>
+    </div>
+    <div class="panel">
+      <div class="particle-actions-label">Limit and walking</div>
+      <div class="tb-inputs">
+        <label class="tb-field"><span class="candy-level-label">Daily limit</span><input class="particle-manual-input" id="mp-limit" type="number" inputmode="numeric" min="1" step="1"></label>
+        <label class="tb-field"><span class="candy-level-label">Walking gain</span><input class="particle-manual-input" id="mp-walk" type="number" inputmode="numeric" min="0" step="1"></label>
+      </div>
+      <div class="mp-result" id="mp-walk-out"></div>
+    </div>
+    <div class="panel">
+      <div class="particle-actions-label">Power spot gains</div>
+      <div id="mp-rows"></div>
+      <div class="sx-hint" id="mp-empty" hidden>No power spots yet. Tap + Add row.</div>
+      <div class="md-add">
+        <button class="tz-tab" id="mp-add-btn" type="button">+ Add row</button>
+      </div>
+    </div>
+    <div class="panel panel-theme-teal">
+      <div class="particle-actions-label">Best day</div>
+      <div class="tb-balanced" id="mp-total">&mdash;</div>
+      <div class="sx-hint" id="mp-sub"></div>
+      <div class="mp-steps" id="mp-steps"></div>
+    </div>
+    <div class="panel">
+      <div class="sx-hint" style="margin-top: 0;">Gains stop once your day&rsquo;s total has reached the limit, but the gain that crosses it still counts in full. So the best day fills up to just under the limit and then finishes with the biggest gain you can. The plan above finds the highest total, and among plans with that total, the one with the fewest gains. &ldquo;Spots&rdquo; is how many of that gain you can collect; leave it empty for as many as needed. Walking counts as one gain.</div>
+    </div>
+  </div>
   <div id="view-showcase" hidden>
     <div class="panel">
       <div class="app-tabs">
@@ -2914,6 +2979,7 @@
         <button class="tz-tab" data-calc="showcase" type="button">Showcase Calculator</button>
         <button class="tz-tab" data-calc="candy" type="button">Power Up Calculator</button>
         <button class="tz-tab" data-calc="raid-energy" type="button">Raid Energy Calculator</button>
+        <button class="tz-tab" data-calc="max-particle" type="button">Max Particle Calculator</button>
         <button class="tz-tab" data-calc="max-damage" type="button">Max Battle Damage Calculator</button>
       </div>
     </div>
@@ -3314,6 +3380,7 @@
   const viewShowcase = document.getElementById('view-showcase');
   const viewRaidEnergy = document.getElementById('view-raid-energy');
   const viewMaxDamage = document.getElementById('view-max-damage');
+  const viewMaxParticle = document.getElementById('view-max-particle');
   const viewParty = document.getElementById('view-party');
   const viewRaid = document.getElementById('view-raid');
   const viewTimezone = document.getElementById('view-timezone');
@@ -5068,6 +5135,175 @@
     if (mdDirty && !document.getElementById('md-rows').contains(e.relatedTarget)) sortMaxDamage();
   });
 
+  // --- Max Particle Calculator. Gains stop once the day's total has reached
+  // the limit, but the gain that crosses it still counts in full. A set of
+  // gains can therefore all be collected when (sum - biggest) < limit, since
+  // the biggest goes last. For every gain taken as the finisher, a small
+  // knapsack fills up to limit - 1 with the fewest other gains; the best
+  // finisher gives the highest total (fewest gains on a tie). Walking is one
+  // gain; a blank "spots" box means as many of that gain as needed. ---
+  const MP_KEY = 'pogo-daily-checklist-particle-calc';
+  const MP_MAX_ROWS = 10, MP_MAX_LIMIT = 5000, MP_MAX_GAIN = 5000;
+  let mpUid = 0;
+  const mpNewRow = (gain, count) => ({ uid: ++mpUid, gain: gain || 0, count: count || 0 });
+  let mpState = { limit: 800, walk: 300, rows: [mpNewRow(100), mpNewRow(120)] };
+  try {
+    const s = JSON.parse(localStorage.getItem(MP_KEY));
+    if (s && typeof s === 'object') {
+      mpState.limit = reInt(s.limit, 0, MP_MAX_LIMIT, mpState.limit);
+      mpState.walk = reInt(s.walk, 0, MP_MAX_GAIN, mpState.walk);
+      if (Array.isArray(s.rows)) {
+        mpState.rows = s.rows.filter(r => r && typeof r === 'object').slice(0, MP_MAX_ROWS)
+          .map(r => mpNewRow(reInt(r.gain, 0, MP_MAX_GAIN, 0), reInt(r.count, 0, 99, 0)));
+      }
+    }
+  } catch (e) { /* storage unavailable or corrupt */ }
+  const mpSave = () => {
+    try { localStorage.setItem(MP_KEY, JSON.stringify({ limit: mpState.limit, walk: mpState.walk, rows: mpState.rows.map(({ gain, count }) => ({ gain, count })) })); } catch (e) { /* storage unavailable */ }
+  };
+  const mpFmt = (n) => n.toLocaleString('en-US');
+  function mpSolve() {
+    const L = mpState.limit;
+    if (!(L >= 1)) return null;
+    const items = [];
+    if (mpState.walk > 0) items.push({ id: 'walk', gain: mpState.walk, cap: 1, any: false });
+    mpState.rows.forEach(r => {
+      if (r.gain > 0) items.push({ id: r.uid, gain: r.gain, cap: r.count > 0 ? r.count : Math.ceil(L / r.gain), any: r.count <= 0 });
+    });
+    if (!items.length) return null;
+    const best = { total: -1, count: 0, finisher: null, uses: null };
+    const byFinisher = new Map();
+    items.forEach((fin, f) => {
+      // Split each remaining supply into 1, 2, 4... pieces so a 0/1 knapsack can use any count.
+      const pieces = [];
+      items.forEach((it, i) => {
+        let left = it.cap - (i === f && !it.any ? 1 : 0);
+        for (let k = 1; left > 0; k *= 2) {
+          const take = Math.min(k, left);
+          if (it.gain * take < L) pieces.push({ i, k: take, w: it.gain * take });
+          left -= take;
+        }
+      });
+      const INF = 1e9;
+      const dp = new Int32Array(L).fill(INF);
+      dp[0] = 0;
+      const took = new Uint8Array(pieces.length * L);
+      pieces.forEach((p, pi) => {
+        for (let s = L - 1; s >= p.w; s--) {
+          if (dp[s - p.w] + p.k < dp[s]) { dp[s] = dp[s - p.w] + p.k; took[pi * L + s] = 1; }
+        }
+      });
+      let s = L - 1;
+      while (s > 0 && dp[s] >= INF) s--;
+      const total = s + fin.gain, count = dp[s] + 1;
+      byFinisher.set(fin.id, total);
+      if (total > best.total || (total === best.total && count < best.count)) {
+        const uses = new Map();
+        let t = s;
+        for (let pi = pieces.length - 1; pi >= 0; pi--) {
+          if (took[pi * L + t]) {
+            t -= pieces[pi].w;
+            const id = items[pieces[pi].i].id;
+            uses.set(id, (uses.get(id) || 0) + pieces[pi].k);
+          }
+        }
+        best.total = total; best.count = count; best.finisher = fin.id; best.uses = uses; best.before = s;
+      }
+    });
+    best.items = items;
+    best.byFinisher = byFinisher;
+    return best;
+  }
+  function updateMaxParticleCalc() {
+    const res = mpSolve();
+    const totalEl = document.getElementById('mp-total');
+    const subEl = document.getElementById('mp-sub');
+    const stepsEl = document.getElementById('mp-steps');
+    stepsEl.innerHTML = '';
+    const isUsed = (id) => !!res && (res.finisher === id || res.uses.has(id));
+    const outFor = (id) => {
+      if (!res) return '';
+      const total = res.byFinisher.get(id);
+      if (total === undefined) return '';
+      const n = (res.uses.get(id) || 0) + (res.finisher === id ? 1 : 0);
+      const lead = n ? `<b>${res.finisher === id ? 'Finishing gain' : '&times;' + n + ' in the best day'}</b>` : '<b>Not needed</b>';
+      return `${lead} &middot; finishing here gives ${mpFmt(total)}`;
+    };
+    const walkOut = document.getElementById('mp-walk-out');
+    walkOut.classList.toggle('used', isUsed('walk'));
+    walkOut.innerHTML = mpState.walk > 0 ? 'Walking: ' + outFor('walk') : '';
+    mpState.rows.forEach(r => {
+      const out = document.getElementById('mp-out-' + r.uid);
+      if (!out) return;
+      out.classList.toggle('used', isUsed(r.uid));
+      out.innerHTML = r.gain > 0 ? outFor(r.uid) : '<span>Type the gain</span>';
+    });
+    if (!res) {
+      totalEl.textContent = '—';
+      subEl.textContent = mpState.limit >= 1 ? 'Fill in the walking gain or at least one power spot gain.' : 'Fill in the daily limit.';
+      return;
+    }
+    totalEl.textContent = mpFmt(res.total);
+    const over = res.total - mpState.limit;
+    subEl.textContent = `${mpFmt(res.before)} before the finishing gain (limit ${mpFmt(mpState.limit)}), so ${over >= 0 ? mpFmt(over) + ' over the limit' : mpFmt(-over) + ' under the limit'}. ${res.count} gain${res.count === 1 ? '' : 's'} in all.`;
+    const gainOf = (id) => res.items.find(it => it.id === id).gain;
+    const name = (id) => (id === 'walk' ? 'Walking ' : '') + gainOf(id);
+    [...res.uses.entries()].sort((a, b) => gainOf(b[0]) - gainOf(a[0])).forEach(([id, n]) => {
+      const chip = document.createElement('span');
+      chip.className = 'mp-step';
+      chip.textContent = name(id) + (n > 1 ? ' ×' + n : '');
+      stepsEl.appendChild(chip);
+    });
+    const last = document.createElement('span');
+    last.className = 'mp-step last';
+    last.textContent = 'then ' + name(res.finisher);
+    stepsEl.appendChild(last);
+  }
+  function mpBuildRow(r, i) {
+    const row = document.createElement('div');
+    row.className = 'mp-row';
+    row.style.setProperty('--mp', RE_COLORS[i % RE_COLORS.length]);
+    row.innerHTML = `<div class="mp-fields">
+        <label class="tb-field"><span class="candy-level-label">Gain per spot</span><input class="particle-manual-input mp-gain" type="number" inputmode="numeric" min="0" step="1"></label>
+        <label class="tb-field"><span class="candy-level-label">Spots (blank = any)</span><input class="particle-manual-input mp-count" type="number" inputmode="numeric" min="0" max="99" step="1" placeholder="any"></label>
+        <button class="tz-tab mp-del" type="button" aria-label="Remove this row">&times;</button></div>
+      <div class="mp-result" id="mp-out-${r.uid}"></div>`;
+    const gain = row.querySelector('.mp-gain'), count = row.querySelector('.mp-count');
+    gain.value = r.gain || '';
+    count.value = r.count || '';
+    gain.addEventListener('input', () => { r.gain = reInt(gain.value, 0, MP_MAX_GAIN, 0); mpSave(); updateMaxParticleCalc(); });
+    count.addEventListener('input', () => { r.count = reInt(count.value, 0, 99, 0); mpSave(); updateMaxParticleCalc(); });
+    row.querySelector('.mp-del').addEventListener('click', () => {
+      mpState.rows = mpState.rows.filter(x => x !== r);
+      mpSave(); renderMaxParticleCalc();
+    });
+    return row;
+  }
+  function renderMaxParticleCalc() {
+    const list = document.getElementById('mp-rows');
+    list.innerHTML = '';
+    mpState.rows.forEach((r, i) => list.appendChild(mpBuildRow(r, i)));
+    document.getElementById('mp-empty').hidden = mpState.rows.length > 0;
+    document.getElementById('mp-add-btn').disabled = mpState.rows.length >= MP_MAX_ROWS;
+    document.getElementById('mp-limit').value = mpState.limit || '';
+    document.getElementById('mp-walk').value = mpState.walk || '';
+    updateMaxParticleCalc();
+  }
+  document.getElementById('mp-limit').addEventListener('input', (e) => {
+    mpState.limit = reInt(e.target.value, 0, MP_MAX_LIMIT, 0); mpSave(); updateMaxParticleCalc();
+  });
+  document.getElementById('mp-walk').addEventListener('input', (e) => {
+    mpState.walk = reInt(e.target.value, 0, MP_MAX_GAIN, 0); mpSave(); updateMaxParticleCalc();
+  });
+  document.getElementById('mp-add-btn').addEventListener('click', () => {
+    if (mpState.rows.length >= MP_MAX_ROWS) return;
+    const row = mpNewRow();
+    mpState.rows.push(row);
+    mpSave();
+    renderMaxParticleCalc();
+    document.getElementById('mp-out-' + row.uid).parentElement.querySelector('.mp-gain').focus();
+  });
+
   // Checklist, Particles and Power Up Calculator are peer top-level tabs
   // (equal priority), not a parent/child pair, so switching between them
   // doesn't push a history entry - only genuine sub-views (account
@@ -5077,7 +5313,7 @@
   const TRACKER_TABS = ['pokemon-tracker', 'mega-tracker', 'shadow-tracker', 'candy-tracker'];
   let currentTracker = 'pokemon-tracker';
   // Same idea for the three calculators under one "Calculator" tab.
-  const CALC_TABS = ['combat', 'showcase', 'candy', 'raid-energy', 'max-damage'];
+  const CALC_TABS = ['combat', 'showcase', 'candy', 'raid-energy', 'max-particle', 'max-damage'];
   let currentCalc = 'raid-energy';
   // Misc groups six pages (Discord and Gym Defender are root tabs of their own); it always lands on the Time Zone converter.
   const MISC_TABS = ['timezone', 'search-term', 'pokedex', 'trade-balancer', 'iv-nickname', 'value-finder'];
@@ -5104,6 +5340,7 @@
     viewShowcase.hidden = tab !== 'showcase';
     viewRaidEnergy.hidden = tab !== 'raid-energy';
     viewMaxDamage.hidden = tab !== 'max-damage';
+    viewMaxParticle.hidden = tab !== 'max-particle';
     viewParty.hidden = tab !== 'party';
     viewRaid.hidden = tab !== 'raid';
     viewTimezone.hidden = tab !== 'timezone';
@@ -5131,6 +5368,7 @@
     else if (tab === 'candy') renderCandyCalculator();
     else if (tab === 'raid-energy') renderRaidEnergy();
     else if (tab === 'max-damage') renderMaxDamage();
+    else if (tab === 'max-particle') renderMaxParticleCalc();
     else if (tab === 'candy-tracker') renderCandyTrackerGrid();
     else if (tab === 'pokemon-tracker') renderPokemonTrackerGrid();
     else if (tab === 'shadow-tracker') renderShadowTrackerGrid();
@@ -5171,6 +5409,7 @@
     if (!viewShowcase.hidden) return 'showcase';
     if (!viewRaidEnergy.hidden) return 'raid-energy';
     if (!viewMaxDamage.hidden) return 'max-damage';
+    if (!viewMaxParticle.hidden) return 'max-particle';
     if (!viewCombat.hidden) return 'combat';
     if (!viewParty.hidden) return 'party';
     if (!viewRaid.hidden) return 'raid';
@@ -5886,6 +6125,8 @@
   const pokedexEvolutionLabel = document.getElementById('pokedex-evolution-label');
   const pokedexGoToggle = document.getElementById('pokedex-go-toggle');
   const pokedexGoLabel = document.getElementById('pokedex-go-label');
+  const pokedexCheckedToggle = document.getElementById('pokedex-checked-toggle');
+  const pokedexCheckedLabel = document.getElementById('pokedex-checked-label');
   // The list is the full National Pokedex; each entry's `go` flag marks
   // whether it's released in Pokemon GO. This toggle only changes what's
   // shown, never what's selected.
@@ -5991,11 +6232,22 @@
     applyPokedexFilter();
   });
 
+  // "Only checked" is a view filter on top of the others. Unchecking a row
+  // while it is on leaves that row showing until the next filter change, so
+  // an accidental tap can be undone.
+  pokedexCheckedToggle.addEventListener('change', () => {
+    pokedexCheckedLabel.classList.toggle('checked', pokedexCheckedToggle.checked);
+    applyPokedexFilter();
+  });
+
   function applyPokedexFilter() {
     const q = pokedexSearchInput.value.trim().toLowerCase();
     const goOnly = pokedexGoToggle.checked;
+    const checkedOnly = pokedexCheckedToggle.checked;
     if (!q) {
-      pokedexListEl.querySelectorAll('.modal-account-row').forEach(row => { row.hidden = goOnly && row.dataset.go !== '1'; });
+      pokedexListEl.querySelectorAll('.modal-account-row').forEach(row => {
+        row.hidden = (goOnly && row.dataset.go !== '1') || (checkedOnly && !pokedexSelected.has(parseInt(row.dataset.num, 10)));
+      });
       return;
     }
     const directMatches = POKEDEX.filter(entry => {
@@ -6009,7 +6261,8 @@
       });
     }
     pokedexListEl.querySelectorAll('.modal-account-row').forEach(row => {
-      row.hidden = !visible.has(parseInt(row.dataset.num, 10)) || (goOnly && row.dataset.go !== '1');
+      const num = parseInt(row.dataset.num, 10);
+      row.hidden = !visible.has(num) || (goOnly && row.dataset.go !== '1') || (checkedOnly && !pokedexSelected.has(num));
     });
   }
 
@@ -6052,6 +6305,7 @@
       row.setAttribute('aria-checked', 'false');
     });
     updatePokedexSummary();
+    applyPokedexFilter();
   });
 
   // Accepts either a generated search term ("1-3,7,9") or a plain list
@@ -6094,6 +6348,7 @@
     const added = importPokedexSelection(text);
     flashButton(pokedexImportBtn, added > 0 ? `Added ${added}` : 'Nothing new');
     pokedexImportInput.value = '';
+    applyPokedexFilter();
   }
 
   pokedexImportBtn.addEventListener('click', () => applyPokedexImport(pokedexImportInput.value));
