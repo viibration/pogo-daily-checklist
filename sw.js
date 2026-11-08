@@ -1,4 +1,4 @@
-const CACHE = 'daily-checklist-v214';
+const CACHE = 'daily-checklist-v215';
 const ASSETS = [
   './',
   './index.html',

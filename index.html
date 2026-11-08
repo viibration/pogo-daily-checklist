@@ -2024,7 +2024,7 @@
         <div><kbd>Ctrl</kbd>+<kbd>Enter</kbd> check only the matches, not their line</div>
         <div><kbd>&darr;</kbd> <kbd>&uarr;</kbd> pick one row; Enter then acts on just that line</div>
         <div><kbd>Esc</kbd> clear the box</div>
-        <div><kbd>/</kbd> jump back to the box</div>
+        <div><kbd>Ctrl</kbd>+<kbd>F</kbd> or <kbd>Ctrl</kbd>+<kbd>A</kbd> or <kbd>/</kbd> jump to the box and select its text</div>
         <div><kbd>Ctrl</kbd>+<kbd>D</kbd> only-checked view on/off</div>
       </div>
       <label class="maxmove-check" id="pokedex-evolution-label" style="margin-bottom: 10px;">
@@ -6390,7 +6390,14 @@
       pokedexCheckedToggle.click();
       return;
     }
-    if (e.key === '/' && !e.ctrlKey && !e.metaKey && !/^(INPUT|TEXTAREA|SELECT)$/.test(e.target.tagName)) {
+    // Ctrl+F jumps to the search box instead of opening the browser's find bar; "/" does the same when not typing in a field.
+    const ctrlF = (e.ctrlKey || e.metaKey) && !e.altKey && !e.shiftKey && e.code === 'KeyF';
+    const slash = e.key === '/' && !e.ctrlKey && !e.metaKey && !/^(INPUT|TEXTAREA|SELECT)$/.test(e.target.tagName);
+    // Ctrl+A does the same, except inside the other text boxes (result and import), where it must keep selecting their text.
+    const tag = e.target.tagName;
+    const inOtherField = tag === 'TEXTAREA' || tag === 'SELECT' || (tag === 'INPUT' && e.target.type !== 'checkbox' && e.target !== pokedexSearchInput);
+    const ctrlA = (e.ctrlKey || e.metaKey) && !e.altKey && !e.shiftKey && e.code === 'KeyA' && !inOtherField;
+    if (ctrlF || ctrlA || slash) {
       e.preventDefault();
       pokedexSearchInput.focus();
       pokedexSearchInput.select();
