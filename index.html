@@ -2007,7 +2007,7 @@
         <button class="tz-tab" data-misc="value-finder" type="button">Value Finder</button>
       </div>
     </div>
-    <div class="panel panel-theme-indigo">
+    <div class="panel panel-theme-indigo" id="pokedex-select-panel">
       <div class="particle-actions-label">Select Pok&eacute;mon below &mdash; the dex-number search term updates automatically</div>
       <input class="particle-manual-input" id="pokedex-search-input" type="text" placeholder="Filter list by name or number&hellip;">
       <label class="maxmove-check" id="pokedex-evolution-label" style="margin-bottom: 10px;">
@@ -2031,12 +2031,12 @@
       <button class="reset-btn" id="pokedex-clear-btn" type="button" style="margin-top: 0;">Clear selection</button>
       <div class="progress-label" id="pokedex-selected-count" style="text-align: left; margin-top: 10px;">0 selected</div>
     </div>
-    <div class="panel panel-theme-gold">
+    <div class="panel panel-theme-gold" id="pokedex-import-panel">
       <div class="particle-actions-label">Import a search term or list &mdash; adds to your current selection, doesn&rsquo;t replace it</div>
       <textarea class="particle-manual-input sync-textarea" id="pokedex-import-input" placeholder="Paste a search term like 1-3,7,9 or a list like [1,2,3,7,9] here"></textarea>
       <button class="particle-btn" id="pokedex-import-btn" type="button" style="width: 100%;">Add to selection</button>
     </div>
-    <div class="panel">
+    <div class="panel" id="pokedex-list-panel">
       <div class="modal-accounts" id="pokedex-list"></div>
     </div>
   </div>
@@ -6240,7 +6240,23 @@
     applyPokedexFilter();
   });
 
+  // With 1-10 rows showing, the list card moves above the Select card so a
+  // short result is reachable without scrolling past the whole form; any
+  // other count puts it back below the import card. Only filter changes
+  // call this, so ticking a row never makes the page jump.
+  const POKEDEX_SHORT_LIST = 10;
   function applyPokedexFilter() {
+    applyPokedexRows();
+    const shown = pokedexListEl.querySelectorAll('.modal-account-row:not([hidden])').length;
+    const listPanel = document.getElementById('pokedex-list-panel');
+    if (shown >= 1 && shown <= POKEDEX_SHORT_LIST) {
+      document.getElementById('pokedex-select-panel').before(listPanel);
+    } else {
+      document.getElementById('pokedex-import-panel').after(listPanel);
+    }
+  }
+
+  function applyPokedexRows() {
     const q = pokedexSearchInput.value.trim().toLowerCase();
     const goOnly = pokedexGoToggle.checked;
     const checkedOnly = pokedexCheckedToggle.checked;
