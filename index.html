@@ -880,6 +880,8 @@
   .md-result b { font-size: 20px; font-variant-numeric: tabular-nums; }
   .md-result span { font-size: 12px; color: var(--text-faint); }
   .md-add { display: flex; gap: 6px; align-items: center; margin-top: 12px; }
+  #mp-spot-presets { flex-wrap: wrap; }
+  #mp-spot-presets .tz-tab.active, #mp-walk-presets .tz-tab.active { background: var(--accent); border-color: var(--accent); color: #06121f; }
   .md-add select { flex: 1; min-width: 0; }
   .md-add .tz-tab { flex: 0 0 auto; padding: 6px 10px; font-size: 13px; }
   .re-presets { margin-top: 8px; }
@@ -2959,12 +2961,21 @@
         <label class="tb-field"><span class="candy-level-label">Daily limit</span><input class="particle-manual-input" id="mp-limit" type="number" inputmode="numeric" min="1" step="1"></label>
         <label class="tb-field"><span class="candy-level-label">Walking gain</span><input class="particle-manual-input" id="mp-walk" type="number" inputmode="numeric" min="0" step="1"></label>
       </div>
+      <div class="tz-tabs re-presets" id="mp-walk-presets">
+        <button class="tz-tab" data-v="300" type="button">Walk 300</button>
+        <button class="tz-tab" data-v="600" type="button">Walk 600</button>
+      </div>
       <div class="mp-result" id="mp-walk-out"></div>
     </div>
     <div class="panel">
       <div class="particle-actions-label">Power spot gains</div>
+      <div class="tz-tabs re-presets" id="mp-spot-presets">
+        <button class="tz-tab" data-v="100" type="button">Spot 100</button>
+        <button class="tz-tab" data-v="120" type="button">Spot 120</button>
+        <button class="tz-tab" data-v="820" type="button">Spot 820</button>
+      </div>
       <div id="mp-rows"></div>
-      <div class="sx-hint" id="mp-empty" hidden>No power spots yet. Tap + Add row.</div>
+      <div class="sx-hint" id="mp-empty" hidden>No power spots yet. Tap a preset above or + Add row.</div>
       <div class="md-add">
         <button class="tz-tab" id="mp-add-btn" type="button">+ Add row</button>
       </div>
@@ -5288,7 +5299,7 @@
     const gain = row.querySelector('.mp-gain'), count = row.querySelector('.mp-count');
     gain.value = r.gain || '';
     count.value = r.count || '';
-    gain.addEventListener('input', () => { r.gain = reInt(gain.value, 0, MP_MAX_GAIN, 0); mpSave(); updateMaxParticleCalc(); });
+    gain.addEventListener('input', () => { r.gain = reInt(gain.value, 0, MP_MAX_GAIN, 0); mpSave(); updateMaxParticleCalc(); mpSyncPresets(); });
     count.addEventListener('input', () => { r.count = reInt(count.value, 0, 99, 0); mpSave(); updateMaxParticleCalc(); });
     row.querySelector('.mp-del').addEventListener('click', () => {
       mpState.rows = mpState.rows.filter(x => x !== r);
@@ -5305,12 +5316,51 @@
     document.getElementById('mp-limit').value = mpState.limit || '';
     document.getElementById('mp-walk').value = mpState.walk || '';
     updateMaxParticleCalc();
+    mpSyncPresets();
   }
+  // Highlights the preset buttons that match what is currently entered.
+  function mpSyncPresets() {
+    document.querySelectorAll('#mp-walk-presets .tz-tab').forEach(b => {
+      b.classList.toggle('active', Number(b.dataset.v) === mpState.walk);
+    });
+    document.querySelectorAll('#mp-spot-presets .tz-tab[data-v]').forEach(b => {
+      b.classList.toggle('active', mpState.rows.some(r => r.gain === Number(b.dataset.v)));
+    });
+  }
+  document.getElementById('mp-walk-presets').addEventListener('click', (e) => {
+    const b = e.target.closest('.tz-tab');
+    if (!b) return;
+    mpState.walk = Number(b.dataset.v);
+    document.getElementById('mp-walk').value = mpState.walk;
+    mpSave(); updateMaxParticleCalc(); mpSyncPresets();
+  });
+  // A spot preset fills the first empty row, else adds a row. Clicking it
+  // again while that gain is already listed removes the row(s) with that gain.
+  document.getElementById('mp-spot-presets').addEventListener('click', (e) => {
+    const b = e.target.closest('.tz-tab[data-v]');
+    if (!b) return;
+    const v = Number(b.dataset.v);
+    if (mpState.rows.some(r => r.gain === v)) {
+      mpState.rows = mpState.rows.filter(r => r.gain !== v);
+      mpSave();
+      renderMaxParticleCalc();
+      return;
+    }
+    let row = mpState.rows.find(r => !r.gain);
+    if (!row) {
+      if (mpState.rows.length >= MP_MAX_ROWS) return;
+      row = mpNewRow();
+      mpState.rows.push(row);
+    }
+    row.gain = v;
+    mpSave();
+    renderMaxParticleCalc();
+  });
   document.getElementById('mp-limit').addEventListener('input', (e) => {
     mpState.limit = reInt(e.target.value, 0, MP_MAX_LIMIT, 0); mpSave(); updateMaxParticleCalc();
   });
   document.getElementById('mp-walk').addEventListener('input', (e) => {
-    mpState.walk = reInt(e.target.value, 0, MP_MAX_GAIN, 0); mpSave(); updateMaxParticleCalc();
+    mpState.walk = reInt(e.target.value, 0, MP_MAX_GAIN, 0); mpSave(); updateMaxParticleCalc(); mpSyncPresets();
   });
   document.getElementById('mp-add-btn').addEventListener('click', () => {
     if (mpState.rows.length >= MP_MAX_ROWS) return;
