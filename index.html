@@ -425,6 +425,11 @@
   }
   .modal-quick-btn:hover { border-color: var(--accent); }
   .modal-quick-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+  /* Combat Calculator: one Save button per account, tinted by team. */
+  .cb-save-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 12px; }
+  .cb-save-grid .modal-quick-btn { color: var(--team); }
+  .cb-save-grid .modal-quick-btn:hover { border-color: var(--team); }
+  .cb-save-grid .modal-quick-btn:disabled { opacity: 0.45; cursor: default; }
 
   .particles-open-btn { margin-top: 12px; margin-bottom: 0; }
 
@@ -2707,7 +2712,7 @@
         <div><span>Defense</span><b id="cb-out-def">&mdash;</b></div>
         <div><span>HP</span><b id="cb-out-hp">&mdash;</b></div>
       </div>
-      <button class="check-all-btn" id="cb-save-btn" type="button" style="margin: 12px 0 0;">Save to compare list</button>
+      <div class="cb-save-grid" id="cb-save-grid"></div>
     </div>
 
     <div class="panel">
@@ -7841,11 +7846,12 @@
 
   const cbFmt = (n) => (Math.round(n * 100) / 100).toFixed(2);
 
+  const cbSaveBtns = [];
   function renderCombat() {
     const mon = CB_MON.get(cbId('cb-name').value.trim().toLowerCase());
     cbId('cb-base').textContent = mon ? `Base stats: attack ${mon.base[0]}, defense ${mon.base[1]}, stamina ${mon.base[2]}` : '';
     const e = cbReadEntry();
-    cbId('cb-save-btn').disabled = !e;
+    cbSaveBtns.forEach(b => { b.disabled = !e; });
     // The CP box follows the level unless it's the box being typed in.
     const cpIn = cbId('cb-cp-in');
     if (!e) {
@@ -7887,6 +7893,21 @@
     }
     return best;
   };
+  // Each saved card also gets a number in the order it was created (shown
+  // after the name, e.g. "Excadrill - 2"). A deck counts up and never reuses
+  // a number, so deleting a card does not renumber the others.
+  const cbNextNum = () => {
+    const d = cbDeck();
+    const n = Math.max(d.seq || 0, ...cbList.map(e => e.n || 0)) + 1;
+    d.seq = n;
+    return n;
+  };
+  // Cards saved before numbers existed get theirs in list (creation) order.
+  function cbEnsureNums() {
+    let changed = false;
+    cbList.forEach(e => { if (typeof e.n !== 'number') { e.n = cbNextNum(); changed = true; } });
+    if (changed) cbSaveList();
+  }
   // Cards saved before colours existed get theirs here.
   function cbEnsureHues() {
     let changed = false;
@@ -7910,7 +7931,7 @@
     let rank = 0;
     sorted.forEach((c, i) => {
       rank = i > 0 && key(c.r) === key(sorted[i - 1].r) ? rank : i + 1;
-      c.titleEl.textContent = `#${rank} ${c.e.name}`;
+      c.titleEl.textContent = `#${rank} ${c.e.name} (${c.e.n})${c.e.acc ? ' - ' + c.e.acc : ''}`;
       c.scoreEl.textContent = cbSort === 'atk' || cbSort === 'def' ? cbFmt(c.r[cbSort]) : c.r[cbSort];
       c.subEl.textContent = `${cbFmt(c.r.atk)} atk · ${cbFmt(c.r.def)} def · ${c.r.hp} HP`;
       // Keep every box in step with the card (e.g. Level after a CP edit),
@@ -8006,6 +8027,7 @@
     cbListEl.innerHTML = '';
     cbOrderDirty = false;
     cbEnsureHues();
+    cbEnsureNums();
     cbCards = cbList.filter(e => CB_MON.has(e.name.toLowerCase())).map(cbBuildCard);
     cbCards.forEach(c => cbListEl.appendChild(c.el));
     cbId('cb-sort-tabs').querySelectorAll('.tz-tab').forEach(b => b.classList.toggle('active', b.dataset.sort === cbSort));
@@ -8048,7 +8070,7 @@
   // original stays as it was while the copy gets changed.
   cbId('cb-deck-copy').addEventListener('click', () => {
     const id = cbNewDeckId();
-    cbDecks.decks.push({ id, name: `${cbDeck().name} copy`.slice(0, 40), list: JSON.parse(JSON.stringify(cbList)) });
+    cbDecks.decks.push({ id, name: `${cbDeck().name} copy`.slice(0, 40), list: JSON.parse(JSON.stringify(cbList)), seq: cbDeck().seq });
     cbSwitchDeck(id);
   });
   cbId('cb-deck-del').addEventListener('click', () => {
@@ -8113,12 +8135,21 @@
     renderCombat();
   });
   cbCpIn.addEventListener('keydown', (ev) => { if (ev.key === 'Enter') cbCpIn.blur(); });
-  cbId('cb-save-btn').addEventListener('click', () => {
-    const e = cbReadEntry();
-    if (!e) return;
-    cbList.push({ name: e.name, iv: e.iv, level: e.level, hue: cbNextHue() });
-    cbSaveList();
-    renderCbList();
+  // One Save button per account; each saves the current form to that account.
+  accountNames.forEach(acc => {
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = `modal-quick-btn ${teamClass(acc)}`;
+    btn.textContent = `Save to ${acc}`;
+    btn.addEventListener('click', () => {
+      const e = cbReadEntry();
+      if (!e) return;
+      cbList.push({ name: e.name, iv: e.iv, level: e.level, hue: cbNextHue(), n: cbNextNum(), acc });
+      cbSaveList();
+      renderCbList();
+    });
+    cbId('cb-save-grid').appendChild(btn);
+    cbSaveBtns.push(btn);
   });
   cbId('cb-clear-btn').addEventListener('click', () => {
     cbList = [];
