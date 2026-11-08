@@ -6151,6 +6151,10 @@
   const POKEDEX_GO_ONLY_KEY = 'pogo-daily-checklist-pokedex-go-only';
   pokedexGoToggle.checked = localStorage.getItem(POKEDEX_GO_ONLY_KEY) === '1';
   pokedexGoLabel.classList.toggle('checked', pokedexGoToggle.checked);
+  // Show evolution line is on unless it was turned off before.
+  const POKEDEX_EVOLUTION_KEY = 'pogo-daily-checklist-pokedex-evolution';
+  try { pokedexEvolutionToggle.checked = localStorage.getItem(POKEDEX_EVOLUTION_KEY) !== '0'; } catch (e) { pokedexEvolutionToggle.checked = true; }
+  pokedexEvolutionLabel.classList.toggle('checked', pokedexEvolutionToggle.checked);
   const pokedexCopyBtn = document.getElementById('pokedex-copy-btn');
   const pokedexListCopyBtn = document.getElementById('pokedex-list-copy-btn');
   const pokedexClearBtn = document.getElementById('pokedex-clear-btn');
@@ -6236,6 +6240,7 @@
   }
 
   pokedexEvolutionToggle.addEventListener('change', () => {
+    try { localStorage.setItem(POKEDEX_EVOLUTION_KEY, pokedexEvolutionToggle.checked ? '1' : '0'); } catch (e) { /* storage unavailable */ }
     pokedexEvolutionLabel.classList.toggle('checked', pokedexEvolutionToggle.checked);
     applyPokedexFilter();
   });
