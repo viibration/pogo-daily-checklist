@@ -853,6 +853,12 @@
     user-select: all;
   }
   .sx-result.empty { color: var(--text-faint); font-family: inherit; font-size: 14px; user-select: none; }
+  .pokedex-status { min-height: 18px; margin: -2px 0 8px; font-size: 13px; color: var(--good); }
+  .pokedex-status.warn { color: var(--bad); }
+  .pokedex-keys { margin: 0 0 10px; line-height: 1.8; }
+  .pokedex-keys kbd { padding: 0 5px; border: 1px solid var(--line); border-radius: 4px; font: inherit; font-size: 11px; color: var(--text-dim); }
+  @media (pointer: coarse) { .pokedex-keys { display: none; } }
+  #pokedex-list .modal-account-row.kb-cursor { border-color: var(--accent); box-shadow: 0 0 0 2px var(--accent); }
   .pokedex-nogo { flex-shrink: 0; font-size: 11px; font-weight: 700; color: var(--text-faint); }
   .sx-family { margin-top: 10px; }
   .sx-range-label { margin: 14px 0 6px; font-size: 13px; font-weight: 700; color: var(--text-dim); }
@@ -2009,7 +2015,18 @@
     </div>
     <div class="panel panel-theme-indigo" id="pokedex-select-panel">
       <div class="particle-actions-label">Select Pok&eacute;mon below &mdash; the dex-number search term updates automatically</div>
-      <input class="particle-manual-input" id="pokedex-search-input" type="text" placeholder="Filter list by name or number&hellip;">
+      <input class="particle-manual-input" id="pokedex-search-input" type="text" placeholder="Filter list by name or number&hellip;" autocomplete="off" autocapitalize="off" spellcheck="false">
+      <div class="pokedex-status" id="pokedex-status" role="status" aria-live="polite"></div>
+      <div class="sx-hint pokedex-keys">
+        <div><b>Keyboard</b></div>
+        <div><kbd>Enter</kbd> check the whole evolution line of every match</div>
+        <div><kbd>Shift</kbd>+<kbd>Enter</kbd> uncheck the whole line</div>
+        <div><kbd>Ctrl</kbd>+<kbd>Enter</kbd> check only the matches, not their line</div>
+        <div><kbd>&darr;</kbd> <kbd>&uarr;</kbd> pick one row; Enter then acts on just that line</div>
+        <div><kbd>Esc</kbd> clear the box</div>
+        <div><kbd>/</kbd> jump back to the box</div>
+        <div><kbd>Ctrl</kbd>+<kbd>D</kbd> only-checked view on/off</div>
+      </div>
       <label class="maxmove-check" id="pokedex-evolution-label" style="margin-bottom: 10px;">
         <input type="checkbox" id="pokedex-evolution-toggle">
         Show evolution line &mdash; searching a name also reveals its whole family below, to pick from individually
@@ -5377,6 +5394,7 @@
     else if (tab === 'raid') renderRaid();
     else if (tab === 'timezone') renderTzConverter();
     else if (tab === 'gym') renderGym();
+    else if (tab === 'pokedex') focusPokedexSearch();
   }
 
   document.querySelectorAll('.app-tab').forEach(btn => {
@@ -6283,6 +6301,100 @@
   }
 
   pokedexSearchInput.addEventListener('input', applyPokedexFilter);
+
+  // --- Keyboard-only use. Enter checks the whole evolution line of every
+  // match (Shift+Enter unchecks; Ctrl+Enter acts on the matches themselves,
+  // not their lines). Up/Down puts a cursor on one result so Enter acts on
+  // just that line. Esc clears the box so the next name can be typed
+  // straight away. More than POKEDEX_KB_LIMIT matches is refused so a loose
+  // search like "a" can't check half the Pokedex by accident. ---
+  const POKEDEX_KB_LIMIT = 30;
+  const pokedexStatusEl = document.getElementById('pokedex-status');
+  const pokedexNameByNum = new Map(POKEDEX.map(entry => [entry.num, entry.name]));
+  let pokedexCursor = null;
+  const pokedexVisibleRows = () => Array.from(pokedexListEl.querySelectorAll('.modal-account-row:not([hidden])'));
+  function pokedexSay(msg, warn) {
+    pokedexStatusEl.textContent = msg;
+    pokedexStatusEl.classList.toggle('warn', !!warn);
+  }
+  function setPokedexCursor(row) {
+    pokedexListEl.querySelectorAll('.kb-cursor').forEach(r => r.classList.remove('kb-cursor'));
+    pokedexCursor = row ? parseInt(row.dataset.num, 10) : null;
+    if (row) {
+      row.classList.add('kb-cursor');
+      row.scrollIntoView({ block: 'nearest' });
+    }
+  }
+  function pokedexKbApply(check, whole) {
+    const cursorRow = pokedexCursor !== null ? pokedexRowByNum.get(pokedexCursor) : null;
+    const rows = cursorRow && !cursorRow.hidden ? [cursorRow] : pokedexVisibleRows();
+    if (!rows.length) { pokedexSay('Nothing matches.', true); return; }
+    if (rows.length > POKEDEX_KB_LIMIT) { pokedexSay(`${rows.length} matches - type more to narrow it down (max ${POKEDEX_KB_LIMIT}).`, true); return; }
+    const goOnly = pokedexGoToggle.checked;
+    const nums = new Set();
+    rows.forEach(r => {
+      const n = parseInt(r.dataset.num, 10);
+      (whole ? pokedexFamilyOf(n) : [n]).forEach(m => {
+        const row = pokedexRowByNum.get(m);
+        if (row && !(goOnly && row.dataset.go !== '1')) nums.add(m);
+      });
+    });
+    const changed = [];
+    Array.from(nums).sort((a, b) => a - b).forEach(n => {
+      if (pokedexSelected.has(n) === check) return;
+      if (check) pokedexSelected.add(n); else pokedexSelected.delete(n);
+      const row = pokedexRowByNum.get(n);
+      row.classList.toggle('done', check);
+      row.setAttribute('aria-checked', String(check));
+      changed.push(n);
+    });
+    updatePokedexSummary();
+    const list = (arr) => {
+      const names = arr.map(n => pokedexNameByNum.get(n));
+      return names.length > 6 ? `${names.slice(0, 6).join(', ')} +${names.length - 6} more` : names.join(', ');
+    };
+    const verb = check ? 'checked' : 'unchecked';
+    pokedexSay((changed.length ? `${check ? 'Checked' : 'Unchecked'}: ${list(changed)}` : `Already ${verb}: ${list(Array.from(nums))}`) + ` · ${pokedexSelected.size} selected`);
+  }
+  pokedexSearchInput.addEventListener('input', () => { setPokedexCursor(null); pokedexSay(''); });
+  pokedexSearchInput.addEventListener('keydown', (e) => {
+    if (e.isComposing) return;
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      pokedexKbApply(!e.shiftKey, !(e.ctrlKey || e.metaKey));
+    } else if (e.key === 'Escape') {
+      e.preventDefault();
+      pokedexSearchInput.value = '';
+      applyPokedexFilter();
+      setPokedexCursor(null);
+      pokedexSay('');
+    } else if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+      e.preventDefault();
+      const rows = pokedexVisibleRows();
+      if (!rows.length) return;
+      const cur = rows.findIndex(r => parseInt(r.dataset.num, 10) === pokedexCursor);
+      const next = e.key === 'ArrowDown' ? Math.min(cur + 1, rows.length - 1) : cur - 1;
+      setPokedexCursor(next >= 0 ? rows[next] : null);
+    }
+  });
+  document.addEventListener('keydown', (e) => {
+    if (viewPokedex.hidden || e.isComposing) return;
+    // Ctrl+D (D for "done") flips the only-checked view. It is the one left-hand Ctrl key with no job in an installed PWA window (S saves the page, F finds); Z X C V A are text editing in the box and are left alone.
+    if ((e.ctrlKey || e.metaKey) && !e.altKey && !e.shiftKey && e.code === 'KeyD') {
+      e.preventDefault();
+      pokedexCheckedToggle.click();
+      return;
+    }
+    if (e.key === '/' && !e.ctrlKey && !e.metaKey && !/^(INPUT|TEXTAREA|SELECT)$/.test(e.target.tagName)) {
+      e.preventDefault();
+      pokedexSearchInput.focus();
+      pokedexSearchInput.select();
+    }
+  });
+  // Opening the page puts the cursor in the box on a desktop; on a phone that would pop the keyboard up, so it doesn't.
+  function focusPokedexSearch() {
+    if (window.matchMedia('(pointer: fine)').matches) pokedexSearchInput.focus({ preventScroll: true });
+  }
 
   // Sorted selected dex numbers collapse into ranges wherever they're
   // consecutive (e.g. 1,2,3 -> "1-3"); anything left standalone (a gap
