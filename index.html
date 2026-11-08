@@ -881,7 +881,7 @@
   .md-result span { font-size: 12px; color: var(--text-faint); }
   .md-add { display: flex; gap: 6px; align-items: center; margin-top: 12px; }
   #mp-spot-presets { flex-wrap: wrap; }
-  #mp-spot-presets .tz-tab.active, #mp-walk-presets .tz-tab.active { background: var(--accent); border-color: var(--accent); color: #06121f; }
+  #mp-spot-presets .tz-tab.active, #mp-walk-presets .tz-tab.active, #mp-limit-presets .tz-tab.active { background: var(--accent); border-color: var(--accent); color: #06121f; }
   .md-add select { flex: 1; min-width: 0; }
   .md-add .tz-tab { flex: 0 0 auto; padding: 6px 10px; font-size: 13px; }
   .re-presets { margin-top: 8px; }
@@ -2956,9 +2956,20 @@
       </div>
     </div>
     <div class="panel">
-      <div class="particle-actions-label">Limit and walking</div>
+      <div class="particle-actions-label">Daily limit</div>
       <div class="tb-inputs">
-        <label class="tb-field"><span class="candy-level-label">Daily limit</span><input class="particle-manual-input" id="mp-limit" type="number" inputmode="numeric" min="1" step="1"></label>
+        <label class="tb-field"><span class="candy-level-label">Limit</span><input class="particle-manual-input" id="mp-limit" type="number" inputmode="numeric" min="1" step="1"></label>
+      </div>
+      <div class="tz-tabs re-presets" id="mp-limit-presets">
+        <button class="tz-tab" data-v="800" type="button">800</button>
+        <button class="tz-tab" data-v="1600" type="button">1600</button>
+        <button class="tz-tab" data-v="3200" type="button">3200</button>
+        <button class="tz-tab" data-v="8000" type="button">8000</button>
+      </div>
+    </div>
+    <div class="panel">
+      <div class="particle-actions-label">Walking</div>
+      <div class="tb-inputs">
         <label class="tb-field"><span class="candy-level-label">Walking gain</span><input class="particle-manual-input" id="mp-walk" type="number" inputmode="numeric" min="0" step="1"></label>
       </div>
       <div class="tz-tabs re-presets" id="mp-walk-presets">
@@ -5171,7 +5182,7 @@
   // finisher gives the highest total (fewest gains on a tie). Walking is one
   // gain; a blank "spots" box means as many of that gain as needed. ---
   const MP_KEY = 'pogo-daily-checklist-particle-calc';
-  const MP_MAX_ROWS = 10, MP_MAX_LIMIT = 5000, MP_MAX_GAIN = 5000;
+  const MP_MAX_ROWS = 10, MP_MAX_LIMIT = 10000, MP_MAX_GAIN = 5000;
   let mpUid = 0;
   const mpNewRow = (gain, count) => ({ uid: ++mpUid, gain: gain || 0, count: count || 0 });
   let mpState = { limit: 800, walk: 300, rows: [mpNewRow(100), mpNewRow(120)] };
@@ -5320,6 +5331,9 @@
   }
   // Highlights the preset buttons that match what is currently entered.
   function mpSyncPresets() {
+    document.querySelectorAll('#mp-limit-presets .tz-tab').forEach(b => {
+      b.classList.toggle('active', Number(b.dataset.v) === mpState.limit);
+    });
     document.querySelectorAll('#mp-walk-presets .tz-tab').forEach(b => {
       b.classList.toggle('active', Number(b.dataset.v) === mpState.walk);
     });
@@ -5327,6 +5341,13 @@
       b.classList.toggle('active', mpState.rows.some(r => r.gain === Number(b.dataset.v)));
     });
   }
+  document.getElementById('mp-limit-presets').addEventListener('click', (e) => {
+    const b = e.target.closest('.tz-tab');
+    if (!b) return;
+    mpState.limit = Number(b.dataset.v);
+    document.getElementById('mp-limit').value = mpState.limit;
+    mpSave(); updateMaxParticleCalc(); mpSyncPresets();
+  });
   document.getElementById('mp-walk-presets').addEventListener('click', (e) => {
     const b = e.target.closest('.tz-tab');
     if (!b) return;
@@ -5357,7 +5378,7 @@
     renderMaxParticleCalc();
   });
   document.getElementById('mp-limit').addEventListener('input', (e) => {
-    mpState.limit = reInt(e.target.value, 0, MP_MAX_LIMIT, 0); mpSave(); updateMaxParticleCalc();
+    mpState.limit = reInt(e.target.value, 0, MP_MAX_LIMIT, 0); mpSave(); updateMaxParticleCalc(); mpSyncPresets();
   });
   document.getElementById('mp-walk').addEventListener('input', (e) => {
     mpState.walk = reInt(e.target.value, 0, MP_MAX_GAIN, 0); mpSave(); updateMaxParticleCalc(); mpSyncPresets();
