@@ -1227,6 +1227,24 @@
   .pt-attacker { --pt-color: var(--bad); }
   .pt-tanker { --pt-color: var(--accent); }
   .pt-healer { --pt-color: var(--good); }
+  .td-names { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 10px; }
+  .td-names .particle-manual-input { display: block; width: 100%; padding: 6px 8px; font-size: 14px; }
+  .td-mode { display: flex; flex-wrap: wrap; gap: 4px 16px; margin-top: 6px; font-size: 13px; }
+  .td-mode label { display: inline-flex; align-items: center; gap: 6px; cursor: pointer; color: var(--text-dim); }
+  .td-mode label:has(input:checked) { color: var(--text); font-weight: 700; }
+  .td-mode input { accent-color: var(--accent); margin: 0; }
+  .td-fill { display: block; width: 100%; margin-top: 8px; padding: 6px 10px; font-size: 13px; }
+  .td-fill:disabled { opacity: 0.4; cursor: default; }
+  .td-dup-mon { display: block; width: 100%; margin-top: 8px; padding: 6px 8px; font-size: 15px; }
+  .td-dup { margin-top: 8px; }
+  .td-dup .modal-account-row { gap: 8px; padding: 8px 10px; }
+  .td-dup .modal-account-row .box { width: 20px; height: 20px; }
+  .td-dup .modal-account-row .box svg { width: 13px; height: 13px; }
+  .td-dup .modal-account-row .name { font-size: 14px; }
+  .td-dup .modal-account-row.done .name { color: var(--good); font-weight: 700; }
+  .td-dots { display: flex; flex: 0 0 auto; gap: 3px; }
+  .td-dots i { width: 10px; height: 10px; border: 1.5px solid var(--text-faint); border-radius: 3px; }
+  .td-dots i.on { background: var(--good); border-color: var(--good); }
   .td-accounts .tz-tab { flex: 0 0 auto; padding: 5px 10px; font-size: 13px; }
   .td-accounts .tz-tab[data-acc] { color: var(--team); border-color: color-mix(in srgb, var(--team) 55%, var(--line)); }
   .td-accounts .tz-tab[data-acc].active { background: var(--team); border-color: var(--team); color: #1a1200; }
@@ -2756,7 +2774,10 @@
         <button class="tz-tab" id="td-deck-copy" type="button">Copy</button>
         <button class="tz-tab" id="td-deck-del" type="button">Delete</button>
       </div>
-      <input class="particle-manual-input cb-deck-name" id="td-deck-name" type="text" maxlength="40" placeholder="Deck name" autocomplete="off" aria-label="Deck name" style="margin-bottom: 10px; padding: 6px 10px; font-size: 14px;">
+      <div class="td-names">
+        <label class="tb-field"><span class="candy-level-label">Deck name</span><input class="particle-manual-input" id="td-deck-name" type="text" maxlength="40" placeholder="Saved as" autocomplete="off"></label>
+        <label class="tb-field"><span class="candy-level-label">Team name (in game)</span><input class="particle-manual-input" id="td-team-name" type="text" maxlength="40" placeholder="Team name" autocomplete="off"></label>
+      </div>
       <div class="tz-tabs td-accounts" id="td-accounts" aria-label="Account"></div>
     </div>
     <div id="td-body"></div>
@@ -8887,6 +8908,22 @@
     });
     return teams;
   }
+  // Per account, a deck is either Individual (the six slots above) or
+  // Duplicate: one Pokemon for all six slots plus six "ready" ticks.
+  const tdNewDups = () => Object.fromEntries(accountNames.map(n => [n, { mode: 'individual', mon: '', ready: Array(TD_SLOTS).fill(false) }]));
+  function tdCleanDups(saved) {
+    const dups = tdNewDups();
+    accountNames.forEach(acc => {
+      const e = saved && saved[acc];
+      if (!e || typeof e !== 'object') return;
+      dups[acc] = {
+        mode: e.mode === 'duplicate' ? 'duplicate' : 'individual',
+        mon: typeof e.mon === 'string' ? e.mon.slice(0, 40) : '',
+        ready: Array.from({ length: TD_SLOTS }, (_, i) => Array.isArray(e.ready) && e.ready[i] === true),
+      };
+    });
+    return dups;
+  }
   let tdData = null;
   try { tdData = JSON.parse(localStorage.getItem(TD_KEY)); } catch (e) { tdData = null; }
   if (!tdData || !Array.isArray(tdData.decks) || !tdData.decks.length) {
@@ -8895,6 +8932,8 @@
   tdData.decks.forEach((d, i) => {
     if (!Number.isInteger(d.id) || tdData.decks.some((o, j) => j < i && o.id === d.id)) d.id = Math.max(i + 1, ...tdData.decks.map(o => (Number.isInteger(o.id) ? o.id : 0))) + 1;
     d.teams = tdCleanTeams(d.teams);
+    d.dups = tdCleanDups(d.dups);
+    d.teamName = typeof d.teamName === 'string' ? d.teamName.slice(0, 40) : '';
     if (typeof d.name !== 'string' || !d.name.trim()) d.name = `Deck ${i + 1}`;
   });
   if (tdData.view !== 'all' && !accountNames.includes(tdData.view)) tdData.view = accountNames[0];
@@ -8903,7 +8942,8 @@
   const tdId = (id) => document.getElementById(id);
   const tdSave = () => { try { localStorage.setItem(TD_KEY, JSON.stringify(tdData)); } catch (e) {} };
   const tdFilled = (slot) => !!(slot.mon.trim() || slot.a !== null || slot.d !== null || slot.h !== null || slot.shiny || slot.hundo);
-  const tdCount = (d) => accountNames.reduce((n, acc) => n + d.teams[acc].filter(tdFilled).length, 0);
+  const tdDupFilled = (dup) => !!(dup.mon.trim() || dup.ready.some(Boolean));
+  const tdCount = (d) => accountNames.reduce((n, acc) => n + d.teams[acc].filter(tdFilled).length + (tdDupFilled(d.dups[acc]) ? 1 : 0), 0) + (d.teamName.trim() ? 1 : 0);
   function tdPct(slot) {
     if (slot.a === null || slot.d === null || slot.h === null) return null;
     return Math.round((slot.a + slot.d + slot.h) / 45 * 100);
@@ -8920,6 +8960,7 @@
       sel.appendChild(o);
     });
     if (document.activeElement !== tdId('td-deck-name')) tdId('td-deck-name').value = tdDeck().name;
+    if (document.activeElement !== tdId('td-team-name')) tdId('td-team-name').value = tdDeck().teamName;
     tdId('td-deck-del').disabled = tdData.decks.length < 2;
   }
   function tdSwitchDeck(id) {
@@ -8932,13 +8973,13 @@
   tdId('td-deck-select').addEventListener('change', () => tdSwitchDeck(Number(tdId('td-deck-select').value)));
   tdId('td-deck-new').addEventListener('click', () => {
     const id = tdNewDeckId();
-    tdData.decks.push({ id, name: `Deck ${id}`, teams: tdNewTeams() });
+    tdData.decks.push({ id, name: `Deck ${id}`, teamName: '', teams: tdNewTeams(), dups: tdNewDups() });
     tdSwitchDeck(id);
     tdId('td-deck-name').focus();
   });
   tdId('td-deck-copy').addEventListener('click', () => {
     const id = tdNewDeckId();
-    tdData.decks.push({ id, name: `${tdDeck().name} copy`.slice(0, 40), teams: JSON.parse(JSON.stringify(tdDeck().teams)) });
+    tdData.decks.push({ id, name: `${tdDeck().name} copy`.slice(0, 40), teamName: tdDeck().teamName, teams: JSON.parse(JSON.stringify(tdDeck().teams)), dups: JSON.parse(JSON.stringify(tdDeck().dups)) });
     tdSwitchDeck(id);
   });
   tdId('td-deck-del').addEventListener('click', () => {
@@ -8963,6 +9004,12 @@
     tdRenderDecks();
   });
   tdId('td-deck-name').addEventListener('keydown', (ev) => { if (ev.key === 'Enter') tdId('td-deck-name').blur(); });
+  // The in-game team name belongs to the deck, separate from the name the deck is saved under.
+  tdId('td-team-name').addEventListener('input', () => {
+    tdDeck().teamName = tdId('td-team-name').value;
+    tdSave();
+  });
+  tdId('td-team-name').addEventListener('keydown', (ev) => { if (ev.key === 'Enter') tdId('td-team-name').blur(); });
 
   // Account pills: one per account plus "All".
   function tdRenderAccounts() {
@@ -9055,6 +9102,7 @@
     const host = tdId('td-body');
     host.textContent = '';
     const teams = tdDeck().teams;
+    const dups = tdDeck().dups;
     if (tdData.view === 'all') {
       accountNames.forEach(acc => {
         const slots = teams[acc];
@@ -9069,6 +9117,25 @@
         open.addEventListener('click', () => { tdData.view = acc; tdSave(); renderTeamDeck(); window.scrollTo({ top: 0 }); });
         const stat = document.createElement('span');
         const shinies = slots.filter(s => s.shiny).length;
+        const dup = dups[acc];
+        if (dup.mode === 'duplicate') {
+          const n = dup.ready.filter(Boolean).length;
+          stat.textContent = `Duplicate · ${n}/${TD_SLOTS}`;
+          title.append(open, stat);
+          card.appendChild(title);
+          const line = document.createElement('div');
+          line.className = 'td-line' + (tdDupFilled(dup) ? '' : ' empty');
+          const name = document.createElement('span');
+          name.className = 'td-l-name';
+          name.textContent = dup.mon.trim() || '—';
+          const dots = document.createElement('span');
+          dots.className = 'td-dots';
+          dup.ready.forEach(on => { const d = document.createElement('i'); d.className = on ? 'on' : ''; dots.appendChild(d); });
+          line.append(name, dots);
+          card.appendChild(line);
+          host.appendChild(card);
+          return;
+        }
         stat.textContent = `${slots.filter(s => s.mon.trim()).length}/${TD_SLOTS}` + (shinies ? ` · ${shinies}★` : '');
         title.append(open, stat);
         card.appendChild(title);
@@ -9103,17 +9170,112 @@
     stat.textContent = `${accountNames.indexOf(acc) + 1}/${accountNames.length}`;
     title.append(name, stat);
     card.appendChild(title);
-    const grid = document.createElement('div');
-    grid.className = 'td-slots';
-    teams[acc].forEach((slot, i) => grid.appendChild(tdBuildSlot(slot, i)));
-    card.appendChild(grid);
+
+    // Mode: Individual (six separate slots) or Duplicate (one Pokemon, six ready ticks).
+    const dup = dups[acc];
+    const modes = document.createElement('div');
+    modes.className = 'td-mode';
+    modes.setAttribute('role', 'radiogroup');
+    modes.setAttribute('aria-label', 'Mode');
+    [['individual', 'Individual'], ['duplicate', 'Duplicate']].forEach(([value, label]) => {
+      const l = document.createElement('label');
+      const r = document.createElement('input');
+      r.type = 'radio';
+      r.name = 'td-mode';
+      r.value = value;
+      r.checked = dup.mode === value;
+      r.addEventListener('change', () => {
+        if (dup.mode === value) return;
+        // Going Duplicate -> Individual: put the Pokemon into every ticked slot that is still empty.
+        if (value === 'individual' && dup.mon.trim()) {
+          teams[acc].forEach((slot, i) => { if (dup.ready[i] && !slot.mon.trim()) slot.mon = dup.mon.trim(); });
+        }
+        dup.mode = value;
+        tdSave();
+        renderTeamDeck();
+      });
+      l.append(r, document.createTextNode(label));
+      modes.appendChild(l);
+    });
+    card.appendChild(modes);
+
+    if (dup.mode === 'duplicate') {
+      const mon = document.createElement('input');
+      mon.className = 'particle-manual-input td-dup-mon';
+      mon.type = 'text';
+      mon.setAttribute('list', 'td-mons');
+      mon.maxLength = 40;
+      mon.placeholder = 'Pokémon for all six slots';
+      mon.autocomplete = 'off';
+      mon.autocapitalize = 'words';
+      mon.spellcheck = false;
+      mon.setAttribute('aria-label', 'Pokémon for all six slots');
+      mon.value = dup.mon;
+      mon.addEventListener('input', () => { dup.mon = mon.value; tdSave(); });
+      card.appendChild(mon);
+      const grid = document.createElement('div');
+      grid.className = 'modal-accounts td-dup';
+      const showCount = () => { stat.textContent = `Duplicate · ${dup.ready.filter(Boolean).length}/${TD_SLOTS}`; };
+      dup.ready.forEach((on, i) => {
+        const row = document.createElement('div');
+        row.tabIndex = 0;
+        row.setAttribute('role', 'checkbox');
+        row.innerHTML = `<span class="box"><svg viewBox="0 0 24 24" fill="none" stroke="#0e1620" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="4 12 10 18 20 6"></polyline></svg></span><span class="name"></span>`;
+        const label = row.querySelector('.name');
+        const show = () => {
+          row.className = 'modal-account-row' + (dup.ready[i] ? ' done' : '');
+          row.setAttribute('aria-checked', String(dup.ready[i]));
+          label.textContent = dup.ready[i] ? `Slot ${i + 1} · Ready` : `Slot ${i + 1}`;
+        };
+        const toggle = () => { dup.ready[i] = !dup.ready[i]; show(); showCount(); tdSave(); };
+        row.addEventListener('click', toggle);
+        row.addEventListener('keydown', (e) => { if (e.key === ' ' || e.key === 'Enter') { e.preventDefault(); toggle(); } });
+        show();
+        grid.appendChild(row);
+      });
+      showCount();
+      card.appendChild(grid);
+    } else {
+      // One tap copies the first filled slot's Pokemon into every empty slot (same species, different IDs).
+      const fill = document.createElement('button');
+      fill.type = 'button';
+      fill.className = 'tz-tab td-fill';
+      const grid = document.createElement('div');
+      grid.className = 'td-slots';
+      const source = () => { const s = teams[acc].find(x => x.mon.trim()); return s ? s.mon.trim() : ''; };
+      const refreshFill = () => {
+        const name = source();
+        const empties = teams[acc].filter(s => !s.mon.trim()).length;
+        fill.textContent = name ? `Fill empty slots with ${name}` : 'Fill empty slots';
+        fill.disabled = !name || !empties;
+      };
+      fill.addEventListener('click', () => {
+        const name = source();
+        if (!name) return;
+        teams[acc].forEach(s => { if (!s.mon.trim()) s.mon = name; });
+        tdSave();
+        renderTeamDeck();
+      });
+      card.appendChild(fill);
+      teams[acc].forEach((slot, i) => grid.appendChild(tdBuildSlot(slot, i)));
+      grid.addEventListener('input', refreshFill);
+      refreshFill();
+      card.appendChild(grid);
+    }
+
     const clear = document.createElement('button');
     clear.type = 'button';
     clear.className = 'clear-tracked-btn td-clear';
-    clear.textContent = 'Clear this account';
+    clear.textContent = dup.mode === 'duplicate' ? 'Clear duplicate team' : 'Clear this account';
     clear.addEventListener('click', () => {
-      if (teams[acc].some(tdFilled) && !confirm(`Clear all six slots for ${acc}?`)) return;
-      teams[acc] = Array.from({ length: TD_SLOTS }, tdNewSlot);
+      if (dup.mode === 'duplicate') {
+        if (tdDupFilled(dup) && !confirm(`Clear the duplicate team for ${acc}?`)) return;
+        dup.mon = '';
+        dup.ready = Array(TD_SLOTS).fill(false);
+      } else {
+        if (teams[acc].some(tdFilled) && !confirm(`Clear all six slots for ${acc}?`)) return;
+        teams[acc] = Array.from({ length: TD_SLOTS }, tdNewSlot);
+      }
       tdSave();
       renderTeamDeck();
     });
