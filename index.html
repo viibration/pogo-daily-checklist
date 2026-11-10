@@ -2658,9 +2658,9 @@
         <button class="app-tab" data-tab="misc" type="button">Misc</button>
       </div>
       <div class="tz-tabs party-select" style="margin-top: 10px;">
-        <button class="tz-tab active" data-party="party" type="button">Max Battle</button>
-        <button class="tz-tab" data-party="raid" type="button">Raid</button>
         <button class="tz-tab" data-party="team-deck" type="button">Team Deck</button>
+        <button class="tz-tab active" data-party="max-battle" type="button">Max Battle</button>
+        <button class="tz-tab" data-party="raid" type="button">Raid</button>
       </div>
     </div>
     <div class="panel">
@@ -2689,9 +2689,9 @@
         <button class="app-tab" data-tab="misc" type="button">Misc</button>
       </div>
       <div class="tz-tabs party-select" style="margin-top: 10px;">
-        <button class="tz-tab" data-party="party" type="button">Max Battle</button>
-        <button class="tz-tab active" data-party="raid" type="button">Raid</button>
         <button class="tz-tab" data-party="team-deck" type="button">Team Deck</button>
+        <button class="tz-tab" data-party="max-battle" type="button">Max Battle</button>
+        <button class="tz-tab active" data-party="raid" type="button">Raid</button>
       </div>
     </div>
     <div class="panel panel-theme-indigo">
@@ -2744,9 +2744,9 @@
         <button class="app-tab" data-tab="misc" type="button">Misc</button>
       </div>
       <div class="tz-tabs party-select" style="margin-top: 10px;">
-        <button class="tz-tab" data-party="party" type="button">Max Battle</button>
-        <button class="tz-tab" data-party="raid" type="button">Raid</button>
         <button class="tz-tab active" data-party="team-deck" type="button">Team Deck</button>
+        <button class="tz-tab" data-party="max-battle" type="button">Max Battle</button>
+        <button class="tz-tab" data-party="raid" type="button">Raid</button>
       </div>
     </div>
     <div class="panel">
@@ -5472,11 +5472,12 @@
   let currentCalc = 'raid-energy';
   // Misc groups six pages (Discord and Gym Defender are root tabs of their own); it always lands on the Time Zone converter.
   const MISC_TABS = ['timezone', 'search-term', 'pokedex', 'trade-balancer', 'iv-nickname', 'value-finder'];
-  // Party has a Max Battle page (always the landing page) and a Raid page.
-  const rootKey = (tab) => (TRACKER_TABS.includes(tab) ? 'tracker' : CALC_TABS.includes(tab) ? 'calculator' : tab === 'raid' || tab === 'team-deck' ? 'party' : MISC_TABS.includes(tab) ? 'misc' : tab);
+  // Party has Team Deck (the landing page), Max Battle and Raid pages.
+  const rootKey = (tab) => (TRACKER_TABS.includes(tab) ? 'tracker' : CALC_TABS.includes(tab) ? 'calculator' : tab === 'max-battle' || tab === 'raid' || tab === 'team-deck' ? 'party' : MISC_TABS.includes(tab) ? 'misc' : tab);
   const ROOT_TAB_ORDER = ['dashboard', 'particles', 'party', 'calculator', 'gym', 'discord', 'tracker', 'misc'];
   function switchTab(tab) {
     if (tab === 'misc') tab = 'timezone';
+    if (tab === 'party') tab = 'team-deck'; // the Party tab lands on Team Deck
     if (tab === 'tracker') tab = currentTracker;
     if (tab === 'calculator') tab = currentCalc;
     if (TRACKER_TABS.includes(tab)) currentTracker = tab;
@@ -5496,7 +5497,7 @@
     viewRaidEnergy.hidden = tab !== 'raid-energy';
     viewMaxDamage.hidden = tab !== 'max-damage';
     viewMaxParticle.hidden = tab !== 'max-particle';
-    viewParty.hidden = tab !== 'party';
+    viewParty.hidden = tab !== 'max-battle';
     viewRaid.hidden = tab !== 'raid';
     viewTeamDeck.hidden = tab !== 'team-deck';
     viewTimezone.hidden = tab !== 'timezone';
@@ -5529,7 +5530,7 @@
     else if (tab === 'pokemon-tracker') renderPokemonTrackerGrid();
     else if (tab === 'shadow-tracker') renderShadowTrackerGrid();
     else if (tab === 'mega-tracker') renderMegaTrackerGrid();
-    else if (tab === 'party') renderParty();
+    else if (tab === 'max-battle') renderParty();
     else if (tab === 'raid') renderRaid();
     else if (tab === 'team-deck') renderTeamDeck();
     else if (tab === 'timezone') renderTzConverter();
@@ -5569,7 +5570,7 @@
     if (!viewMaxDamage.hidden) return 'max-damage';
     if (!viewMaxParticle.hidden) return 'max-particle';
     if (!viewCombat.hidden) return 'combat';
-    if (!viewParty.hidden) return 'party';
+    if (!viewParty.hidden) return 'max-battle';
     if (!viewRaid.hidden) return 'raid';
     if (!viewTeamDeck.hidden) return 'team-deck';
     if (!viewTimezone.hidden) return 'timezone';
