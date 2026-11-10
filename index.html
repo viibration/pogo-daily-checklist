@@ -1252,6 +1252,9 @@
   .td-top { display: flex; gap: 4px; align-items: center; }
   .td-num { flex: 0 0 auto; font-size: 12px; font-weight: 800; color: var(--text-faint); }
   .td-top .particle-manual-input { flex: 1; min-width: 0; padding: 5px 6px; font-size: 14px; }
+  .td-sprite { display: block; width: 56px; height: 56px; margin: 0 auto 2px; object-fit: contain; }
+  .td-sprite[hidden], .td-l-sprite[hidden] { display: none; }
+  .td-line .td-l-sprite { flex: 0 0 auto; width: 26px; height: 26px; margin: -4px 0; object-fit: contain; align-self: center; }
   .td-copy { flex: 0 0 auto; display: grid; place-items: center; width: 26px; height: 28px; padding: 0; color: var(--text-dim); background: transparent; border: 1px solid var(--line); border-radius: 6px; cursor: pointer; }
   .td-copy svg { width: 15px; height: 15px; }
   .td-copy:hover:not(:disabled) { color: var(--text); border-color: var(--accent); }
@@ -8972,6 +8975,64 @@
   const tdSave = () => { try { localStorage.setItem(TD_KEY, JSON.stringify(tdData)); } catch (e) {} };
   const tdFilled = (slot) => !!(slot.mon.trim() || slot.a !== null || slot.d !== null || slot.h !== null || slot.shiny || slot.hundo);
   const tdCount = (d) => accountNames.reduce((n, acc) => n + d.teams[acc].filter(tdFilled).length, 0) + (d.teamName.trim() ? 1 : 0);
+  // Sprites come from the Pokemon GO section of pokemondb.net (/sprites/go/normal
+  // and /shiny). Only Pokemon from the top of the pokebase.app tier lists have one:
+  // Attackers (S+, S, A+), Dynamax (S, A+) and Mega (S, A+, A), plus the ones asked
+  // for first. A slot whose Pokemon matches shows its sprite (the shiny one while
+  // Shiny is on). "Shadow" and "Dynamax" in a name are ignored, so "Shadow Machamp"
+  // shows Machamp. A Pokemon pokemondb has no GO sprite for yet shows nothing.
+  const TD_SPRITE_BASE = 'https://img.pokemondb.net/sprites/go/';
+  // Plain species: the name, or [file name, name] when the file differs.
+  const TD_SPRITE_SPECIES = [
+    'Mewtwo', 'Kyogre', 'Groudon', 'Rayquaza', 'Lucario', 'Kyurem', 'Necrozma', ['zacian-hero', 'Zacian'], ['zamazenta-hero', 'Zamazenta'], 'Eternatus',
+    'Charizard', 'Gengar', 'Blaziken', 'Salamence', 'Rampardos', 'Dialga', 'Palkia', 'Heatran', 'Reshiram', 'Zekrom', 'Chandelure', ['keldeo-ordinary', 'Keldeo'],
+    'Chesnaught', 'Delphox', 'Greninja', 'Diancie', 'Blacephalon', 'Raichu', 'Machamp', 'Starmie', 'Moltres', 'Dragonite', 'Raikou', 'Tyranitar', 'Ho-oh',
+    'Sceptile', 'Swampert', 'Gardevoir', 'Absol', 'Glalie', 'Metagross', 'Garchomp', 'Abomasnow', 'Rhyperior', 'Electivire', 'Mamoswine', 'Darkrai', 'Gigalith',
+    'Excadrill', 'Conkeldurr', ['darmanitan-standard', 'Darmanitan'], 'Haxorus', 'Hydreigon', ['landorus-incarnate', 'Landorus'], 'Terrakion', 'Tyrantrum', 'Toucannon',
+    'Vikavolt', 'Xurkitree', 'Kartana', 'Zeraora', 'Falinks', 'Regieleki', 'Blissey', 'Rillaboom', 'Cinderace', 'Inteleon', 'Alakazam', 'Kingler', 'Lapras', 'Zapdos',
+    'Registeel', 'Latias', 'Latios', 'Weavile', 'Azelf', ['toxtricity-amped', 'Toxtricity'], 'Grimmsnarl', 'Duraludon', 'Venusaur', 'Beedrill', 'Aerodactyl',
+    'Feraligatr', 'Heracross', 'Houndoom', 'Banette', 'Staraptor', 'Gallade', 'Froslass', 'Emboar', 'Eelektross', 'Meganium', 'Glimmora', ['zygarde-50', 'Zygarde'], 'Baxcalibur',
+  ];
+  const TD_SPRITE_MEGAS = ['Rayquaza', 'Lucario', 'Gengar', 'Blaziken', 'Salamence', 'Diancie', 'Dragonite', 'Tyranitar', 'Sceptile', 'Swampert', 'Gardevoir', 'Absol', 'Glalie',
+    'Metagross', 'Garchomp', 'Abomasnow', 'Alakazam', 'Latias', 'Latios', 'Venusaur', 'Beedrill', 'Aerodactyl', 'Heracross', 'Houndoom', 'Banette', 'Gallade'];
+  const TD_SPRITE_GMAX = ['Charizard', 'Gengar', 'Machamp', 'Rillaboom', 'Cinderace', 'Inteleon', 'Kingler', 'Lapras', 'Toxtricity'];
+  // The rest: [file name, label shown in the name suggestions, other spellings accepted].
+  const TD_SPRITE_FORMS = [
+    ['mewtwo-mega-x', 'Mewtwo (Mega X)', ['Mega Mewtwo X', 'Mewtwo X']],
+    ['mewtwo-mega-y', 'Mewtwo (Mega Y)', ['Mega Mewtwo Y', 'Mewtwo Y']],
+    ['charizard-mega-x', 'Charizard (Mega X)', ['Mega Charizard X', 'Charizard X']],
+    ['charizard-mega-y', 'Charizard (Mega Y)', ['Mega Charizard Y', 'Charizard Y']],
+    ['kyogre-primal', 'Kyogre (Primal)', ['Primal Kyogre']],
+    ['groudon-primal', 'Groudon (Primal)', ['Primal Groudon']],
+    ['kyurem-white', 'Kyurem (White)', ['White Kyurem']],
+    ['kyurem-black', 'Kyurem (Black)', ['Black Kyurem']],
+    ['necrozma-dawn-wings', 'Necrozma (Dawn Wings)', ['Dawn Wings Necrozma', 'Necrozma Dawn Wing', 'Dawn Wing Necrozma']],
+    ['necrozma-dusk-mane', 'Necrozma (Dusk Mane)', ['Dusk Mane Necrozma']],
+    ['zacian-crowned', 'Zacian (Crowned)', ['Crowned Zacian']],
+    ['zamazenta-crowned', 'Zamazenta (Crowned)', ['Crowned Zamazenta']],
+    ['eternatus-eternamax', 'Eternatus (Eternamax)', ['Eternamax Eternatus']],
+    ['dialga-origin', 'Dialga (Origin)', ['Origin Dialga']],
+    ['palkia-origin', 'Palkia (Origin)', ['Origin Palkia']],
+    ['landorus-therian', 'Landorus (Therian)', ['Therian Landorus']],
+    ['keldeo-resolute', 'Keldeo (Resolute)', ['Resolute Keldeo']],
+    ['darmanitan-zen', 'Darmanitan (Zen)', ['Zen Darmanitan']],
+    ['toxtricity-low-key', 'Toxtricity (Low Key)', ['Low Key Toxtricity']],
+  ];
+  const TD_SPRITES = [
+    ...TD_SPRITE_SPECIES.map(s => (Array.isArray(s) ? [s[0], s[1], []] : [s.toLowerCase(), s, []])),
+    ...TD_SPRITE_MEGAS.map(n => [n.toLowerCase() + '-mega', `${n} (Mega)`, [`Mega ${n}`]]),
+    ...TD_SPRITE_GMAX.map(n => [n.toLowerCase() + '-gigantamax', `${n} (Gigantamax)`, [`Gigantamax ${n}`, `G-Max ${n}`]]),
+    ...TD_SPRITE_FORMS,
+  ];
+  const tdSpriteKey = (s) => s.toLowerCase().replace(/[^a-z0-9]/g, '').replace(/shadow|dynamax|dmax/g, '');
+  const tdSpriteBySpelling = new Map();
+  TD_SPRITES.forEach(([file, label, others]) => [label, ...others].forEach(n => tdSpriteBySpelling.set(tdSpriteKey(n), file)));
+  // A Gigantamax Pokemon with no Gigantamax sprite falls back to its normal one.
+  const tdSpriteFile = (name) => {
+    const key = tdSpriteKey(name);
+    return tdSpriteBySpelling.get(key) || tdSpriteBySpelling.get(key.replace(/gigantamax|gmax/g, '')) || null;
+  };
+  const tdSpriteUrl = (file, shiny) => `${TD_SPRITE_BASE}${shiny ? 'shiny' : 'normal'}/1x/${file}.png`;
   function tdPct(slot) {
     if (slot.a === null || slot.d === null || slot.h === null) return null;
     return Math.round((slot.a + slot.d + slot.h) / 45 * 100);
@@ -9067,7 +9128,8 @@
   function tdBuildSlot(acc, slot, i) {
     const row = document.createElement('div');
     row.className = 'td-slot' + (slot.mon.trim() ? ' filled' : '') + (slot.shiny ? ' shiny' : '');
-    row.innerHTML = `<div class="td-top">
+    row.innerHTML = `<img class="td-sprite" alt="" hidden referrerpolicy="no-referrer" decoding="async">
+      <div class="td-top">
         <span class="td-num">${i + 1}</span>
         <input class="particle-manual-input td-mon" type="text" list="td-mons" maxlength="40" placeholder="Pokémon" autocomplete="off" autocapitalize="words" spellcheck="false" aria-label="Pokémon ${i + 1}">
         <button class="td-copy td-copy-slots" type="button" title="Copy to other slots" aria-label="Copy slot ${i + 1} to other slots"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="11" height="11" rx="2"></rect><path d="M5 15V6a2 2 0 0 1 2-2h9"></path></svg></button>
@@ -9099,8 +9161,20 @@
     const showCopy = () => { copyBtns.forEach(b => { b.disabled = !tdFilled(slot); }); };
     row.querySelector('.td-copy-slots').addEventListener('click', () => tdOpenCopy(acc, i, 'copy-slots'));
     row.querySelector('.td-copy-accounts').addEventListener('click', () => tdOpenCopy(acc, i, 'copy-accounts'));
-    mon.addEventListener('input', () => { slot.mon = mon.value; row.classList.toggle('filled', !!slot.mon.trim()); showCopy(); tdSave(); });
-    shiny.addEventListener('click', () => { slot.shiny = !slot.shiny; showShiny(); showCopy(); tdSave(); });
+    // The sprite follows the Pokemon and the Shiny switch.
+    const sprite = row.querySelector('.td-sprite');
+    const showSprite = () => {
+      mon.title = slot.mon.trim(); // the box is narrow, so long names are readable on hover
+      const file = tdSpriteFile(slot.mon);
+      if (!file) { sprite.hidden = true; sprite.removeAttribute('src'); return; }
+      const url = tdSpriteUrl(file, slot.shiny);
+      if (sprite.getAttribute('src') !== url) sprite.src = url;
+      sprite.alt = slot.mon.trim();
+      sprite.hidden = false;
+    };
+    sprite.addEventListener('error', () => { sprite.hidden = true; });
+    mon.addEventListener('input', () => { slot.mon = mon.value; row.classList.toggle('filled', !!slot.mon.trim()); showCopy(); showSprite(); tdSave(); });
+    shiny.addEventListener('click', () => { slot.shiny = !slot.shiny; showShiny(); showCopy(); showSprite(); tdSave(); });
     const showHundo = () => {
       hundo.classList.toggle('on', slot.hundo);
       hundo.setAttribute('aria-pressed', slot.hundo ? 'true' : 'false');
@@ -9127,7 +9201,7 @@
       showPct(); showCopy();
       tdSave();
     });
-    showHundo(); showCopy();
+    showHundo(); showCopy(); showSprite();
     showShiny();
     showPct();
     return row;
@@ -9160,6 +9234,17 @@
           const name = document.createElement('span');
           name.className = 'td-l-name';
           name.textContent = slot.mon.trim() || '—';
+          const spriteFile = tdSpriteFile(slot.mon);
+          if (spriteFile) {
+            const pic = document.createElement('img');
+            pic.className = 'td-l-sprite';
+            pic.alt = '';
+            pic.loading = 'lazy';
+            pic.referrerPolicy = 'no-referrer';
+            pic.src = tdSpriteUrl(spriteFile, slot.shiny);
+            pic.addEventListener('error', () => { pic.hidden = true; });
+            line.appendChild(pic);
+          }
           const iv = document.createElement('span');
           iv.className = 'td-l-iv';
           const p = tdPct(slot);
@@ -9375,6 +9460,13 @@
         if (!p.go) return;
         const o = document.createElement('option');
         o.value = p.name;
+        dl.appendChild(o);
+      });
+      // The forms that have a sprite, so they can be picked from the suggestions.
+      TD_SPRITES.forEach(([, label]) => {
+        if (!label.includes('(')) return;
+        const o = document.createElement('option');
+        o.value = label;
         dl.appendChild(o);
       });
     }
