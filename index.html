@@ -1229,22 +1229,13 @@
   .pt-healer { --pt-color: var(--good); }
   .td-names { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 10px; }
   .td-names .particle-manual-input { display: block; width: 100%; padding: 6px 8px; font-size: 14px; }
-  .td-mode { display: flex; flex-wrap: wrap; gap: 4px 16px; margin-top: 6px; font-size: 13px; }
-  .td-mode label { display: inline-flex; align-items: center; gap: 6px; cursor: pointer; color: var(--text-dim); }
-  .td-mode label:has(input:checked) { color: var(--text); font-weight: 700; }
-  .td-mode input { accent-color: var(--accent); margin: 0; }
-  .td-fill { display: block; width: 100%; margin-top: 8px; padding: 6px 10px; font-size: 13px; }
-  .td-fill:disabled { opacity: 0.4; cursor: default; }
-  .td-dup-mon { display: block; width: 100%; margin-top: 8px; padding: 6px 8px; font-size: 15px; }
-  .td-dup { margin-top: 8px; }
-  .td-dup .modal-account-row { gap: 8px; padding: 8px 10px; }
-  .td-dup .modal-account-row .box { width: 20px; height: 20px; }
-  .td-dup .modal-account-row .box svg { width: 13px; height: 13px; }
-  .td-dup .modal-account-row .name { font-size: 14px; }
-  .td-dup .modal-account-row.done .name { color: var(--good); font-weight: 700; }
-  .td-dots { display: flex; flex: 0 0 auto; gap: 3px; }
-  .td-dots i { width: 10px; height: 10px; border: 1.5px solid var(--text-faint); border-radius: 3px; }
-  .td-dots i.on { background: var(--good); border-color: var(--good); }
+  .td-add-list { margin-top: 10px; }
+  .td-add-list .modal-account-row { padding: 10px 12px; gap: 10px; }
+  .td-add-list .modal-account-row .name { font-size: 15px; }
+  .td-add-actions { display: flex; gap: 8px; margin-top: 12px; }
+  .td-add-actions .tz-tab { flex: 0 0 auto; padding: 10px 16px; }
+  .td-add-actions .sync-action-btn { flex: 1; margin: 0; }
+  .td-add-actions .sync-action-btn:disabled { opacity: 0.45; cursor: default; }
   .td-accounts .tz-tab { flex: 0 0 auto; padding: 5px 10px; font-size: 13px; }
   .td-accounts .tz-tab[data-acc] { color: var(--team); border-color: color-mix(in srgb, var(--team) 55%, var(--line)); }
   .td-accounts .tz-tab[data-acc].active { background: var(--team); border-color: var(--team); color: #1a1200; }
@@ -1255,8 +1246,9 @@
   .td-card-title button { font: inherit; font-weight: 800; color: inherit; background: transparent; border: none; padding: 0; cursor: pointer; text-align: left; }
   .td-card-title span { font-size: 12px; font-weight: 700; color: var(--text-faint); }
   .td-slots { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-top: 6px; }
-  .td-slot { min-width: 0; padding: 6px; background: var(--panel); border: 1px solid var(--line); border-left: 5px solid var(--team); border-radius: 8px; }
-  .td-slot.shiny { border-color: #ffd23f; border-left-color: #ffd23f; background: linear-gradient(90deg, rgba(255, 210, 63, 0.14), transparent 70%), var(--panel); }
+  .td-slot { min-width: 0; padding: 6px; background: var(--panel); border: 1px dashed var(--line); border-left: 5px solid var(--line); border-radius: 8px; }
+  .td-slot.filled { border-style: solid; border-color: color-mix(in srgb, var(--good) 55%, var(--line)); border-left-color: var(--good); background: linear-gradient(90deg, color-mix(in srgb, var(--good) 14%, transparent), transparent 70%), var(--panel); }
+  .td-slot.shiny { border-style: solid; border-color: #ffd23f; border-left-color: #ffd23f; background: linear-gradient(90deg, rgba(255, 210, 63, 0.14), transparent 70%), var(--panel); }
   .td-top { display: flex; gap: 4px; align-items: center; }
   .td-num { flex: 0 0 auto; font-size: 12px; font-weight: 800; color: var(--text-faint); }
   .td-top .particle-manual-input { flex: 1; min-width: 0; padding: 5px 6px; font-size: 14px; }
@@ -1271,8 +1263,9 @@
   .td-pct { flex: 1; min-width: 0; text-align: right; font-size: 12px; font-weight: 700; color: var(--text-dim); font-variant-numeric: tabular-nums; }
   .td-pct.hundo { color: var(--good); }
   .td-clear { margin-top: 8px; padding: 6px; }
-  .td-line { display: flex; align-items: baseline; gap: 6px; margin-top: 4px; padding: 3px 6px; font-size: 13px; border-left: 3px solid var(--team); border-radius: 4px; background: var(--panel); }
+  .td-line { display: flex; align-items: baseline; gap: 6px; margin-top: 4px; padding: 3px 6px; font-size: 13px; border-left: 3px solid var(--line); border-radius: 4px; background: var(--panel); }
   .td-line.empty { color: var(--text-faint); }
+  .td-line.filled { border-left-color: var(--good); }
   .td-line.shiny { border-left-color: #ffd23f; }
   .td-line .td-l-name { flex: 1; min-width: 0; font-weight: 700; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .td-line .td-l-iv { flex: 0 0 auto; font-variant-numeric: tabular-nums; color: var(--text-dim); }
@@ -1616,6 +1609,23 @@
       <div class="particle-action-row">
         <input class="particle-manual-input" id="custom-task-input" type="text" placeholder="New task name" autocomplete="off">
         <button class="particle-btn" id="custom-task-add-btn" type="button">Add</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-backdrop" id="td-add-backdrop" hidden>
+    <div class="modal-panel">
+      <div class="modal-header">
+        <span class="modal-title" id="td-add-title"></span>
+        <button class="modal-close" id="td-add-close" type="button" aria-label="Close">&times;</button>
+      </div>
+      <div class="sx-hint" id="td-add-step" style="margin-top: 0;"></div>
+      <button class="check-all-btn" id="td-add-all" type="button"></button>
+      <div class="modal-accounts td-add-list" id="td-add-list"></div>
+      <div class="sx-hint" id="td-add-note"></div>
+      <div class="td-add-actions">
+        <button class="tz-tab" id="td-add-back" type="button" hidden>Back</button>
+        <button class="sync-action-btn" id="td-add-next" type="button"></button>
       </div>
     </div>
   </div>
@@ -2779,6 +2789,14 @@
         <label class="tb-field"><span class="candy-level-label">Team name (in game)</span><input class="particle-manual-input" id="td-team-name" type="text" maxlength="40" placeholder="Team name" autocomplete="off"></label>
       </div>
       <div class="tz-tabs td-accounts" id="td-accounts" aria-label="Account"></div>
+    </div>
+    <div class="panel">
+      <div class="particle-actions-label">Add Pokémon</div>
+      <div class="particle-action-row">
+        <input class="particle-manual-input" id="td-add-input" type="text" list="td-mons" maxlength="40" placeholder="Pokémon" autocomplete="off" autocapitalize="words" spellcheck="false" aria-label="Pokémon to add">
+        <button class="particle-btn" id="td-add-btn" type="button" disabled>Add</button>
+      </div>
+      <div class="sx-hint" id="td-add-status">Pick slots, then accounts.</div>
     </div>
     <div id="td-body"></div>
     <datalist id="td-mons"></datalist>
@@ -6119,6 +6137,10 @@
   // single place that performs the matching close, whether triggered by a
   // real back press or by history.back() called from a close button.
   window.addEventListener('popstate', () => {
+    if (!tdAddBackdrop.hidden) {
+      tdAddBackdrop.hidden = true;
+      return;
+    }
     if (!modalBackdrop.hidden) {
       modalTaskId = null;
       modalBackdrop.hidden = true;
@@ -8908,21 +8930,23 @@
     });
     return teams;
   }
-  // Per account, a deck is either Individual (the six slots above) or
-  // Duplicate: one Pokemon for all six slots plus six "ready" ticks.
-  const tdNewDups = () => Object.fromEntries(accountNames.map(n => [n, { mode: 'individual', mon: '', ready: Array(TD_SLOTS).fill(false) }]));
-  function tdCleanDups(saved) {
-    const dups = tdNewDups();
-    accountNames.forEach(acc => {
-      const e = saved && saved[acc];
-      if (!e || typeof e !== 'object') return;
-      dups[acc] = {
-        mode: e.mode === 'duplicate' ? 'duplicate' : 'individual',
-        mon: typeof e.mon === 'string' ? e.mon.slice(0, 40) : '',
-        ready: Array.from({ length: TD_SLOTS }, (_, i) => Array.isArray(e.ready) && e.ready[i] === true),
-      };
-    });
-    return dups;
+  // The short-lived Duplicate mode (v220) is gone. A deck saved in it keeps its
+  // Pokemon: it goes into the ticked, still-empty slots of the accounts that
+  // were in Duplicate mode.
+  function tdMigrateDuplicate(d) {
+    if (d.dups && typeof d.dups === 'object') {
+      accountNames.forEach(acc => {
+        const dup = d.dups[acc];
+        if (!dup || typeof dup !== 'object' || !Array.isArray(dup.ready)) return;
+        if (d.mode !== 'duplicate' && dup.mode !== 'duplicate') return;
+        const name = (typeof dup.mon === 'string' && dup.mon.trim()) || (typeof d.dupMon === 'string' && d.dupMon.trim()) || '';
+        if (!name) return;
+        d.teams[acc].forEach((slot, i) => { if (dup.ready[i] === true && !slot.mon.trim()) slot.mon = name.slice(0, 40); });
+      });
+    }
+    delete d.mode;
+    delete d.dups;
+    delete d.dupMon;
   }
   let tdData = null;
   try { tdData = JSON.parse(localStorage.getItem(TD_KEY)); } catch (e) { tdData = null; }
@@ -8932,7 +8956,7 @@
   tdData.decks.forEach((d, i) => {
     if (!Number.isInteger(d.id) || tdData.decks.some((o, j) => j < i && o.id === d.id)) d.id = Math.max(i + 1, ...tdData.decks.map(o => (Number.isInteger(o.id) ? o.id : 0))) + 1;
     d.teams = tdCleanTeams(d.teams);
-    d.dups = tdCleanDups(d.dups);
+    tdMigrateDuplicate(d);
     d.teamName = typeof d.teamName === 'string' ? d.teamName.slice(0, 40) : '';
     if (typeof d.name !== 'string' || !d.name.trim()) d.name = `Deck ${i + 1}`;
   });
@@ -8942,8 +8966,7 @@
   const tdId = (id) => document.getElementById(id);
   const tdSave = () => { try { localStorage.setItem(TD_KEY, JSON.stringify(tdData)); } catch (e) {} };
   const tdFilled = (slot) => !!(slot.mon.trim() || slot.a !== null || slot.d !== null || slot.h !== null || slot.shiny || slot.hundo);
-  const tdDupFilled = (dup) => !!(dup.mon.trim() || dup.ready.some(Boolean));
-  const tdCount = (d) => accountNames.reduce((n, acc) => n + d.teams[acc].filter(tdFilled).length + (tdDupFilled(d.dups[acc]) ? 1 : 0), 0) + (d.teamName.trim() ? 1 : 0);
+  const tdCount = (d) => accountNames.reduce((n, acc) => n + d.teams[acc].filter(tdFilled).length, 0) + (d.teamName.trim() ? 1 : 0);
   function tdPct(slot) {
     if (slot.a === null || slot.d === null || slot.h === null) return null;
     return Math.round((slot.a + slot.d + slot.h) / 45 * 100);
@@ -8973,13 +8996,13 @@
   tdId('td-deck-select').addEventListener('change', () => tdSwitchDeck(Number(tdId('td-deck-select').value)));
   tdId('td-deck-new').addEventListener('click', () => {
     const id = tdNewDeckId();
-    tdData.decks.push({ id, name: `Deck ${id}`, teamName: '', teams: tdNewTeams(), dups: tdNewDups() });
+    tdData.decks.push({ id, name: `Deck ${id}`, teamName: '', teams: tdNewTeams() });
     tdSwitchDeck(id);
     tdId('td-deck-name').focus();
   });
   tdId('td-deck-copy').addEventListener('click', () => {
     const id = tdNewDeckId();
-    tdData.decks.push({ id, name: `${tdDeck().name} copy`.slice(0, 40), teamName: tdDeck().teamName, teams: JSON.parse(JSON.stringify(tdDeck().teams)), dups: JSON.parse(JSON.stringify(tdDeck().dups)) });
+    tdData.decks.push({ id, name: `${tdDeck().name} copy`.slice(0, 40), teamName: tdDeck().teamName, teams: JSON.parse(JSON.stringify(tdDeck().teams)) });
     tdSwitchDeck(id);
   });
   tdId('td-deck-del').addEventListener('click', () => {
@@ -9038,7 +9061,7 @@
 
   function tdBuildSlot(slot, i) {
     const row = document.createElement('div');
-    row.className = 'td-slot' + (slot.shiny ? ' shiny' : '');
+    row.className = 'td-slot' + (slot.mon.trim() ? ' filled' : '') + (slot.shiny ? ' shiny' : '');
     row.innerHTML = `<div class="td-top">
         <span class="td-num">${i + 1}</span>
         <input class="particle-manual-input td-mon" type="text" list="td-mons" maxlength="40" placeholder="Pokémon" autocomplete="off" autocapitalize="words" spellcheck="false" aria-label="Pokémon ${i + 1}">
@@ -9064,7 +9087,7 @@
       shiny.setAttribute('aria-pressed', slot.shiny ? 'true' : 'false');
       row.classList.toggle('shiny', slot.shiny);
     };
-    mon.addEventListener('input', () => { slot.mon = mon.value; tdSave(); });
+    mon.addEventListener('input', () => { slot.mon = mon.value; row.classList.toggle('filled', !!slot.mon.trim()); tdSave(); });
     shiny.addEventListener('click', () => { slot.shiny = !slot.shiny; showShiny(); tdSave(); });
     const showHundo = () => {
       hundo.classList.toggle('on', slot.hundo);
@@ -9102,7 +9125,6 @@
     const host = tdId('td-body');
     host.textContent = '';
     const teams = tdDeck().teams;
-    const dups = tdDeck().dups;
     if (tdData.view === 'all') {
       accountNames.forEach(acc => {
         const slots = teams[acc];
@@ -9117,31 +9139,12 @@
         open.addEventListener('click', () => { tdData.view = acc; tdSave(); renderTeamDeck(); window.scrollTo({ top: 0 }); });
         const stat = document.createElement('span');
         const shinies = slots.filter(s => s.shiny).length;
-        const dup = dups[acc];
-        if (dup.mode === 'duplicate') {
-          const n = dup.ready.filter(Boolean).length;
-          stat.textContent = `Duplicate · ${n}/${TD_SLOTS}`;
-          title.append(open, stat);
-          card.appendChild(title);
-          const line = document.createElement('div');
-          line.className = 'td-line' + (tdDupFilled(dup) ? '' : ' empty');
-          const name = document.createElement('span');
-          name.className = 'td-l-name';
-          name.textContent = dup.mon.trim() || '—';
-          const dots = document.createElement('span');
-          dots.className = 'td-dots';
-          dup.ready.forEach(on => { const d = document.createElement('i'); d.className = on ? 'on' : ''; dots.appendChild(d); });
-          line.append(name, dots);
-          card.appendChild(line);
-          host.appendChild(card);
-          return;
-        }
         stat.textContent = `${slots.filter(s => s.mon.trim()).length}/${TD_SLOTS}` + (shinies ? ` · ${shinies}★` : '');
         title.append(open, stat);
         card.appendChild(title);
         slots.forEach(slot => {
           const line = document.createElement('div');
-          line.className = 'td-line' + (tdFilled(slot) ? '' : ' empty') + (slot.shiny ? ' shiny' : '');
+          line.className = 'td-line' + (slot.mon.trim() ? ' filled' : ' empty') + (slot.shiny ? ' shiny' : '');
           const name = document.createElement('span');
           name.className = 'td-l-name';
           name.textContent = slot.mon.trim() || '—';
@@ -9171,117 +9174,131 @@
     title.append(name, stat);
     card.appendChild(title);
 
-    // Mode: Individual (six separate slots) or Duplicate (one Pokemon, six ready ticks).
-    const dup = dups[acc];
-    const modes = document.createElement('div');
-    modes.className = 'td-mode';
-    modes.setAttribute('role', 'radiogroup');
-    modes.setAttribute('aria-label', 'Mode');
-    [['individual', 'Individual'], ['duplicate', 'Duplicate']].forEach(([value, label]) => {
-      const l = document.createElement('label');
-      const r = document.createElement('input');
-      r.type = 'radio';
-      r.name = 'td-mode';
-      r.value = value;
-      r.checked = dup.mode === value;
-      r.addEventListener('change', () => {
-        if (dup.mode === value) return;
-        // Going Duplicate -> Individual: put the Pokemon into every ticked slot that is still empty.
-        if (value === 'individual' && dup.mon.trim()) {
-          teams[acc].forEach((slot, i) => { if (dup.ready[i] && !slot.mon.trim()) slot.mon = dup.mon.trim(); });
-        }
-        dup.mode = value;
-        tdSave();
-        renderTeamDeck();
-      });
-      l.append(r, document.createTextNode(label));
-      modes.appendChild(l);
-    });
-    card.appendChild(modes);
-
-    if (dup.mode === 'duplicate') {
-      const mon = document.createElement('input');
-      mon.className = 'particle-manual-input td-dup-mon';
-      mon.type = 'text';
-      mon.setAttribute('list', 'td-mons');
-      mon.maxLength = 40;
-      mon.placeholder = 'Pokémon for all six slots';
-      mon.autocomplete = 'off';
-      mon.autocapitalize = 'words';
-      mon.spellcheck = false;
-      mon.setAttribute('aria-label', 'Pokémon for all six slots');
-      mon.value = dup.mon;
-      mon.addEventListener('input', () => { dup.mon = mon.value; tdSave(); });
-      card.appendChild(mon);
-      const grid = document.createElement('div');
-      grid.className = 'modal-accounts td-dup';
-      const showCount = () => { stat.textContent = `Duplicate · ${dup.ready.filter(Boolean).length}/${TD_SLOTS}`; };
-      dup.ready.forEach((on, i) => {
-        const row = document.createElement('div');
-        row.tabIndex = 0;
-        row.setAttribute('role', 'checkbox');
-        row.innerHTML = `<span class="box"><svg viewBox="0 0 24 24" fill="none" stroke="#0e1620" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="4 12 10 18 20 6"></polyline></svg></span><span class="name"></span>`;
-        const label = row.querySelector('.name');
-        const show = () => {
-          row.className = 'modal-account-row' + (dup.ready[i] ? ' done' : '');
-          row.setAttribute('aria-checked', String(dup.ready[i]));
-          label.textContent = dup.ready[i] ? `Slot ${i + 1} · Ready` : `Slot ${i + 1}`;
-        };
-        const toggle = () => { dup.ready[i] = !dup.ready[i]; show(); showCount(); tdSave(); };
-        row.addEventListener('click', toggle);
-        row.addEventListener('keydown', (e) => { if (e.key === ' ' || e.key === 'Enter') { e.preventDefault(); toggle(); } });
-        show();
-        grid.appendChild(row);
-      });
-      showCount();
-      card.appendChild(grid);
-    } else {
-      // One tap copies the first filled slot's Pokemon into every empty slot (same species, different IDs).
-      const fill = document.createElement('button');
-      fill.type = 'button';
-      fill.className = 'tz-tab td-fill';
-      const grid = document.createElement('div');
-      grid.className = 'td-slots';
-      const source = () => { const s = teams[acc].find(x => x.mon.trim()); return s ? s.mon.trim() : ''; };
-      const refreshFill = () => {
-        const name = source();
-        const empties = teams[acc].filter(s => !s.mon.trim()).length;
-        fill.textContent = name ? `Fill empty slots with ${name}` : 'Fill empty slots';
-        fill.disabled = !name || !empties;
-      };
-      fill.addEventListener('click', () => {
-        const name = source();
-        if (!name) return;
-        teams[acc].forEach(s => { if (!s.mon.trim()) s.mon = name; });
-        tdSave();
-        renderTeamDeck();
-      });
-      card.appendChild(fill);
-      teams[acc].forEach((slot, i) => grid.appendChild(tdBuildSlot(slot, i)));
-      grid.addEventListener('input', refreshFill);
-      refreshFill();
-      card.appendChild(grid);
-    }
+    const grid = document.createElement('div');
+    grid.className = 'td-slots';
+    teams[acc].forEach((slot, i) => grid.appendChild(tdBuildSlot(slot, i)));
+    card.appendChild(grid);
 
     const clear = document.createElement('button');
     clear.type = 'button';
     clear.className = 'clear-tracked-btn td-clear';
-    clear.textContent = dup.mode === 'duplicate' ? 'Clear duplicate team' : 'Clear this account';
+    clear.textContent = 'Clear this account';
     clear.addEventListener('click', () => {
-      if (dup.mode === 'duplicate') {
-        if (tdDupFilled(dup) && !confirm(`Clear the duplicate team for ${acc}?`)) return;
-        dup.mon = '';
-        dup.ready = Array(TD_SLOTS).fill(false);
-      } else {
-        if (teams[acc].some(tdFilled) && !confirm(`Clear all six slots for ${acc}?`)) return;
-        teams[acc] = Array.from({ length: TD_SLOTS }, tdNewSlot);
-      }
+      if (teams[acc].some(tdFilled) && !confirm(`Clear all six slots for ${acc}?`)) return;
+      teams[acc] = Array.from({ length: TD_SLOTS }, tdNewSlot);
       tdSave();
       renderTeamDeck();
     });
     card.appendChild(clear);
     host.appendChild(card);
   }
+
+  // --- Add a Pokemon to several slots and accounts at once: type it, tap Add,
+  // then step 1 picks the slots and step 2 picks the accounts. A slot that held
+  // a different Pokemon is replaced (its IVs, Hundo and Shiny go with it); a
+  // slot that already holds the same one keeps everything. ---
+  const tdAddBackdrop = tdId('td-add-backdrop');
+  const tdAddInput = tdId('td-add-input');
+  const tdAddBtn = tdId('td-add-btn');
+  let tdAddName = '';
+  let tdAddStep = 1;
+  let tdAddSlots = new Set();
+  let tdAddAccounts = new Set();
+  const TD_TICK = '<span class="box"><svg viewBox="0 0 24 24" fill="none" stroke="#0e1620" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="4 12 10 18 20 6"></polyline></svg></span>';
+  const tdSameName = (a, b) => a.trim().toLowerCase() === b.trim().toLowerCase();
+  // How many chosen slots currently hold a different Pokemon (those get replaced).
+  function tdReplaceCount() {
+    const teams = tdDeck().teams;
+    let n = 0;
+    tdAddAccounts.forEach(acc => tdAddSlots.forEach(i => {
+      const old = teams[acc][i].mon.trim();
+      if (old && !tdSameName(old, tdAddName)) n++;
+    }));
+    return n;
+  }
+  function tdRenderAddModal() {
+    const list = tdId('td-add-list');
+    list.textContent = '';
+    const pick = tdAddStep === 1 ? tdAddSlots : tdAddAccounts;
+    const items = tdAddStep === 1 ? Array.from({ length: TD_SLOTS }, (_, i) => i) : accountNames;
+    items.forEach(key => {
+      const row = document.createElement('div');
+      row.className = 'modal-account-row' + (pick.has(key) ? ' done' : '');
+      row.tabIndex = 0;
+      row.setAttribute('role', 'checkbox');
+      row.setAttribute('aria-checked', String(pick.has(key)));
+      row.innerHTML = TD_TICK + '<span class="name"></span>';
+      row.querySelector('.name').textContent = tdAddStep === 1 ? `Slot ${key + 1}` : key;
+      const toggle = () => { if (pick.has(key)) pick.delete(key); else pick.add(key); tdRenderAddModal(); };
+      row.addEventListener('click', toggle);
+      row.addEventListener('keydown', (e) => { if (e.key === ' ' || e.key === 'Enter') { e.preventDefault(); toggle(); } });
+      list.appendChild(row);
+    });
+    const all = tdId('td-add-all');
+    all.textContent = (pick.size === items.length ? 'Deselect all ' : 'Select all ') + (tdAddStep === 1 ? 'slots' : 'accounts');
+    tdId('td-add-title').textContent = `Add ${tdAddName}`;
+    tdId('td-add-step').textContent = tdAddStep === 1 ? 'Step 1 of 2 · Which slots?' : 'Step 2 of 2 · Which accounts?';
+    tdId('td-add-back').hidden = tdAddStep === 1;
+    const next = tdId('td-add-next');
+    if (tdAddStep === 1) {
+      next.textContent = 'Confirm slots';
+      next.disabled = tdAddSlots.size === 0;
+      tdId('td-add-note').textContent = '';
+    } else {
+      next.textContent = tdAddAccounts.size ? `Add to ${tdAddAccounts.size} account${tdAddAccounts.size === 1 ? '' : 's'}` : 'Add';
+      next.disabled = tdAddAccounts.size === 0;
+      const r = tdReplaceCount();
+      tdId('td-add-note').textContent = r ? `${r} slot${r === 1 ? ' holds' : 's hold'} a different Pokémon and will be replaced.` : '';
+    }
+  }
+  function tdOpenAdd() {
+    const name = tdAddInput.value.trim();
+    if (!name) { tdAddInput.focus(); return; }
+    tdAddName = name;
+    tdAddStep = 1;
+    tdAddSlots = new Set();
+    // Start with the account you are looking at (none in the All view).
+    tdAddAccounts = new Set(accountNames.includes(tdData.view) ? [tdData.view] : []);
+    tdRenderAddModal();
+    tdAddBackdrop.hidden = false;
+    history.pushState({ view: 'td-add-modal' }, '');
+  }
+  function tdCloseAdd() {
+    if (!tdAddBackdrop.hidden) history.back();
+  }
+  function tdApplyAdd() {
+    const teams = tdDeck().teams;
+    tdAddAccounts.forEach(acc => tdAddSlots.forEach(i => {
+      const slot = teams[acc][i];
+      const old = slot.mon.trim();
+      if (old && tdSameName(old, tdAddName)) return;
+      if (old) { slot.a = slot.d = slot.h = null; slot.hundo = false; slot.shiny = false; }
+      slot.mon = tdAddName;
+    }));
+    tdSave();
+    const slots = tdAddSlots.size, accs = tdAddAccounts.size;
+    tdId('td-add-status').textContent = `Added ${tdAddName} to ${slots} slot${slots === 1 ? '' : 's'} on ${accs} account${accs === 1 ? '' : 's'}.`;
+    tdAddInput.value = '';
+    tdAddBtn.disabled = true;
+    tdCloseAdd();
+    renderTeamDeck();
+  }
+  tdAddInput.addEventListener('input', () => { tdAddBtn.disabled = !tdAddInput.value.trim(); });
+  tdAddInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); tdOpenAdd(); } });
+  tdAddBtn.addEventListener('click', tdOpenAdd);
+  tdId('td-add-close').addEventListener('click', tdCloseAdd);
+  tdAddBackdrop.addEventListener('click', (e) => { if (e.target === tdAddBackdrop) tdCloseAdd(); });
+  tdId('td-add-all').addEventListener('click', () => {
+    const pick = tdAddStep === 1 ? tdAddSlots : tdAddAccounts;
+    const items = tdAddStep === 1 ? Array.from({ length: TD_SLOTS }, (_, i) => i) : accountNames;
+    if (pick.size === items.length) pick.clear(); else items.forEach(k => pick.add(k));
+    tdRenderAddModal();
+  });
+  tdId('td-add-back').addEventListener('click', () => { tdAddStep = 1; tdRenderAddModal(); });
+  tdId('td-add-next').addEventListener('click', () => {
+    if (tdAddStep === 1) { if (!tdAddSlots.size) return; tdAddStep = 2; tdRenderAddModal(); }
+    else if (tdAddAccounts.size) tdApplyAdd();
+  });
 
   function renderTeamDeck() {
     const dl = tdId('td-mons');
