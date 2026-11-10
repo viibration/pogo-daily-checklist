@@ -1252,6 +1252,11 @@
   .td-top { display: flex; gap: 4px; align-items: center; }
   .td-num { flex: 0 0 auto; font-size: 12px; font-weight: 800; color: var(--text-faint); }
   .td-top .particle-manual-input { flex: 1; min-width: 0; padding: 5px 6px; font-size: 14px; }
+  .td-copy { flex: 0 0 auto; display: grid; place-items: center; width: 26px; height: 28px; padding: 0; color: var(--text-dim); background: transparent; border: 1px solid var(--line); border-radius: 6px; cursor: pointer; }
+  .td-copy svg { width: 15px; height: 15px; }
+  .td-copy:hover:not(:disabled) { color: var(--text); border-color: var(--accent); }
+  .td-copy:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+  .td-copy:disabled { opacity: 0.3; cursor: default; }
   .td-actions { display: flex; gap: 4px; align-items: center; margin-top: 5px; }
   .td-shiny { flex: 0 0 auto; font: inherit; font-size: 11px; font-weight: 700; padding: 4px 6px; color: var(--text-dim); background: transparent; border: 1px solid var(--line); border-radius: 6px; cursor: pointer; }
   .td-shiny.on { color: #1a1200; background: #ffd23f; border-color: #ffd23f; }
@@ -9059,12 +9064,14 @@
     window.scrollTo({ top: 0 });
   });
 
-  function tdBuildSlot(slot, i) {
+  function tdBuildSlot(acc, slot, i) {
     const row = document.createElement('div');
     row.className = 'td-slot' + (slot.mon.trim() ? ' filled' : '') + (slot.shiny ? ' shiny' : '');
     row.innerHTML = `<div class="td-top">
         <span class="td-num">${i + 1}</span>
         <input class="particle-manual-input td-mon" type="text" list="td-mons" maxlength="40" placeholder="Pokémon" autocomplete="off" autocapitalize="words" spellcheck="false" aria-label="Pokémon ${i + 1}">
+        <button class="td-copy td-copy-slots" type="button" title="Copy to other slots" aria-label="Copy slot ${i + 1} to other slots"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="11" height="11" rx="2"></rect><path d="M5 15V6a2 2 0 0 1 2-2h9"></path></svg></button>
+        <button class="td-copy td-copy-accounts" type="button" title="Copy to other accounts" aria-label="Copy slot ${i + 1} to other accounts"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3"></circle><path d="M3 20v-1a5 5 0 0 1 10 0v1"></path><path d="M16 5a3 3 0 0 1 0 6"></path><path d="M21 20v-1a5 5 0 0 0-3.5-4.8"></path></svg></button>
       </div>
       <div class="td-actions">
         <button class="td-shiny td-hundo" type="button" aria-pressed="false" title="Sets 15/15/15 and locks the boxes">Hundo</button>
@@ -9087,8 +9094,13 @@
       shiny.setAttribute('aria-pressed', slot.shiny ? 'true' : 'false');
       row.classList.toggle('shiny', slot.shiny);
     };
-    mon.addEventListener('input', () => { slot.mon = mon.value; row.classList.toggle('filled', !!slot.mon.trim()); tdSave(); });
-    shiny.addEventListener('click', () => { slot.shiny = !slot.shiny; showShiny(); tdSave(); });
+    // The copy icons need something in the slot to copy.
+    const copyBtns = row.querySelectorAll('.td-copy');
+    const showCopy = () => { copyBtns.forEach(b => { b.disabled = !tdFilled(slot); }); };
+    row.querySelector('.td-copy-slots').addEventListener('click', () => tdOpenCopy(acc, i, 'copy-slots'));
+    row.querySelector('.td-copy-accounts').addEventListener('click', () => tdOpenCopy(acc, i, 'copy-accounts'));
+    mon.addEventListener('input', () => { slot.mon = mon.value; row.classList.toggle('filled', !!slot.mon.trim()); showCopy(); tdSave(); });
+    shiny.addEventListener('click', () => { slot.shiny = !slot.shiny; showShiny(); showCopy(); tdSave(); });
     const showHundo = () => {
       hundo.classList.toggle('on', slot.hundo);
       hundo.setAttribute('aria-pressed', slot.hundo ? 'true' : 'false');
@@ -9100,7 +9112,7 @@
       inp.addEventListener('input', () => {
         slot[k] = tdIv(inp.value);
         if (slot[k] !== null && String(slot[k]) !== inp.value) inp.value = slot[k];
-        showPct();
+        showPct(); showCopy();
         tdSave();
       });
     });
@@ -9112,10 +9124,10 @@
         ivInputs.forEach(inp => { inp.value = 15; });
       }
       showHundo();
-      showPct();
+      showPct(); showCopy();
       tdSave();
     });
-    showHundo();
+    showHundo(); showCopy();
     showShiny();
     showPct();
     return row;
@@ -9176,7 +9188,7 @@
 
     const grid = document.createElement('div');
     grid.className = 'td-slots';
-    teams[acc].forEach((slot, i) => grid.appendChild(tdBuildSlot(slot, i)));
+    teams[acc].forEach((slot, i) => grid.appendChild(tdBuildSlot(acc, slot, i)));
     card.appendChild(grid);
 
     const clear = document.createElement('button');
@@ -9192,112 +9204,168 @@
     card.appendChild(clear);
     host.appendChild(card);
   }
-
-  // --- Add a Pokemon to several slots and accounts at once: type it, tap Add,
-  // then step 1 picks the slots and step 2 picks the accounts. A slot that held
-  // a different Pokemon is replaced (its IVs, Hundo and Shiny go with it); a
-  // slot that already holds the same one keeps everything. ---
+  // --- One picker for three jobs: the Add Pokemon box and the two copy icons on
+  // a slot. Each job is a list of steps (slots and/or accounts) ending in one
+  // apply. Add: slots, then accounts. Copy to slots: other slots of the same
+  // account. Copy to accounts: the accounts, then the slots to fill. A copy
+  // carries the whole slot (Pokemon, IVs, Hundo, Shiny) and replaces whatever it
+  // lands on; Add replaces a slot only when it held a different Pokemon (its IVs
+  // and flags go with it) and leaves a slot that already holds the same one. ---
   const tdAddBackdrop = tdId('td-add-backdrop');
   const tdAddInput = tdId('td-add-input');
   const tdAddBtn = tdId('td-add-btn');
-  let tdAddName = '';
-  let tdAddStep = 1;
-  let tdAddSlots = new Set();
-  let tdAddAccounts = new Set();
   const TD_TICK = '<span class="box"><svg viewBox="0 0 24 24" fill="none" stroke="#0e1620" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="4 12 10 18 20 6"></polyline></svg></span>';
   const tdSameName = (a, b) => a.trim().toLowerCase() === b.trim().toLowerCase();
-  // How many chosen slots currently hold a different Pokemon (those get replaced).
-  function tdReplaceCount() {
-    const teams = tdDeck().teams;
-    let n = 0;
-    tdAddAccounts.forEach(acc => tdAddSlots.forEach(i => {
-      const old = teams[acc][i].mon.trim();
-      if (old && !tdSameName(old, tdAddName)) n++;
-    }));
-    return n;
+  const tdPlural = (n, word) => `${n} ${word}${n === 1 ? '' : 's'}`;
+  let tdFlow = null; // { kind, steps, idx, name, src, slots, accounts }
+
+  // Every (account, slot index) the flow would write to.
+  function tdFlowTargets() {
+    const f = tdFlow;
+    if (f.kind === 'copy-slots') return [...f.slots].map(i => [f.src.acc, i]);
+    return [...f.accounts].flatMap(acc => [...f.slots].map(i => [acc, i]));
   }
-  function tdRenderAddModal() {
+  // How many of those already hold something that would be replaced.
+  function tdFlowReplaceCount() {
+    const f = tdFlow, teams = tdDeck().teams;
+    return tdFlowTargets().filter(([acc, i]) => {
+      const t = teams[acc][i];
+      if (f.kind === 'add') { const old = t.mon.trim(); return !!old && !tdSameName(old, f.name); }
+      return tdFilled(t);
+    }).length;
+  }
+  // The rows of the current step; a row that cannot be picked is disabled.
+  function tdFlowItems() {
+    const f = tdFlow, teams = tdDeck().teams;
+    if (f.steps[f.idx] === 'slots') {
+      return Array.from({ length: TD_SLOTS }, (_, i) => {
+        const own = f.kind === 'copy-slots';
+        const held = own ? teams[f.src.acc][i].mon.trim() : '';
+        return { key: i, label: `Slot ${i + 1}`, sub: own ? (i === f.src.i ? 'copying this one' : held || 'empty') : '', disabled: own && i === f.src.i };
+      });
+    }
+    return accountNames.map(acc => ({ key: acc, label: acc, sub: '', disabled: f.kind === 'copy-accounts' && acc === f.src.acc }));
+  }
+  function tdRenderFlow() {
+    const f = tdFlow;
+    const kind = f.steps[f.idx];
+    const pick = kind === 'slots' ? f.slots : f.accounts;
+    const items = tdFlowItems();
     const list = tdId('td-add-list');
     list.textContent = '';
-    const pick = tdAddStep === 1 ? tdAddSlots : tdAddAccounts;
-    const items = tdAddStep === 1 ? Array.from({ length: TD_SLOTS }, (_, i) => i) : accountNames;
-    items.forEach(key => {
+    items.forEach(it => {
       const row = document.createElement('div');
-      row.className = 'modal-account-row' + (pick.has(key) ? ' done' : '');
-      row.tabIndex = 0;
+      row.className = 'modal-account-row' + (pick.has(it.key) ? ' done' : '') + (it.disabled ? ' disabled' : '');
+      row.tabIndex = it.disabled ? -1 : 0;
       row.setAttribute('role', 'checkbox');
-      row.setAttribute('aria-checked', String(pick.has(key)));
-      row.innerHTML = TD_TICK + '<span class="name"></span>';
-      row.querySelector('.name').textContent = tdAddStep === 1 ? `Slot ${key + 1}` : key;
-      const toggle = () => { if (pick.has(key)) pick.delete(key); else pick.add(key); tdRenderAddModal(); };
-      row.addEventListener('click', toggle);
-      row.addEventListener('keydown', (e) => { if (e.key === ' ' || e.key === 'Enter') { e.preventDefault(); toggle(); } });
+      row.setAttribute('aria-checked', String(pick.has(it.key)));
+      row.innerHTML = TD_TICK + '<span class="modal-account-text"><span class="name"></span><span class="modal-account-sub"></span></span>';
+      row.querySelector('.name').textContent = it.label;
+      const sub = row.querySelector('.modal-account-sub');
+      sub.textContent = it.sub;
+      sub.hidden = !it.sub;
+      if (!it.disabled) {
+        const toggle = () => { if (pick.has(it.key)) pick.delete(it.key); else pick.add(it.key); tdRenderFlow(); };
+        row.addEventListener('click', toggle);
+        row.addEventListener('keydown', (e) => { if (e.key === ' ' || e.key === 'Enter') { e.preventDefault(); toggle(); } });
+      }
       list.appendChild(row);
     });
-    const all = tdId('td-add-all');
-    all.textContent = (pick.size === items.length ? 'Deselect all ' : 'Select all ') + (tdAddStep === 1 ? 'slots' : 'accounts');
-    tdId('td-add-title').textContent = `Add ${tdAddName}`;
-    tdId('td-add-step').textContent = tdAddStep === 1 ? 'Step 1 of 2 · Which slots?' : 'Step 2 of 2 · Which accounts?';
-    tdId('td-add-back').hidden = tdAddStep === 1;
+    const pickable = items.filter(it => !it.disabled);
+    const word = kind === 'slots' ? 'slots' : 'accounts';
+    tdId('td-add-all').textContent = (pickable.length && pickable.every(it => pick.has(it.key)) ? 'Deselect all ' : 'Select all ') + word;
+    tdId('td-add-title').textContent = f.kind === 'add' ? `Add ${f.name}` : `Copy slot ${f.src.i + 1}${f.src.name ? ' · ' + f.src.name : ''}`;
+    const ask = kind === 'slots' ? (f.kind === 'copy-slots' ? 'Copy to which slots?' : 'Which slots?') : (f.kind === 'copy-accounts' ? 'Copy to which accounts?' : 'Which accounts?');
+    tdId('td-add-step').textContent = f.steps.length > 1 ? `Step ${f.idx + 1} of ${f.steps.length} · ${ask}` : ask;
+    tdId('td-add-back').hidden = f.idx === 0;
     const next = tdId('td-add-next');
-    if (tdAddStep === 1) {
-      next.textContent = 'Confirm slots';
-      next.disabled = tdAddSlots.size === 0;
+    const last = f.idx === f.steps.length - 1;
+    if (!last) {
+      next.textContent = `Confirm ${word}`;
+      next.disabled = pick.size === 0;
       tdId('td-add-note').textContent = '';
     } else {
-      next.textContent = tdAddAccounts.size ? `Add to ${tdAddAccounts.size} account${tdAddAccounts.size === 1 ? '' : 's'}` : 'Add';
-      next.disabled = tdAddAccounts.size === 0;
-      const r = tdReplaceCount();
-      tdId('td-add-note').textContent = r ? `${r} slot${r === 1 ? ' holds' : 's hold'} a different Pokémon and will be replaced.` : '';
+      const n = pick.size;
+      next.textContent = n ? (f.kind === 'add' ? `Add to ${tdPlural(n, 'account')}` : `Copy to ${tdPlural(n, kind === 'slots' ? 'slot' : 'account')}`) : (f.kind === 'add' ? 'Add' : 'Copy');
+      next.disabled = n === 0 || (f.kind === 'copy-accounts' && f.slots.size === 0);
+      const r = tdFlowReplaceCount();
+      tdId('td-add-note').textContent = !r ? '' : f.kind === 'add'
+        ? `${r} slot${r === 1 ? ' holds' : 's hold'} a different Pokémon and will be replaced.`
+        : `${r} slot${r === 1 ? ' is' : 's are'} already filled and will be replaced.`;
     }
+  }
+  function tdOpenFlow(flow) {
+    tdFlow = Object.assign({ idx: 0, name: '', src: null, slots: new Set(), accounts: new Set() }, flow);
+    tdRenderFlow();
+    tdAddBackdrop.hidden = false;
+    history.pushState({ view: 'td-add-modal' }, '');
   }
   function tdOpenAdd() {
     const name = tdAddInput.value.trim();
     if (!name) { tdAddInput.focus(); return; }
-    tdAddName = name;
-    tdAddStep = 1;
-    tdAddSlots = new Set();
     // Start with the account you are looking at (none in the All view).
-    tdAddAccounts = new Set(accountNames.includes(tdData.view) ? [tdData.view] : []);
-    tdRenderAddModal();
-    tdAddBackdrop.hidden = false;
-    history.pushState({ view: 'td-add-modal' }, '');
+    tdOpenFlow({ kind: 'add', steps: ['slots', 'accounts'], name, accounts: new Set(accountNames.includes(tdData.view) ? [tdData.view] : []) });
   }
-  function tdCloseAdd() {
+  // kind: 'copy-slots' (same account) or 'copy-accounts' (other accounts, then their slots).
+  function tdOpenCopy(acc, i, kind) {
+    const slot = tdDeck().teams[acc][i];
+    if (!tdFilled(slot)) return;
+    tdOpenFlow({
+      kind,
+      steps: kind === 'copy-slots' ? ['slots'] : ['accounts', 'slots'],
+      src: { acc, i, name: slot.mon.trim() },
+      slots: kind === 'copy-accounts' ? new Set([i]) : new Set(),
+    });
+  }
+  function tdCloseFlow() {
     if (!tdAddBackdrop.hidden) history.back();
   }
-  function tdApplyAdd() {
-    const teams = tdDeck().teams;
-    tdAddAccounts.forEach(acc => tdAddSlots.forEach(i => {
-      const slot = teams[acc][i];
-      const old = slot.mon.trim();
-      if (old && tdSameName(old, tdAddName)) return;
-      if (old) { slot.a = slot.d = slot.h = null; slot.hundo = false; slot.shiny = false; }
-      slot.mon = tdAddName;
-    }));
+  function tdApplyFlow() {
+    const f = tdFlow, teams = tdDeck().teams;
+    let message;
+    if (f.kind === 'add') {
+      tdFlowTargets().forEach(([acc, i]) => {
+        const slot = teams[acc][i];
+        const old = slot.mon.trim();
+        if (old && tdSameName(old, f.name)) return;
+        if (old) { slot.a = slot.d = slot.h = null; slot.hundo = false; slot.shiny = false; }
+        slot.mon = f.name;
+      });
+      message = `Added ${f.name} to ${tdPlural(f.slots.size, 'slot')} on ${tdPlural(f.accounts.size, 'account')}.`;
+      tdAddInput.value = '';
+      tdAddBtn.disabled = true;
+    } else {
+      const snap = JSON.stringify(teams[f.src.acc][f.src.i]);
+      const targets = tdFlowTargets();
+      targets.forEach(([acc, i]) => { teams[acc][i] = JSON.parse(snap); });
+      const what = `slot ${f.src.i + 1}${f.src.name ? ' (' + f.src.name + ')' : ''}`;
+      message = f.kind === 'copy-slots'
+        ? `Copied ${what} to ${tdPlural(targets.length, 'slot')}.`
+        : `Copied ${what} to ${tdPlural(targets.length, 'slot')} on ${tdPlural(f.accounts.size, 'account')}.`;
+    }
     tdSave();
-    const slots = tdAddSlots.size, accs = tdAddAccounts.size;
-    tdId('td-add-status').textContent = `Added ${tdAddName} to ${slots} slot${slots === 1 ? '' : 's'} on ${accs} account${accs === 1 ? '' : 's'}.`;
-    tdAddInput.value = '';
-    tdAddBtn.disabled = true;
-    tdCloseAdd();
+    tdId('td-add-status').textContent = message;
+    tdCloseFlow();
     renderTeamDeck();
   }
   tdAddInput.addEventListener('input', () => { tdAddBtn.disabled = !tdAddInput.value.trim(); });
   tdAddInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); tdOpenAdd(); } });
   tdAddBtn.addEventListener('click', tdOpenAdd);
-  tdId('td-add-close').addEventListener('click', tdCloseAdd);
-  tdAddBackdrop.addEventListener('click', (e) => { if (e.target === tdAddBackdrop) tdCloseAdd(); });
+  tdId('td-add-close').addEventListener('click', tdCloseFlow);
+  tdAddBackdrop.addEventListener('click', (e) => { if (e.target === tdAddBackdrop) tdCloseFlow(); });
   tdId('td-add-all').addEventListener('click', () => {
-    const pick = tdAddStep === 1 ? tdAddSlots : tdAddAccounts;
-    const items = tdAddStep === 1 ? Array.from({ length: TD_SLOTS }, (_, i) => i) : accountNames;
-    if (pick.size === items.length) pick.clear(); else items.forEach(k => pick.add(k));
-    tdRenderAddModal();
+    const f = tdFlow;
+    const pick = f.steps[f.idx] === 'slots' ? f.slots : f.accounts;
+    const keys = tdFlowItems().filter(it => !it.disabled).map(it => it.key);
+    if (keys.length && keys.every(k => pick.has(k))) pick.clear(); else keys.forEach(k => pick.add(k));
+    tdRenderFlow();
   });
-  tdId('td-add-back').addEventListener('click', () => { tdAddStep = 1; tdRenderAddModal(); });
+  tdId('td-add-back').addEventListener('click', () => { if (tdFlow.idx > 0) { tdFlow.idx--; tdRenderFlow(); } });
   tdId('td-add-next').addEventListener('click', () => {
-    if (tdAddStep === 1) { if (!tdAddSlots.size) return; tdAddStep = 2; tdRenderAddModal(); }
-    else if (tdAddAccounts.size) tdApplyAdd();
+    const f = tdFlow;
+    const pick = f.steps[f.idx] === 'slots' ? f.slots : f.accounts;
+    if (!pick.size) return;
+    if (f.idx < f.steps.length - 1) { f.idx++; tdRenderFlow(); } else tdApplyFlow();
   });
 
   function renderTeamDeck() {
