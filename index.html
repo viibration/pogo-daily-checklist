@@ -1531,10 +1531,34 @@
       <textarea class="particle-manual-input sync-textarea" id="sync-export-text" readonly></textarea>
       <button class="particle-btn" id="sync-copy-btn" type="button" style="width: 100%;">Copy</button>
     </div>
+    <div class="panel panel-theme-teal">
+      <div class="particle-actions-label">Or send it straight to Discord</div>
+      <div class="dq-label" style="margin-top: 0;">Self-destruct after</div>
+      <div class="tz-tabs dq-durations" id="sync-dq-durations">
+        <button class="tz-tab active" data-seconds="15" type="button">15s</button>
+        <button class="tz-tab" data-seconds="30" type="button">30s</button>
+        <button class="tz-tab" data-seconds="60" type="button">1m</button>
+      </div>
+      <button class="tz-tab dq-send" id="sync-dq-send" type="button">Send to Discord</button>
+      <div class="sx-hint" id="sync-dq-status"></div>
+      <div class="sx-hint">Posts the code to your webhook, ready to copy on the other device. Tap the selected time again to turn self-destruct off, or the message may vanish before you copy it. If the code is over Discord&rsquo;s 2000 characters it goes as a .txt file instead.</div>
+    </div>
     <div class="panel">
       <div class="particle-actions-label">Paste sync code (this overwrites this device)</div>
       <button class="particle-btn" id="sync-paste-btn" type="button">Paste &amp; Sync</button>
       <textarea class="particle-manual-input sync-textarea" id="sync-import-text" placeholder="Or paste manually into this box - it applies as soon as you paste"></textarea>
+    </div>
+    <div class="panel panel-theme-teal">
+      <div class="particle-actions-label">Discord webhook URL</div>
+      <div class="dq-hook">
+        <input class="particle-manual-input" id="sync-dq-webhook" type="password" placeholder="https://discord.com/api/webhooks/..." autocomplete="off" autocapitalize="off" spellcheck="false">
+        <button class="tz-tab" id="sync-dq-hook-toggle" type="button">Show</button>
+      </div>
+      <div class="dq-hook">
+        <button class="tz-tab" id="sync-dq-hook-save" type="button">Save</button>
+        <button class="tz-tab" id="sync-dq-hook-clear" type="button">Clear</button>
+      </div>
+      <div class="sx-hint" id="sync-dq-hook-status">Same webhook as the Discord tab. Stored only on this device; it goes nowhere except straight to Discord.</div>
     </div>
   </div>
 
@@ -10043,7 +10067,7 @@
   // The same webhook and self-destruct choice serve both places that can
   // send: the Discord tab ("dq") and the Party > Raid card ("rd-dq"). Saving or
   // clearing in one updates the other's box.
-  const DQ_PREFIXES = ['dq', 'rd-dq'];
+  const DQ_PREFIXES = ['dq', 'rd-dq', 'sync-dq'];
   const dqEachHook = (fn) => DQ_PREFIXES.forEach(p => fn(dqId(`${p}-webhook`), dqId(`${p}-hook-status`)));
   if (dqLoadHook()) {
     dqEachHook((input, status) => { input.value = dqLoadHook(); dqSay(status, 'Webhook saved.', 'ok'); });
@@ -10071,7 +10095,7 @@
     });
   });
 
-  const DQ_DURATION_GROUPS = ['dq-durations', 'rd-dq-durations'];
+  const DQ_DURATION_GROUPS = ['dq-durations', 'rd-dq-durations', 'sync-dq-durations'];
   function dqPaintDurations() {
     DQ_DURATION_GROUPS.forEach(id => dqId(id).querySelectorAll('.tz-tab').forEach(b => {
       b.classList.toggle('active', dqSeconds !== null && Number(b.dataset.seconds) === dqSeconds);
@@ -10157,21 +10181,27 @@
   // One send for both places: `from` says where the text comes from, which
   // button/status line to drive, and what to do once it has gone.
   async function dqSendFrom(from) {
-    const { text, btn, label, statusEl, onSent } = from;
+    const { text, btn, label, statusEl, onSent, file } = from;
     if (!text) return dqSay(statusEl, 'Nothing to send.', 'err');
     const webhookUrl = dqLoadHook();
     if (!webhookUrl) return dqSay(statusEl, 'Save a webhook URL first.', 'err');
-    const content = '# `' + text + '`';
+    // `file` sends the text as an attachment instead (for text over the 2000 char message limit).
+    const content = file ? file.note : '# `' + text + '`';
     if (content.length > 2000) return dqSay(statusEl, 'Message is too long for Discord once wrapped (2000 char limit).', 'err');
     btn.disabled = true;
     dqSay(statusEl, 'Sending…');
     const selfDestruct = dqSeconds !== null;
     try {
-      const res = await fetch(selfDestruct ? webhookUrl + '?wait=true' : webhookUrl, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ content }),
-      });
+      let request;
+      if (file) {
+        const form = new FormData();
+        form.append('payload_json', JSON.stringify({ content }));
+        form.append('files[0]', new Blob([text], { type: 'text/plain' }), file.name);
+        request = { method: 'POST', body: form };
+      } else {
+        request = { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ content }) };
+      }
+      const res = await fetch(selfDestruct ? webhookUrl + '?wait=true' : webhookUrl, request);
       if (!res.ok) throw new Error('Discord returned ' + res.status);
       if (selfDestruct) {
         const sent = await res.json();
@@ -10179,7 +10209,7 @@
           id: (crypto.randomUUID && crypto.randomUUID()) || `${Date.now()}-${Math.random()}`,
           webhookUrl,
           messageId: sent.id,
-          text,
+          text: file ? file.name : text,
           deleteAt: Date.now() + dqSeconds * 1000,
         };
         dqPending.push(entry);
@@ -10216,6 +10246,20 @@
   rdSendBtn.addEventListener('click', () => dqSendFrom({
     text: rdDeck().text.trim(), btn: rdSendBtn, label: 'Send to Discord', statusEl: dqId('rd-dq-status'),
   }));
+  // Manual Sync: send the sync code itself. It goes as a normal message (the
+  // import box strips the "# `...`" wrapper), or as a .txt file when it is too
+  // long for one message.
+  const syncDqSendBtn = dqId('sync-dq-send');
+  syncDqSendBtn.addEventListener('click', () => {
+    const text = syncExportText.value.trim();
+    const statusEl = dqId('sync-dq-status');
+    if (!text || text === 'Generating sync code…') return dqSay(statusEl, 'The sync code is still being made - try again in a moment.', 'err');
+    const tooLong = ('# `' + text + '`').length > 2000;
+    dqSendFrom({
+      text, btn: syncDqSendBtn, label: 'Send to Discord', statusEl,
+      file: tooLong ? { name: 'sync-code.txt', note: 'Sync code (too long for a message): open the attached file and copy its text.' } : null,
+    });
+  });
   try { dqPending = JSON.parse(localStorage.getItem(DQ_PENDING_KEY) || '[]'); } catch (e) { dqPending = []; }
   dqPending.forEach(entry => {
     if (entry.deleteAt <= Date.now()) dqFireDelete(entry);
