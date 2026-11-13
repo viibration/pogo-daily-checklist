@@ -3096,6 +3096,7 @@
       <div class="particle-actions-label">Daily limit</div>
       <div class="tb-inputs">
         <label class="tb-field"><span class="candy-level-label">Limit</span><input class="particle-manual-input" id="mp-limit" type="number" inputmode="numeric" min="1" step="1"></label>
+        <label class="tb-field"><span class="candy-level-label">Leftover</span><input class="particle-manual-input" id="mp-left" type="number" inputmode="numeric" min="0" step="1" placeholder="0"></label>
       </div>
       <div class="tz-tabs re-presets" id="mp-limit-presets">
         <button class="tz-tab" data-v="800" type="button">800</button>
@@ -3103,6 +3104,8 @@
         <button class="tz-tab" data-v="3200" type="button">3200</button>
         <button class="tz-tab" data-v="8000" type="button">8000</button>
       </div>
+      <div class="mp-result" id="mp-left-out"></div>
+      <div class="sx-hint">Leftover is yesterday&rsquo;s walking reward that you haven&rsquo;t collected yet, for example when you walked past the distance after the day&rsquo;s limit was already full. It has to be collected before today&rsquo;s walking reward, so any day that uses Walking includes it.</div>
     </div>
     <div class="panel">
       <div class="particle-actions-label">Walking</div>
@@ -3135,7 +3138,7 @@
       <div class="mp-steps" id="mp-steps"></div>
     </div>
     <div class="panel">
-      <div class="sx-hint" style="margin-top: 0;">Gains stop once your day&rsquo;s total has reached the limit, but the gain that crosses it still counts in full. So the best day fills up to just under the limit and then finishes with the biggest gain you can. The plan above finds the highest total, and among plans with that total, the one with the fewest gains. &ldquo;Spots&rdquo; is how many of that gain you can collect; leave it empty for as many as needed. Walking counts as one gain.</div>
+      <div class="sx-hint" style="margin-top: 0;">Gains stop once your day&rsquo;s total has reached the limit, but the gain that crosses it still counts in full. So the best day fills up to just under the limit and then finishes with the biggest gain you can. The plan above finds the highest total, and among plans with that total, the one with the fewest gains. &ldquo;Maximum spot(s)&rdquo; is only for when you can reach fewer of that spot than the plan wants; leave it empty and the plan tells you how many to collect. Walking counts as one gain.</div>
     </div>
   </div>
   <div id="view-showcase" hidden>
@@ -5323,12 +5326,13 @@
   const MP_MAX_ROWS = 10, MP_MAX_LIMIT = 10000, MP_MAX_GAIN = 5000;
   let mpUid = 0;
   const mpNewRow = (gain, count) => ({ uid: ++mpUid, gain: gain || 0, count: count || 0 });
-  let mpState = { limit: 800, walk: 300, rows: [mpNewRow(100), mpNewRow(120)] };
+  let mpState = { limit: 800, walk: 300, leftover: 0, rows: [mpNewRow(100), mpNewRow(120)] };
   try {
     const s = JSON.parse(localStorage.getItem(MP_KEY));
     if (s && typeof s === 'object') {
       mpState.limit = reInt(s.limit, 0, MP_MAX_LIMIT, mpState.limit);
       mpState.walk = reInt(s.walk, 0, MP_MAX_GAIN, mpState.walk);
+      mpState.leftover = reInt(s.leftover, 0, MP_MAX_GAIN, 0);
       if (Array.isArray(s.rows)) {
         mpState.rows = s.rows.filter(r => r && typeof r === 'object').slice(0, MP_MAX_ROWS)
           .map(r => mpNewRow(reInt(r.gain, 0, MP_MAX_GAIN, 0), reInt(r.count, 0, 99, 0)));
@@ -5336,57 +5340,77 @@
     }
   } catch (e) { /* storage unavailable or corrupt */ }
   const mpSave = () => {
-    try { localStorage.setItem(MP_KEY, JSON.stringify({ limit: mpState.limit, walk: mpState.walk, rows: mpState.rows.map(({ gain, count }) => ({ gain, count })) })); } catch (e) { /* storage unavailable */ }
+    try { localStorage.setItem(MP_KEY, JSON.stringify({ limit: mpState.limit, walk: mpState.walk, leftover: mpState.leftover, rows: mpState.rows.map(({ gain, count }) => ({ gain, count })) })); } catch (e) { /* storage unavailable */ }
   };
   const mpFmt = (n) => n.toLocaleString('en-US');
+  // Walking is claimed after yesterday's leftover (the leftover reward is waiting
+  // in front of it), so a day that uses Walking must use the Leftover too, and
+  // the Leftover then can't be the last gain. Without Walking the Leftover is
+  // optional. The best of those two kinds of day wins.
   function mpSolve() {
     const L = mpState.limit;
     if (!(L >= 1)) return null;
     const items = [];
     if (mpState.walk > 0) items.push({ id: 'walk', gain: mpState.walk, cap: 1, any: false });
+    if (mpState.leftover > 0) items.push({ id: 'leftover', gain: mpState.leftover, cap: 1, any: false });
     mpState.rows.forEach(r => {
       if (r.gain > 0) items.push({ id: r.uid, gain: r.gain, cap: r.count > 0 ? r.count : Math.ceil(L / r.gain), any: r.count <= 0 });
     });
     if (!items.length) return null;
-    const best = { total: -1, count: 0, finisher: null, uses: null };
+    const best = { total: -1, count: 0, finisher: null, uses: null, before: 0 };
     const byFinisher = new Map();
-    items.forEach((fin, f) => {
-      // Split each remaining supply into 1, 2, 4... pieces so a 0/1 knapsack can use any count.
-      const pieces = [];
-      items.forEach((it, i) => {
-        let left = it.cap - (i === f && !it.any ? 1 : 0);
-        for (let k = 1; left > 0; k *= 2) {
-          const take = Math.min(k, left);
-          if (it.gain * take < L) pieces.push({ i, k: take, w: it.gain * take });
-          left -= take;
-        }
-      });
-      const INF = 1e9;
-      const dp = new Int32Array(L).fill(INF);
-      dp[0] = 0;
-      const took = new Uint8Array(pieces.length * L);
-      pieces.forEach((p, pi) => {
-        for (let s = L - 1; s >= p.w; s--) {
-          if (dp[s - p.w] + p.k < dp[s]) { dp[s] = dp[s - p.w] + p.k; took[pi * L + s] = 1; }
-        }
-      });
-      let s = L - 1;
-      while (s > 0 && dp[s] >= INF) s--;
-      const total = s + fin.gain, count = dp[s] + 1;
-      byFinisher.set(fin.id, total);
-      if (total > best.total || (total === best.total && count < best.count)) {
-        const uses = new Map();
-        let t = s;
-        for (let pi = pieces.length - 1; pi >= 0; pi--) {
-          if (took[pi * L + t]) {
-            t -= pieces[pi].w;
-            const id = items[pieces[pi].i].id;
-            uses.set(id, (uses.get(id) || 0) + pieces[pi].k);
+    // One kind of day: `forced` gains must all be taken (once) and `noFinish` gains can't come last.
+    const run = (list, forced, noFinish) => {
+      list.forEach(fin => {
+        if (noFinish.has(fin.id)) return;
+        const others = list.filter(it => forced.has(it.id) && it.id !== fin.id);
+        const base = others.reduce((n, it) => n + it.gain, 0);
+        if (base > L - 1) return;
+        const cap = L - 1 - base;
+        // Split each remaining supply into 1, 2, 4... pieces so a 0/1 knapsack can use any count.
+        const pieces = [];
+        list.forEach(it => {
+          if (forced.has(it.id)) return;
+          let left = it.cap - (it === fin && !it.any ? 1 : 0);
+          for (let k = 1; left > 0; k *= 2) {
+            const take = Math.min(k, left);
+            if (it.gain * take <= cap) pieces.push({ it, k: take, w: it.gain * take });
+            left -= take;
           }
+        });
+        const INF = 1e9;
+        const dp = new Int32Array(cap + 1).fill(INF);
+        dp[0] = 0;
+        const took = new Uint8Array(pieces.length * (cap + 1));
+        pieces.forEach((p, pi) => {
+          for (let s = cap; s >= p.w; s--) {
+            if (dp[s - p.w] + p.k < dp[s]) { dp[s] = dp[s - p.w] + p.k; took[pi * (cap + 1) + s] = 1; }
+          }
+        });
+        let s = cap;
+        while (s > 0 && dp[s] >= INF) s--;
+        const total = base + s + fin.gain, count = others.length + dp[s] + 1;
+        if (total > (byFinisher.get(fin.id) ?? -1)) byFinisher.set(fin.id, total);
+        if (total > best.total || (total === best.total && count < best.count)) {
+          const uses = new Map();
+          others.forEach(it => uses.set(it.id, 1));
+          let t = s;
+          for (let pi = pieces.length - 1; pi >= 0; pi--) {
+            if (took[pi * (cap + 1) + t]) {
+              t -= pieces[pi].w;
+              uses.set(pieces[pi].it.id, (uses.get(pieces[pi].it.id) || 0) + pieces[pi].k);
+            }
+          }
+          best.total = total; best.count = count; best.finisher = fin.id; best.uses = uses; best.before = base + s;
         }
-        best.total = total; best.count = count; best.finisher = fin.id; best.uses = uses; best.before = s;
-      }
-    });
+      });
+    };
+    run(items.filter(it => it.id !== 'walk'), new Set(), new Set());
+    if (mpState.walk > 0) {
+      const withLeftover = mpState.leftover > 0;
+      run(items, new Set(withLeftover ? ['walk', 'leftover'] : ['walk']), new Set(withLeftover ? ['leftover'] : []));
+    }
+    if (best.total < 0) return null;
     best.items = items;
     best.byFinisher = byFinisher;
     return best;
@@ -5409,6 +5433,9 @@
     const walkOut = document.getElementById('mp-walk-out');
     walkOut.classList.toggle('used', isUsed('walk'));
     walkOut.innerHTML = mpState.walk > 0 ? 'Walking: ' + outFor('walk') : '';
+    const leftOut = document.getElementById('mp-left-out');
+    leftOut.classList.toggle('used', isUsed('leftover'));
+    leftOut.innerHTML = mpState.leftover > 0 ? 'Leftover: ' + outFor('leftover') : '';
     mpState.rows.forEach(r => {
       const out = document.getElementById('mp-out-' + r.uid);
       if (!out) return;
@@ -5424,7 +5451,7 @@
     const over = res.total - mpState.limit;
     subEl.textContent = `${mpFmt(res.before)} before the finishing gain (limit ${mpFmt(mpState.limit)}), so ${over >= 0 ? mpFmt(over) + ' over the limit' : mpFmt(-over) + ' under the limit'}. ${res.count} gain${res.count === 1 ? '' : 's'} in all.`;
     const gainOf = (id) => res.items.find(it => it.id === id).gain;
-    const name = (id) => (id === 'walk' ? 'Walking ' : '') + gainOf(id);
+    const name = (id) => (id === 'walk' ? 'Walking ' : id === 'leftover' ? 'Leftover ' : '') + gainOf(id);
     [...res.uses.entries()].sort((a, b) => gainOf(b[0]) - gainOf(a[0])).forEach(([id, n]) => {
       const chip = document.createElement('span');
       chip.className = 'mp-step';
@@ -5442,13 +5469,17 @@
     row.style.setProperty('--mp', RE_COLORS[i % RE_COLORS.length]);
     row.innerHTML = `<div class="mp-fields">
         <label class="tb-field"><span class="candy-level-label">Gain per spot</span><input class="particle-manual-input mp-gain" type="number" inputmode="numeric" min="0" step="1"></label>
-        <label class="tb-field"><span class="candy-level-label">Spots (blank = any)</span><input class="particle-manual-input mp-count" type="number" inputmode="numeric" min="0" max="99" step="1" placeholder="any"></label>
+        <label class="tb-field"><span class="candy-level-label mp-count-label"></span><input class="particle-manual-input mp-count" type="number" inputmode="numeric" min="0" max="99" step="1" placeholder="no limit"></label>
         <button class="tz-tab mp-del" type="button" aria-label="Remove this row">&times;</button></div>
       <div class="mp-result" id="mp-out-${r.uid}"></div>`;
     const gain = row.querySelector('.mp-gain'), count = row.querySelector('.mp-count');
+    const countLabel = row.querySelector('.mp-count-label');
+    // The cap is per gain, so the label names it: "Maximum spot(s) for 820 particle".
+    const showCountLabel = () => { countLabel.textContent = r.gain > 0 ? `Maximum spot(s) for ${r.gain} particle` : 'Maximum spot(s)'; };
     gain.value = r.gain || '';
     count.value = r.count || '';
-    gain.addEventListener('input', () => { r.gain = reInt(gain.value, 0, MP_MAX_GAIN, 0); mpSave(); updateMaxParticleCalc(); mpSyncPresets(); });
+    showCountLabel();
+    gain.addEventListener('input', () => { r.gain = reInt(gain.value, 0, MP_MAX_GAIN, 0); showCountLabel(); mpSave(); updateMaxParticleCalc(); mpSyncPresets(); });
     count.addEventListener('input', () => { r.count = reInt(count.value, 0, 99, 0); mpSave(); updateMaxParticleCalc(); });
     row.querySelector('.mp-del').addEventListener('click', () => {
       mpState.rows = mpState.rows.filter(x => x !== r);
@@ -5464,6 +5495,7 @@
     document.getElementById('mp-add-btn').disabled = mpState.rows.length >= MP_MAX_ROWS;
     document.getElementById('mp-limit').value = mpState.limit || '';
     document.getElementById('mp-walk').value = mpState.walk || '';
+    document.getElementById('mp-left').value = mpState.leftover || '';
     updateMaxParticleCalc();
     mpSyncPresets();
   }
@@ -5517,6 +5549,9 @@
   });
   document.getElementById('mp-limit').addEventListener('input', (e) => {
     mpState.limit = reInt(e.target.value, 0, MP_MAX_LIMIT, 0); mpSave(); updateMaxParticleCalc(); mpSyncPresets();
+  });
+  document.getElementById('mp-left').addEventListener('input', (e) => {
+    mpState.leftover = reInt(e.target.value, 0, MP_MAX_GAIN, 0); mpSave(); updateMaxParticleCalc();
   });
   document.getElementById('mp-walk').addEventListener('input', (e) => {
     mpState.walk = reInt(e.target.value, 0, MP_MAX_GAIN, 0); mpSave(); updateMaxParticleCalc(); mpSyncPresets();
